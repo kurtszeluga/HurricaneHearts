@@ -8,7 +8,6 @@ const approvalFilters = ["All", "Approved", "Pending"];
 const statusFilters = ["All", "Active", "Inactive"];
 const roleFilters = ["All", "Admin", "Resident"];
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
-
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
   { label: "Name Z-A", value: "name-desc" },
