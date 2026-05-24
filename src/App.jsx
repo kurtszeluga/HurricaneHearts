@@ -6,10 +6,9 @@ import useRequests from "./hooks/useRequests";
 import useRequestHistory from "./hooks/useRequestHistory";
 import useNotifications from "./hooks/useNotifications";
 import useUsers from "./hooks/useUsers";
-import LoginScreen from "./Pages/LoginScreen";
-import Dashboard from "./Pages/Dashboard";
+import LoginScreen from "./pages/LoginScreen";
+import Dashboard from "./pages/Dashboard";
 import ProfileSetup from "./components/ProfileSetup";
-
 
 export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
