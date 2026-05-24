@@ -10,6 +10,7 @@ import LoginScreen from "./pages/LoginScreen";
 import Dashboard from "./pages/Dashboard";
 import ProfileSetup from "./components/ProfileSetup";
 
+
 export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
   const activeEvent = useActiveEvent(!!user);
