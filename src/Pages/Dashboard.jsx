@@ -33,7 +33,8 @@ const pageLabels = {
   History: "History",
   Notifications: "Notifications",
   Admin: "Admin Panel",
-  Reports: "Reports"
+  Reports: "Reports",
+  Profile: "Edit Profile"
 };
 
 const pageIcons = {
@@ -44,7 +45,8 @@ const pageIcons = {
   History: "◷",
   Notifications: "🔔",
   Admin: "🛡",
-  Reports: "▦"
+  Reports: "▦",
+  Profile: "👤"
 };
 
 export default function Dashboard({
@@ -61,7 +63,6 @@ export default function Dashboard({
   const [activePage, setActivePage] = useState("Home");
   const [requestFilter, setRequestFilter] = useState({ type: "status", value: "Open" });
   const [openModal, setOpenModal] = useState(false);
-  const [editingProfile, setEditingProfile] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -73,6 +74,11 @@ export default function Dashboard({
 
   const goToPage = (page) => {
     setActivePage(page);
+    setMenuOpen(false);
+  };
+
+  const openProfilePage = () => {
+    setActivePage("Profile");
     setMenuOpen(false);
   };
 
@@ -98,8 +104,8 @@ export default function Dashboard({
         ...updatedProfile
       });
 
-      setEditingProfile(false);
       alert("Profile saved.");
+      setActivePage("Home");
     } catch (error) {
       console.error("Profile save error:", error);
       alert("Profile could not be saved. Please check the browser console for the Firebase error.");
@@ -135,6 +141,17 @@ export default function Dashboard({
   };
 
   const renderPage = () => {
+    if (activePage === "Profile") {
+      return (
+        <ProfileEditor
+          title="Edit My Profile"
+          user={user}
+          onSave={saveMyProfile}
+          onCancel={() => setActivePage("Home")}
+        />
+      );
+    }
+
     if (activePage === "Home") {
       return (
         <HomePage
@@ -207,72 +224,66 @@ export default function Dashboard({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar user={user} activeEvent={activeEvent} onEditProfile={() => setEditingProfile(true)} />
+      <Navbar user={user} activeEvent={activeEvent} onEditProfile={openProfilePage} />
 
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
         <div className="bg-white border rounded-2xl shadow-sm p-3 mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
                 {pageLabels[activePage]}
               </h2>
-              <p className="text-xs text-gray-500">
-                Use the menu to move between Hurricane Hearts pages.
-              </p>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">
-                Menu:
-              </span>
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">
+                  Menu:
+                </span>
 
-              <div className="relative w-full sm:w-56">
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-full bg-gray-50 hover:bg-gray-100 border rounded-xl px-4 py-2.5 flex items-center justify-between font-semibold text-gray-800"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{pageIcons[activePage]}</span>
-                    <span>{pageLabels[activePage]}</span>
-                  </span>
-                  <span className="text-xs text-gray-500">{menuOpen ? "▲" : "▼"}</span>
-                </button>
+                <div className="relative w-full sm:w-56">
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 border rounded-xl px-4 py-2.5 flex items-center justify-between font-semibold text-gray-800"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{pageIcons[activePage]}</span>
+                      <span>{pageLabels[activePage]}</span>
+                    </span>
+                    <span className="text-xs text-gray-500">{menuOpen ? "▲" : "▼"}</span>
+                  </button>
 
-                {menuOpen && (
-                  <div className="absolute right-0 left-0 sm:left-auto sm:w-56 mt-2 bg-white border rounded-2xl shadow-xl p-2 z-40">
-                    {visiblePages.map((page) => (
-                      <button
-                        key={page}
-                        type="button"
-                        onClick={() => goToPage(page)}
-                        className={
-                          activePage === page
-                            ? "w-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
-                            : "w-full hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
-                        }
-                      >
-                        <span className="text-base w-5 text-center">{pageIcons[page]}</span>
-                        <span>{pageLabels[page]}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  {menuOpen && (
+                    <div className="absolute right-0 left-0 sm:left-auto sm:w-56 mt-2 bg-white border rounded-2xl shadow-xl p-2 z-40">
+                      {visiblePages.map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => goToPage(page)}
+                          className={
+                            activePage === page
+                              ? "w-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
+                              : "w-full hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
+                          }
+                        >
+                          <span className="text-base w-5 text-center">{pageIcons[page]}</span>
+                          <span>{pageLabels[page]}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              <p className="text-xs text-gray-500 sm:pl-14">
+                Use the menu to move between Hurricane Hearts pages.
+              </p>
             </div>
           </div>
         </div>
 
         <main className="mx-auto w-full">
-          {editingProfile && (
-            <ProfileEditor
-              title="Edit My Profile"
-              user={user}
-              onSave={saveMyProfile}
-              onCancel={() => setEditingProfile(false)}
-            />
-          )}
-
           {renderPage()}
         </main>
       </div>

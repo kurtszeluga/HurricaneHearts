@@ -6,6 +6,10 @@ function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function adminName(user) {
+  return user.name || user.email || "Admin";
+}
+
 export default function EventAdminPanel({ user, activeEvent }) {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState(todayString());
@@ -24,26 +28,35 @@ export default function EventAdminPanel({ user, activeEvent }) {
 
     if (!confirmed) return;
 
-    const eventId = `${eventDate}-${eventName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+    const cleanEventName = eventName.trim();
+    const eventId = `${eventDate}-${cleanEventName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`;
+
+    const activatedByName = adminName(user);
 
     await setDoc(doc(db, "system", "activeEvent"), {
       active: true,
       eventId,
-      eventName: eventName.trim(),
+      eventName: cleanEventName,
       eventDate,
       activatedAt: serverTimestamp(),
       activatedByUid: user.uid,
-      activatedByName: user.name || user.email || "Admin"
+      activatedByName
     });
 
     await addDoc(collection(db, "eventHistory"), {
       eventId,
-      eventName: eventName.trim(),
+      eventName: cleanEventName,
       eventDate,
       action: "activated",
       details: "Event was activated and the request module was opened.",
       byUid: user.uid,
-      byName: user.name || user.email || "Admin",
+      byName: activatedByName,
+      activatedAt: serverTimestamp(),
+      activatedByUid: user.uid,
+      activatedByName,
       createdAt: serverTimestamp()
     });
 
@@ -59,11 +72,13 @@ export default function EventAdminPanel({ user, activeEvent }) {
 
     if (!confirmed) return;
 
+    const deactivatedByName = adminName(user);
+
     await updateDoc(doc(db, "system", "activeEvent"), {
       active: false,
       deactivatedAt: serverTimestamp(),
       deactivatedByUid: user.uid,
-      deactivatedByName: user.name || user.email || "Admin"
+      deactivatedByName
     });
 
     await addDoc(collection(db, "eventHistory"), {
@@ -73,7 +88,10 @@ export default function EventAdminPanel({ user, activeEvent }) {
       action: "deactivated",
       details: "Event was deactivated and the request module was closed.",
       byUid: user.uid,
-      byName: user.name || user.email || "Admin",
+      byName: deactivatedByName,
+      deactivatedAt: serverTimestamp(),
+      deactivatedByUid: user.uid,
+      deactivatedByName,
       createdAt: serverTimestamp()
     });
   };

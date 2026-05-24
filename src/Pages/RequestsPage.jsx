@@ -183,6 +183,7 @@ export default function RequestsPage({
                   <th className="text-left px-2 py-2 font-bold min-w-[80px]">Urgency</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[110px]">People</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[100px]">Status</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[180px]">Actions</th>
                 </tr>
               </thead>

@@ -1,0 +1,129 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function hasUserProfile() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isActiveApprovedUser() {
+      return hasUserProfile()
+        && userDoc().data.active == true
+        && userDoc().data.approved == true
+        && userDoc().data.termsAccepted == true;
+    }
+
+    function isAdmin() {
+      return isActiveApprovedUser()
+        && userDoc().data.role == "admin";
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isActiveApprovedUser() || isAdmin();
+
+      allow create: if signedIn()
+        && isOwner(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == "resident"
+        && request.resource.data.approved == false
+        && request.resource.data.active == true;
+
+      allow update: if isAdmin()
+        || (
+          isActiveApprovedUser()
+          && isOwner(userId)
+          && !request.resource.data.diff(resource.data).changedKeys().hasAny([
+            "role",
+            "approved",
+            "active",
+            "manuallyCreated"
+          ])
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /requests/{requestId} {
+      allow read: if isActiveApprovedUser();
+
+      allow create: if isActiveApprovedUser()
+        && request.resource.data.status == "Open"
+        && (
+          request.resource.data.residentUid == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update: if isAdmin()
+        || (
+          isActiveApprovedUser()
+          && resource.data.residentUid == request.auth.uid
+          && request.resource.data.residentUid == resource.data.residentUid
+        )
+        || (
+          isActiveApprovedUser()
+          && resource.data.assignedHelperUid == request.auth.uid
+          && request.resource.data.assignedHelperUid == resource.data.assignedHelperUid
+        )
+        || (
+          isActiveApprovedUser()
+          && resource.data.status == "Open"
+          && request.resource.data.status == "Assigned"
+          && request.resource.data.assignedHelperUid == request.auth.uid
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /requestHistory/{historyId} {
+      allow read: if isActiveApprovedUser();
+
+      allow create: if isActiveApprovedUser()
+        && request.resource.data.byUid == request.auth.uid;
+
+      allow update, delete: if isAdmin();
+    }
+
+    match /eventHistory/{historyId} {
+      allow read: if isActiveApprovedUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /system/{docId} {
+      allow read: if isActiveApprovedUser();
+      allow create, update: if isAdmin() && docId == "activeEvent";
+      allow delete: if isAdmin();
+    }
+
+    match /documents/{documentId} {
+      allow read: if isActiveApprovedUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isActiveApprovedUser()
+        && resource.data.toUid == request.auth.uid;
+
+      allow create: if isActiveApprovedUser();
+
+      allow update: if isActiveApprovedUser()
+        && resource.data.toUid == request.auth.uid
+        && request.resource.data.toUid == resource.data.toUid;
+
+      allow delete: if isAdmin();
+    }
+  }
+}

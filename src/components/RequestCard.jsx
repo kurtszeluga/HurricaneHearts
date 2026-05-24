@@ -22,6 +22,17 @@ function formatDate(value) {
   return "Not recorded";
 }
 
+function getClaimedBy(request) {
+  if (request.assignedHelper) return request.assignedHelper;
+  if (request.assignedHelperName) return request.assignedHelperName;
+
+  const claimNames = (request.claimCommitments || [])
+    .map((claim) => claim.name || claim.helperName || claim.email)
+    .filter(Boolean);
+
+  return claimNames.length > 0 ? claimNames.join(", ") : "—";
+}
+
 async function addRequestHistory({ requestId, eventId = "", action, user, details = "" }) {
   await addDoc(collection(db, "requestHistory"), {
     requestId,
@@ -109,6 +120,11 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
             <div className="border rounded-2xl p-3">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Status</div>
               <div>{request.status || "Open"}</div>
+            </div>
+
+            <div className="border rounded-2xl p-3">
+              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Claimed By</div>
+              <div>{getClaimedBy(request)}</div>
             </div>
 
             <div className="border rounded-2xl p-3">
@@ -219,6 +235,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
   const peopleNeeded = request.peopleNeeded ?? "Unknown";
   const peopleCommitted = getPeopleCommitted(request);
   const peopleRemaining = getPeopleRemaining(request);
+  const claimedBy = getClaimedBy(request);
   const canClaim = !isOwner && request.status === "Open" && !isClaimedByCurrentUser;
 
   const claimRequest = async () => {
@@ -451,6 +468,10 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
           </span>
         </td>
 
+        <td className="px-2 py-2 text-xs text-gray-700 min-w-[120px]">
+          {claimedBy}
+        </td>
+
         <td className="px-2 py-2">
           <div className="flex flex-wrap gap-1">
             <button
@@ -534,7 +555,10 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
                     {eligibleHelpers
                       .filter((helper) => (helper.uid || helper.id) !== request.residentUid)
                       .map((helper) => (
-                        <option key={helper.uid || helper.id} value={helper.uid || helper.id}>
+                        <option
+                          key={helper.uid || helper.id}
+                          value={helper.uid || helper.id}
+                        >
                           {helper.name || helper.email || "Unnamed Resident"}
                         </option>
                       ))}
