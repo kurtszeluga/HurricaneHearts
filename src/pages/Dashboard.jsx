@@ -290,7 +290,7 @@ export default function Dashboard({
       </div>
 
       <footer className="text-center text-xs text-gray-500 py-4">
-        © 2025 Hurricane Hearts — Arlington Ridge Community
+        © 2026 Hurricane Hearts — Arlington Ridge, Leesburg, FL
       </footer>
 
       <RequestModal
