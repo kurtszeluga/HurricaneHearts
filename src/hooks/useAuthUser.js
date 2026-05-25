@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
-const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
-const TERMS_VERSION = "1.0";
 
 function isProfileComplete(profile) {
   return Boolean(
@@ -40,53 +38,17 @@ export default function useAuthUser() {
           return;
         }
 
-        const authMode = sessionStorage.getItem(AUTH_MODE_KEY) || "login";
-        const acceptedTerms = sessionStorage.getItem("hurricaneHeartsAcceptedTerms") === "true";
         const userRef = doc(db, "users", firebaseUser.uid);
         const userSnap = await getDoc(userRef);
 
-        if (!userSnap.exists() && authMode !== "requestAccess") {
+        if (!userSnap.exists()) {
           await blockAndSignOut(
-            "No Hurricane Hearts account was found for this email address. Please choose Request Access to submit an access request."
+            "No Hurricane Hearts account profile was found for this email address. Please choose Request Access to submit an access request."
           );
           return;
         }
 
-        if (!userSnap.exists() && authMode === "requestAccess") {
-          if (!acceptedTerms) {
-            await blockAndSignOut(
-              "Please review and accept the Terms and Conditions before requesting access."
-            );
-            return;
-          }
-
-          const newProfile = {
-            uid: firebaseUser.uid,
-            name: firebaseUser.displayName || "",
-            email: firebaseUser.email || "",
-            address: "",
-            phone: "",
-            serviceCategories: [],
-            role: "resident",
-            approved: false,
-            active: true,
-            profileComplete: false,
-            authProvider: "google",
-            termsAccepted: true,
-            termsAcceptedAt: serverTimestamp(),
-            termsVersion: sessionStorage.getItem("hurricaneHeartsTermsVersion") || TERMS_VERSION,
-            accessRequestedAt: serverTimestamp(),
-            createdAt: serverTimestamp()
-          };
-
-          await setDoc(userRef, newProfile);
-          setUser(newProfile);
-          setLoading(false);
-          return;
-        }
-
         const existing = userSnap.data();
-        const token = await firebaseUser.getIdTokenResult(true);
 
         const profile = {
           uid: firebaseUser.uid,
@@ -95,12 +57,13 @@ export default function useAuthUser() {
           address: existing.address || "",
           phone: existing.phone || "",
           serviceCategories: existing.serviceCategories || [],
-          role: token?.claims?.role || existing.role || "resident",
+          role: existing.role || "resident",
           approved: existing.approved ?? false,
           active: existing.active ?? true,
           profileComplete: false,
           termsAccepted: existing.termsAccepted ?? false,
-          termsVersion: existing.termsVersion || ""
+          termsVersion: existing.termsVersion || "",
+          authProvider: existing.authProvider || "password"
         };
 
         profile.profileComplete = isProfileComplete(profile);
@@ -127,8 +90,6 @@ export default function useAuthUser() {
         }
 
         sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-        sessionStorage.removeItem("hurricaneHeartsAcceptedTerms");
-        sessionStorage.removeItem("hurricaneHeartsTermsVersion");
         setAuthMessage("");
         setUser(profile);
         setLoading(false);

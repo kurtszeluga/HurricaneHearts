@@ -4,12 +4,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  signInWithPopup,
-  signInWithRedirect,
   signOut
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider } from "../firebase/config";
+import { auth, db } from "../firebase/config";
 import TermsAndConditions from "../components/TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 
@@ -24,13 +22,13 @@ export default function LoginScreen({ message }) {
   const [mode, setMode] = useState("login");
   const [showTerms, setShowTerms] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
     name: "",
     address: "",
-    phone: "",
-    serviceCategories: []
+    phone: ""
   });
 
   const updateForm = (field, value) => {
@@ -44,17 +42,22 @@ export default function LoginScreen({ message }) {
     try {
       sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
       sessionStorage.setItem(AUTH_MODE_KEY, "login");
-      await signInWithEmailAndPassword(auth, form.email.trim(), form.password);
+
+      await signInWithEmailAndPassword(
+        auth,
+        form.email.trim(),
+        form.password
+      );
     } catch (error) {
       console.error(error);
-      alert("Login failed. Please check your email and password, or request access if you do not have an account.");
+      alert("Login failed. Please check your email and password.");
     }
   };
 
   const resetPassword = async () => {
     try {
       if (!form.email.trim()) {
-        alert("Please enter your email address first, then click Reset Password.");
+        alert("Please enter your email address first.");
         return;
       }
 
@@ -62,42 +65,19 @@ export default function LoginScreen({ message }) {
       alert("Password reset email sent. Please check your inbox.");
     } catch (error) {
       console.error(error);
-
-      if (error.code === "auth/user-not-found") {
-        alert("No account was found for that email address.");
-        return;
-      }
-
-      if (error.code === "auth/invalid-email") {
-        alert("Please enter a valid email address.");
-        return;
-      }
-
       alert("Unable to send password reset email. Please try again.");
-    }
-  };
-
-  const loginWithGoogle = async () => {
-    try {
-      sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-      sessionStorage.setItem(AUTH_MODE_KEY, "login");
-
-      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if (mobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Google login failed. If you do not already have access, please choose Request Access.");
     }
   };
 
   const requestAccessWithEmail = async () => {
     try {
-      if (!form.email.trim() || !form.password || !form.name.trim() || !form.address.trim() || !form.phone.trim()) {
+      if (
+        !form.email.trim() ||
+        !form.password ||
+        !form.name.trim() ||
+        !form.address.trim() ||
+        !form.phone.trim()
+      ) {
         alert("Please complete name, address, phone, email, and password.");
         return;
       }
@@ -134,13 +114,20 @@ export default function LoginScreen({ message }) {
 
       sessionStorage.setItem(
         BLOCK_MESSAGE_KEY,
-        "Your access request has been submitted and is pending admin approval. Please contact the Hurricane Hearts administrator if you need access sooner."
+        "Your access request has been submitted and is pending admin approval."
       );
 
       await signOut(auth);
+
       setMode("login");
       setAcceptedTerms(false);
-      setForm({ email: form.email, password: "", name: "", address: "", phone: "", serviceCategories: [] });
+      setForm({
+        email: form.email,
+        password: "",
+        name: "",
+        address: "",
+        phone: ""
+      });
     } catch (error) {
       console.error(error);
 
@@ -155,31 +142,6 @@ export default function LoginScreen({ message }) {
       }
 
       alert("Unable to submit access request. Please try again.");
-    }
-  };
-
-  const requestAccessWithGoogle = async () => {
-    try {
-      if (!acceptedTerms) {
-        alert("Please review and accept the Terms and Conditions before requesting access with Google.");
-        return;
-      }
-
-      sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-      sessionStorage.setItem(AUTH_MODE_KEY, "requestAccess");
-      sessionStorage.setItem("hurricaneHeartsAcceptedTerms", "true");
-      sessionStorage.setItem("hurricaneHeartsTermsVersion", TERMS_VERSION);
-
-      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if (mobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Google request access failed. Please try again.");
     }
   };
 
@@ -199,8 +161,8 @@ export default function LoginScreen({ message }) {
 
           <div>
             <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-            Hurricane He<span className="text-red-600">AR</span>ts
-          </h1>
+              Hurricane He<span className="text-red-600">AR</span>ts
+            </h1>
             <p className="text-gray-600">Arlington Ridge Community</p>
           </div>
         </div>
@@ -260,7 +222,9 @@ export default function LoginScreen({ message }) {
 
             <div className="bg-gray-50 border rounded-2xl p-4">
               <div className="font-semibold mb-2">Terms and Conditions</div>
+
               <button
+                type="button"
                 onClick={() => setShowTerms(true)}
                 className="bg-white border px-4 py-2 rounded-xl font-semibold mr-3"
               >
@@ -300,7 +264,7 @@ export default function LoginScreen({ message }) {
             onClick={mode === "login" ? loginWithEmail : requestAccessWithEmail}
             className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-semibold transition"
           >
-            {mode === "login" ? "Login with Email" : "Submit Email Access Request"}
+            {mode === "login" ? "Login" : "Submit Access Request"}
           </button>
 
           {mode === "login" && (
@@ -312,13 +276,6 @@ export default function LoginScreen({ message }) {
               Forgot password? Reset Password
             </button>
           )}
-
-          <button
-            onClick={mode === "login" ? loginWithGoogle : requestAccessWithGoogle}
-            className="w-full bg-white hover:bg-gray-50 text-gray-800 py-4 rounded-2xl font-semibold transition border"
-          >
-            {mode === "login" ? "Login with Google" : "Request Access with Google"}
-          </button>
         </div>
 
         <p className="text-xs text-gray-500 mt-5 text-center">
