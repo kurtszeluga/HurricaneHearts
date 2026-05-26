@@ -290,7 +290,7 @@ export default function Dashboard({
       </div>
 
       <footer className="text-center text-xs text-gray-500 py-4">
-        © 2026 Hurricane Hearts — Arlington Ridge v.1 TEST 
+        © 2026 Hurricane Hearts — Arlington Ridge Community v.1.0
       </footer>
 
       <RequestModal
