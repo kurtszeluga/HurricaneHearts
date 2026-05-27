@@ -54,6 +54,9 @@ export default function LoginScreen({ message }) {
   const [showSuccessSplash, setShowSuccessSplash] =
     useState(false);
 
+  const [submitting, setSubmitting] =
+    useState(false);
+
   const emptyForm = {
     email: "",
     password: "",
@@ -140,7 +143,13 @@ export default function LoginScreen({ message }) {
 
   const requestAccessWithEmail = async () => {
 
+    if (submitting) {
+      return;
+    }
+
     try {
+
+      setSubmitting(true);
 
       if (
         !form.email.trim() ||
@@ -154,6 +163,8 @@ export default function LoginScreen({ message }) {
           "Please complete name, address, phone, email, and password."
         );
 
+        setSubmitting(false);
+
         return;
       }
 
@@ -162,6 +173,8 @@ export default function LoginScreen({ message }) {
         alert(
           "Please review and accept the Terms and Conditions before submitting your access request."
         );
+
+        setSubmitting(false);
 
         return;
       }
@@ -233,7 +246,13 @@ export default function LoginScreen({ message }) {
 
       await signOut(auth);
 
-      setForm(emptyForm);
+      setForm({
+        email: "",
+        password: "",
+        name: "",
+        address: "",
+        phone: ""
+      });
 
       setAcceptedTerms(false);
 
@@ -284,6 +303,10 @@ export default function LoginScreen({ message }) {
       alert(
         "Unable to submit access request. Please try again."
       );
+
+    } finally {
+
+      setSubmitting(false);
     }
   };
 
@@ -492,17 +515,24 @@ export default function LoginScreen({ message }) {
           />
 
           <button
+            disabled={submitting}
             onClick={
               mode === "login"
                 ? loginWithEmail
                 : requestAccessWithEmail
             }
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-semibold transition"
+            className={`w-full py-4 rounded-2xl font-semibold transition text-white ${
+              submitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-red-600 hover:bg-red-700"
+            }`}
           >
 
             {mode === "login"
               ? "Login"
-              : "Submit Access Request"}
+              : submitting
+                ? "Submitting..."
+                : "Submit Access Request"}
 
           </button>
 
