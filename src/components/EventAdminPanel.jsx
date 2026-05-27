@@ -10,7 +10,11 @@ function adminName(user) {
   return user.name || user.email || "Admin";
 }
 
-export default function EventAdminPanel({ user, activeEvent }) {
+function isOpenOrUncompletedRequest(request) {
+  return request.status !== "Completed" && request.status !== "Cancelled";
+}
+
+export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState(todayString());
 
@@ -43,7 +47,13 @@ export default function EventAdminPanel({ user, activeEvent }) {
       eventDate,
       activatedAt: serverTimestamp(),
       activatedByUid: user.uid,
-      activatedByName
+      activatedByName,
+      reopenedAt: null,
+      reopenedByUid: null,
+      reopenedByName: null,
+      deactivatedAt: null,
+      deactivatedByUid: null,
+      deactivatedByName: null
     });
 
     await addDoc(collection(db, "eventHistory"), {
@@ -66,9 +76,21 @@ export default function EventAdminPanel({ user, activeEvent }) {
   const deactivateEvent = async () => {
     if (!activeEvent) return;
 
-    const confirmed = window.confirm(
-      `Deactivate '${activeEvent.eventName}'? This will close the request module. Existing requests remain stored under this event.`
-    );
+    const activeEventRequests = requests.filter((request) => {
+      return request.eventId === activeEvent.eventId && isOpenOrUncompletedRequest(request);
+    });
+
+    let confirmMessage = `Deactivate '${activeEvent.eventName}'? This will close the request module. Existing requests remain stored under this event.`;
+
+    if (activeEventRequests.length > 0) {
+      confirmMessage = `WARNING: This event still has ${activeEventRequests.length} open or uncompleted request${activeEventRequests.length === 1 ? "" : "s"}.
+
+Deactivating the event will close the request module, but the requests will remain stored in history.
+
+Do you still want to deactivate '${activeEvent.eventName}'?`;
+    }
+
+    const confirmed = window.confirm(confirmMessage);
 
     if (!confirmed) return;
 
@@ -86,7 +108,11 @@ export default function EventAdminPanel({ user, activeEvent }) {
       eventName: activeEvent.eventName,
       eventDate: activeEvent.eventDate,
       action: "deactivated",
-      details: "Event was deactivated and the request module was closed.",
+      details:
+        activeEventRequests.length > 0
+          ? `Event was deactivated with ${activeEventRequests.length} open or uncompleted request${activeEventRequests.length === 1 ? "" : "s"}.`
+          : "Event was deactivated and the request module was closed.",
+      openOrUncompletedRequestCount: activeEventRequests.length,
       byUid: user.uid,
       byName: deactivatedByName,
       deactivatedAt: serverTimestamp(),
