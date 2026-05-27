@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -6,7 +7,6 @@ import {
   sendPasswordResetEmail,
   signOut
 } from "firebase/auth";
-
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 import { auth, db } from "../firebase/config";
@@ -34,4 +34,5 @@ export default function LoginScreen({ message }) {
   const displayMessage = message || storedMessage;
 
   const [mode, setMode] = useState("login");
+  const [showTerms, setShowTerms] = useState(false);
 }
