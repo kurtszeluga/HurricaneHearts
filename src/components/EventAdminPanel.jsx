@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+  updateDoc
+} from "firebase/firestore";
+
 import { db } from "../firebase/config";
 
 function todayString() {
@@ -11,161 +19,292 @@ function adminName(user) {
 }
 
 function isOpenOrUncompletedRequest(request) {
-  return request.status !== "Completed" && request.status !== "Cancelled";
+  return (
+    request.status !== "Completed" &&
+    request.status !== "Cancelled"
+  );
 }
 
-export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
-  const [eventName, setEventName] = useState("");
-  const [eventDate, setEventDate] = useState(todayString());
+export default function EventAdminPanel({
+  user,
+  activeEvent,
+  requests = []
+}) {
+
+  const [eventName, setEventName] =
+    useState("");
+
+  const [eventDate, setEventDate] =
+    useState(todayString());
 
   if (user.role !== "admin") return null;
 
   const activateEvent = async () => {
+
     if (!eventName.trim()) {
-      alert("Please enter an event name.");
+
+      alert(
+        "Please enter an event name."
+      );
+
       return;
     }
 
     const confirmed = window.confirm(
-      `Activate event '${eventName.trim()}' dated ${eventDate}? This will open the request module for this event.`
+      `Activate event '${eventName.trim()}' dated ${eventDate}?`
     );
 
     if (!confirmed) return;
 
-    const cleanEventName = eventName.trim();
-    const eventId = `${eventDate}-${cleanEventName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")}`;
+    const cleanEventName =
+      eventName.trim();
 
-    const activatedByName = adminName(user);
+    const eventId =
+      `${eventDate}-${cleanEventName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")}`;
 
-    await setDoc(doc(db, "system", "activeEvent"), {
-      active: true,
-      eventId,
-      eventName: cleanEventName,
-      eventDate,
-      activatedAt: serverTimestamp(),
-      activatedByUid: user.uid,
-      activatedByName,
-      reopenedAt: null,
-      reopenedByUid: null,
-      reopenedByName: null,
-      deactivatedAt: null,
-      deactivatedByUid: null,
-      deactivatedByName: null
-    });
+    const activatedByName =
+      adminName(user);
 
-    await addDoc(collection(db, "eventHistory"), {
-      eventId,
-      eventName: cleanEventName,
-      eventDate,
-      action: "activated",
-      details: "Event was activated and the request module was opened.",
-      byUid: user.uid,
-      byName: activatedByName,
-      activatedAt: serverTimestamp(),
-      activatedByUid: user.uid,
-      activatedByName,
-      createdAt: serverTimestamp()
-    });
+    await setDoc(
+      doc(db, "system", "activeEvent"),
+      {
+        active: true,
+        eventId,
+        eventName: cleanEventName,
+        eventDate,
+        activatedAt: serverTimestamp(),
+        activatedByUid: user.uid,
+        activatedByName,
+        reopenedAt: null,
+        reopenedByUid: null,
+        reopenedByName: null,
+        deactivatedAt: null,
+        deactivatedByUid: null,
+        deactivatedByName: null
+      }
+    );
+
+    await addDoc(
+      collection(db, "eventHistory"),
+      {
+        eventId,
+        eventName: cleanEventName,
+        eventDate,
+        action: "activated",
+        details:
+          "Event was activated and request module opened.",
+        byUid: user.uid,
+        byName: activatedByName,
+        activatedAt: serverTimestamp(),
+        activatedByUid: user.uid,
+        activatedByName,
+        createdAt: serverTimestamp()
+      }
+    );
 
     setEventName("");
   };
 
   const deactivateEvent = async () => {
+
     if (!activeEvent) return;
 
-    const activeEventRequests = requests.filter((request) => {
-      return request.eventId === activeEvent.eventId && isOpenOrUncompletedRequest(request);
-    });
+    const activeEventRequests =
+      requests.filter((request) => {
 
-    let confirmMessage = `Deactivate '${activeEvent.eventName}'? This will close the request module. Existing requests remain stored under this event.`;
+        return (
+          request.eventId ===
+            activeEvent.eventId &&
+          isOpenOrUncompletedRequest(
+            request
+          )
+        );
+      });
 
-    if (activeEventRequests.length > 0) {
-      confirmMessage = `WARNING: This event still has ${activeEventRequests.length} open or uncompleted request${activeEventRequests.length === 1 ? "" : "s"}.
+    let confirmMessage =
+      `Deactivate '${activeEvent.eventName}'?`;
 
-Deactivating the event will close the request module, but the requests will remain stored in history.
+    if (
+      activeEventRequests.length > 0
+    ) {
 
-Do you still want to deactivate '${activeEvent.eventName}'?`;
+      confirmMessage =
+        `WARNING:
+
+${activeEventRequests.length} open or incomplete requests still exist.
+
+Deactivate '${activeEvent.eventName}' anyway?`;
     }
 
-    const confirmed = window.confirm(confirmMessage);
+    const confirmed =
+      window.confirm(confirmMessage);
 
     if (!confirmed) return;
 
-    const deactivatedByName = adminName(user);
+    const deactivatedByName =
+      adminName(user);
 
-    await updateDoc(doc(db, "system", "activeEvent"), {
-      active: false,
-      deactivatedAt: serverTimestamp(),
-      deactivatedByUid: user.uid,
-      deactivatedByName
-    });
+    await updateDoc(
+      doc(db, "system", "activeEvent"),
+      {
+        active: false,
+        deactivatedAt:
+          serverTimestamp(),
+        deactivatedByUid:
+          user.uid,
+        deactivatedByName
+      }
+    );
 
-    await addDoc(collection(db, "eventHistory"), {
-      eventId: activeEvent.eventId,
-      eventName: activeEvent.eventName,
-      eventDate: activeEvent.eventDate,
-      action: "deactivated",
-      details:
-        activeEventRequests.length > 0
-          ? `Event was deactivated with ${activeEventRequests.length} open or uncompleted request${activeEventRequests.length === 1 ? "" : "s"}.`
-          : "Event was deactivated and the request module was closed.",
-      openOrUncompletedRequestCount: activeEventRequests.length,
-      byUid: user.uid,
-      byName: deactivatedByName,
-      deactivatedAt: serverTimestamp(),
-      deactivatedByUid: user.uid,
-      deactivatedByName,
-      createdAt: serverTimestamp()
-    });
+    await addDoc(
+      collection(db, "eventHistory"),
+      {
+        eventId:
+          activeEvent.eventId,
+
+        eventName:
+          activeEvent.eventName,
+
+        eventDate:
+          activeEvent.eventDate,
+
+        action: "deactivated",
+
+        details:
+          activeEventRequests.length >
+          0
+            ? `Event deactivated with ${activeEventRequests.length} open request(s).`
+            : "Event deactivated.",
+
+        openOrUncompletedRequestCount:
+          activeEventRequests.length,
+
+        byUid: user.uid,
+        byName: deactivatedByName,
+
+        deactivatedAt:
+          serverTimestamp(),
+
+        deactivatedByUid:
+          user.uid,
+
+        deactivatedByName,
+
+        createdAt:
+          serverTimestamp()
+      }
+    );
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-md p-6 mb-8 border-l-4 border-red-600">
-      <h2 className="text-2xl font-bold mb-2">Event Control</h2>
-      <p className="text-sm text-gray-500 mb-5">
-        Activate an event to open the request and claim module. Deactivate the event when the event is over.
-      </p>
+
+    <div className="bg-white rounded-3xl shadow-md p-4 mb-6 border-l-4 border-red-600">
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
+
+        <div>
+
+          <h2 className="text-xl font-bold">
+            Event Control
+          </h2>
+
+          <p className="text-xs text-gray-500">
+            Control the active disaster event.
+          </p>
+
+        </div>
+
+      </div>
 
       {activeEvent ? (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-          <div className="text-sm text-green-700 font-semibold mb-1">Current Active Event</div>
-          <div className="text-2xl font-bold text-green-900">{activeEvent.eventName}</div>
-          <div className="text-green-800 mb-4">Date: {activeEvent.eventDate}</div>
 
-          <button
-            onClick={deactivateEvent}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-semibold"
-          >
-            Deactivate Event
-          </button>
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+
+            <div>
+
+              <div className="text-[11px] uppercase tracking-wide text-green-700 font-semibold mb-1">
+                Active Event
+              </div>
+
+              <div className="text-lg font-bold text-green-900 leading-tight">
+                {activeEvent.eventName}
+              </div>
+
+              <div className="text-sm text-green-800">
+                {activeEvent.eventDate}
+              </div>
+
+            </div>
+
+            <button
+              onClick={deactivateEvent}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap"
+            >
+              Deactivate Event
+            </button>
+
+          </div>
+
         </div>
-      ) : (
-        <div className="grid md:grid-cols-3 gap-3">
-          <input
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            placeholder="Event name, such as Hurricane Milton"
-            className="border rounded-2xl px-4 py-3 bg-white md:col-span-2"
-          />
 
-          <input
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            type="date"
-            className="border rounded-2xl px-4 py-3 bg-white"
-          />
+      ) : (
+
+        <div className="grid md:grid-cols-[1.8fr_1fr_auto] gap-2 items-end">
+
+          <div>
+
+            <label className="block text-[11px] text-gray-500 mb-1">
+              Event Name
+            </label>
+
+            <input
+              value={eventName}
+              onChange={(e) =>
+                setEventName(
+                  e.target.value
+                )
+              }
+              placeholder="Hurricane Milton"
+              className="border rounded-xl px-3 py-2 bg-white w-full text-sm"
+            />
+
+          </div>
+
+          <div>
+
+            <label className="block text-[11px] text-gray-500 mb-1">
+              Event Date
+            </label>
+
+            <input
+              value={eventDate}
+              onChange={(e) =>
+                setEventDate(
+                  e.target.value
+                )
+              }
+              type="date"
+              className="border rounded-xl px-3 py-2 bg-white w-full text-sm"
+            />
+
+          </div>
 
           <button
             onClick={activateEvent}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-semibold md:col-span-3"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm h-[42px]"
           >
-            Activate Event
+            Activate
           </button>
+
         </div>
+
       )}
+
     </div>
   );
 }
