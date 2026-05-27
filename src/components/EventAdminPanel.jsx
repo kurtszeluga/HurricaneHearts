@@ -203,47 +203,39 @@ Deactivate '${activeEvent.eventName}' anyway?`;
 
     <div className="bg-white rounded-3xl shadow-md p-4 mb-6 border-l-4 border-red-600">
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
+      <div className="text-center mb-4">
 
-        <div>
+        <h2 className="text-xl font-bold">
+          Event Control
+        </h2>
 
-          <h2 className="text-xl font-bold">
-            Event Control
-          </h2>
-
-          <p className="text-xs text-gray-500">
-            Control the active disaster event.
-          </p>
-
-        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Control the active disaster event
+        </p>
 
       </div>
 
       {activeEvent ? (
 
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="text-[11px] uppercase tracking-wide text-green-700 font-semibold mb-1">
+            Active Event
+          </div>
 
-            <div>
+          <div className="text-lg font-bold text-green-900 leading-tight">
+            {activeEvent.eventName}
+          </div>
 
-              <div className="text-[11px] uppercase tracking-wide text-green-700 font-semibold mb-1">
-                Active Event
-              </div>
+          <div className="text-sm text-green-800 mb-4">
+            {activeEvent.eventDate}
+          </div>
 
-              <div className="text-lg font-bold text-green-900 leading-tight">
-                {activeEvent.eventName}
-              </div>
-
-              <div className="text-sm text-green-800">
-                {activeEvent.eventDate}
-              </div>
-
-            </div>
+          <div className="flex justify-center">
 
             <button
               onClick={deactivateEvent}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap"
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm"
             >
               Deactivate Event
             </button>
@@ -254,11 +246,11 @@ Deactivate '${activeEvent.eventName}' anyway?`;
 
       ) : (
 
-        <div className="grid md:grid-cols-[1.8fr_1fr_auto] gap-2 items-end">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-3">
 
-          <div>
+          <div className="w-full lg:w-[340px]">
 
-            <label className="block text-[11px] text-gray-500 mb-1">
+            <label className="block text-[11px] text-gray-500 mb-1 text-center">
               Event Name
             </label>
 
@@ -270,14 +262,14 @@ Deactivate '${activeEvent.eventName}' anyway?`;
                 )
               }
               placeholder="Hurricane Milton"
-              className="border rounded-xl px-3 py-2 bg-white w-full text-sm"
+              className="border rounded-xl px-3 py-2 bg-white w-full text-sm text-center"
             />
 
           </div>
 
-          <div>
+          <div className="w-full lg:w-[180px]">
 
-            <label className="block text-[11px] text-gray-500 mb-1">
+            <label className="block text-[11px] text-gray-500 mb-1 text-center">
               Event Date
             </label>
 
@@ -289,17 +281,21 @@ Deactivate '${activeEvent.eventName}' anyway?`;
                 )
               }
               type="date"
-              className="border rounded-xl px-3 py-2 bg-white w-full text-sm"
+              className="border rounded-xl px-3 py-2 bg-white w-full text-sm text-center"
             />
 
           </div>
 
-          <button
-            onClick={activateEvent}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm h-[42px]"
-          >
-            Activate
-          </button>
+          <div className="pt-0 lg:pt-5">
+
+            <button
+              onClick={activateEvent}
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-semibold text-sm"
+            >
+              Activate
+            </button>
+
+          </div>
 
         </div>
 
