@@ -1,13 +1,24 @@
 import { useMemo, useState } from "react";
-import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  updateDoc
+} from "firebase/firestore";
 import { db } from "../firebase/config";
 import ProfileEditor from "./ProfileEditor";
-import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
+import {
+  formatPhoneNumber,
+  normalizePhoneNumber
+} from "../utils/formatPhoneNumber";
 
 const approvalFilters = ["All", "Approved", "Pending"];
 const statusFilters = ["All", "Active", "Inactive"];
 const roleFilters = ["All", "Admin", "Resident"];
+
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
+
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
   { label: "Name Z-A", value: "name-desc" },
@@ -22,17 +33,23 @@ const sortOptions = [
 ];
 
 function getUserRole(u) {
-  return u.email === PRIMARY_OWNER_EMAIL ? "admin" : (u.role || "resident");
+  return u.email === PRIMARY_OWNER_EMAIL
+    ? "admin"
+    : u.role || "resident";
 }
 
 export default function AdminPanel({ user, users }) {
   const [editingUser, setEditingUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [search, setSearch] = useState("");
-  const [approvalFilter, setApprovalFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [roleFilter, setRoleFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("name-asc");
+  const [approvalFilter, setApprovalFilter] =
+    useState("All");
+  const [statusFilter, setStatusFilter] =
+    useState("All");
+  const [roleFilter, setRoleFilter] =
+    useState("All");
+  const [sortBy, setSortBy] =
+    useState("name-asc");
 
   if (user.role !== "admin") return null;
 
@@ -47,27 +64,49 @@ export default function AdminPanel({ user, users }) {
           (u.name || "").toLowerCase().includes(term) ||
           (u.email || "").toLowerCase().includes(term) ||
           (u.phone || "").toLowerCase().includes(term) ||
-          formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
-          formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
+          formatPhoneNumber(u.phone || "")
+            .toLowerCase()
+            .includes(term) ||
           (u.address || "").toLowerCase().includes(term)
         );
       })
       .filter((u) => {
         const approved = u.approved !== false;
-        if (approvalFilter === "Approved") return approved;
-        if (approvalFilter === "Pending") return !approved;
+
+        if (approvalFilter === "Approved") {
+          return approved;
+        }
+
+        if (approvalFilter === "Pending") {
+          return !approved;
+        }
+
         return true;
       })
       .filter((u) => {
         const active = u.active !== false;
-        if (statusFilter === "Active") return active;
-        if (statusFilter === "Inactive") return !active;
+
+        if (statusFilter === "Active") {
+          return active;
+        }
+
+        if (statusFilter === "Inactive") {
+          return !active;
+        }
+
         return true;
       })
       .filter((u) => {
         const role = getUserRole(u);
-        if (roleFilter === "Admin") return role === "admin";
-        if (roleFilter === "Resident") return role !== "admin";
+
+        if (roleFilter === "Admin") {
+          return role === "admin";
+        }
+
+        if (roleFilter === "Resident") {
+          return role !== "admin";
+        }
+
         return true;
       });
 
@@ -78,49 +117,166 @@ export default function AdminPanel({ user, users }) {
       const emailB = (b.email || "").toLowerCase();
       const addressA = (a.address || "").toLowerCase();
       const addressB = (b.address || "").toLowerCase();
+
       const approvedA = a.approved !== false;
       const approvedB = b.approved !== false;
+
       const activeA = a.active !== false;
       const activeB = b.active !== false;
+
       const adminA = getUserRole(a) === "admin";
       const adminB = getUserRole(b) === "admin";
 
-      if (sortBy === "name-asc") return nameA.localeCompare(nameB);
-      if (sortBy === "name-desc") return nameB.localeCompare(nameA);
-      if (sortBy === "email-asc") return emailA.localeCompare(emailB);
-      if (sortBy === "address-asc") return addressA.localeCompare(addressB);
-      if (sortBy === "admin-first") return Number(adminB) - Number(adminA);
-      if (sortBy === "resident-first") return Number(adminA) - Number(adminB);
-      if (sortBy === "approved-first") return Number(approvedB) - Number(approvedA);
-      if (sortBy === "pending-first") return Number(approvedA) - Number(approvedB);
-      if (sortBy === "active-first") return Number(activeB) - Number(activeA);
-      if (sortBy === "inactive-first") return Number(activeA) - Number(activeB);
+      if (sortBy === "name-asc") {
+        return nameA.localeCompare(nameB);
+      }
+
+      if (sortBy === "name-desc") {
+        return nameB.localeCompare(nameA);
+      }
+
+      if (sortBy === "email-asc") {
+        return emailA.localeCompare(emailB);
+      }
+
+      if (sortBy === "address-asc") {
+        return addressA.localeCompare(addressB);
+      }
+
+      if (sortBy === "admin-first") {
+        return Number(adminB) - Number(adminA);
+      }
+
+      if (sortBy === "resident-first") {
+        return Number(adminA) - Number(adminB);
+      }
+
+      if (sortBy === "approved-first") {
+        return Number(approvedB) - Number(approvedA);
+      }
+
+      if (sortBy === "pending-first") {
+        return Number(approvedA) - Number(approvedB);
+      }
+
+      if (sortBy === "active-first") {
+        return Number(activeB) - Number(activeA);
+      }
+
+      if (sortBy === "inactive-first") {
+        return Number(activeA) - Number(activeB);
+      }
 
       return nameA.localeCompare(nameB);
     });
 
     return sorted;
-  }, [users, search, approvalFilter, statusFilter, roleFilter, sortBy]);
+  }, [
+    users,
+    search,
+    approvalFilter,
+    statusFilter,
+    roleFilter,
+    sortBy
+  ]);
 
   const summary = useMemo(() => {
-    const approved = users.filter((u) => u.approved !== false).length;
-    const pending = users.filter((u) => u.approved === false).length;
-    const active = users.filter((u) => u.active !== false).length;
-    const inactive = users.filter((u) => u.active === false).length;
-    const admins = users.filter((u) => getUserRole(u) === "admin").length;
-    const residents = users.filter((u) => getUserRole(u) !== "admin").length;
+    const approved =
+      users.filter((u) => u.approved !== false).length;
 
-    return { approved, pending, active, inactive, admins, residents };
+    const pending =
+      users.filter((u) => u.approved === false).length;
+
+    const active =
+      users.filter((u) => u.active !== false).length;
+
+    const inactive =
+      users.filter((u) => u.active === false).length;
+
+    const admins =
+      users.filter((u) => getUserRole(u) === "admin").length;
+
+    const residents =
+      users.filter((u) => getUserRole(u) !== "admin").length;
+
+    return {
+      approved,
+      pending,
+      active,
+      inactive,
+      admins,
+      residents
+    };
   }, [users]);
 
+  const applySummaryFilter = (type) => {
+    setSearch("");
+
+    if (type === "Approved") {
+      setApprovalFilter("Approved");
+      setStatusFilter("All");
+      setRoleFilter("All");
+      setSortBy("approved-first");
+      return;
+    }
+
+    if (type === "Pending") {
+      setApprovalFilter("Pending");
+      setStatusFilter("All");
+      setRoleFilter("All");
+      setSortBy("pending-first");
+      return;
+    }
+
+    if (type === "Active") {
+      setApprovalFilter("All");
+      setStatusFilter("Active");
+      setRoleFilter("All");
+      setSortBy("active-first");
+      return;
+    }
+
+    if (type === "Inactive") {
+      setApprovalFilter("All");
+      setStatusFilter("Inactive");
+      setRoleFilter("All");
+      setSortBy("inactive-first");
+      return;
+    }
+
+    if (type === "Admin") {
+      setApprovalFilter("All");
+      setStatusFilter("All");
+      setRoleFilter("Admin");
+      setSortBy("admin-first");
+      return;
+    }
+
+    if (type === "Resident") {
+      setApprovalFilter("All");
+      setStatusFilter("All");
+      setRoleFilter("Resident");
+      setSortBy("resident-first");
+    }
+  };
+
   const updateUserApproval = async (targetUser, approved) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && approved === false) {
+    if (
+      targetUser.email === PRIMARY_OWNER_EMAIL &&
+      approved === false
+    ) {
       alert("The primary admin account must remain approved.");
       return;
     }
 
-    const action = approved ? "approve" : "move back to pending";
-    const name = targetUser.name || targetUser.email || "this user";
+    const action = approved
+      ? "approve"
+      : "move back to pending";
+
+    const name =
+      targetUser.name ||
+      targetUser.email ||
+      "this user";
 
     const confirmed = window.confirm(
       `Are you sure you want to ${action} ${name}?`
@@ -128,11 +284,19 @@ export default function AdminPanel({ user, users }) {
 
     if (!confirmed) return;
 
-    await updateDoc(doc(db, "users", targetUser.id), { approved });
+    await updateDoc(doc(db, "users", targetUser.id), {
+      approved
+    });
   };
 
-  const updateUserActiveStatus = async (targetUser, active) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && active === false) {
+  const updateUserActiveStatus = async (
+    targetUser,
+    active
+  ) => {
+    if (
+      targetUser.email === PRIMARY_OWNER_EMAIL &&
+      active === false
+    ) {
       alert("The primary admin account must remain active.");
       return;
     }
@@ -143,7 +307,11 @@ export default function AdminPanel({ user, users }) {
     }
 
     const action = active ? "activate" : "deactivate";
-    const name = targetUser.name || targetUser.email || "this user";
+
+    const name =
+      targetUser.name ||
+      targetUser.email ||
+      "this user";
 
     const confirmed = window.confirm(
       `Are you sure you want to ${action} ${name}?`
@@ -151,35 +319,53 @@ export default function AdminPanel({ user, users }) {
 
     if (!confirmed) return;
 
-    await updateDoc(doc(db, "users", targetUser.id), { active });
+    await updateDoc(doc(db, "users", targetUser.id), {
+      active
+    });
   };
 
   const updateUserRole = async (targetUser, role) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && role !== "admin") {
+    if (
+      targetUser.email === PRIMARY_OWNER_EMAIL &&
+      role !== "admin"
+    ) {
       alert("The primary owner account must remain an admin.");
       return;
     }
 
     if (targetUser.id === user.uid && role !== "admin") {
-      alert("You cannot remove your own admin access from inside the app.");
+      alert(
+        "You cannot remove your own admin access from inside the app."
+      );
       return;
     }
 
     const currentRole = getUserRole(targetUser);
+
     if (currentRole === role) return;
 
-    const name = targetUser.name || targetUser.email || "this user";
+    const name =
+      targetUser.name ||
+      targetUser.email ||
+      "this user";
+
     const confirmed = window.confirm(
       `Are you sure you want to change ${name}'s role from ${currentRole} to ${role}?`
     );
 
     if (!confirmed) return;
 
-    await updateDoc(doc(db, "users", targetUser.id), { role });
+    await updateDoc(doc(db, "users", targetUser.id), {
+      role
+    });
   };
 
   const saveEditedUser = async (updatedUser) => {
-    const name = updatedUser.name || updatedUser.email || "this user";
+    const name =
+      updatedUser.name ||
+      updatedUser.email ||
+      "this user";
+
     const confirmed = window.confirm(
       `Save profile and account changes for ${name}?`
     );
@@ -192,8 +378,13 @@ export default function AdminPanel({ user, users }) {
       updatedUser.active = true;
     }
 
-    if (updatedUser.id === user.uid && updatedUser.role !== "admin") {
-      alert("You cannot remove your own admin access from inside the app.");
+    if (
+      updatedUser.id === user.uid &&
+      updatedUser.role !== "admin"
+    ) {
+      alert(
+        "You cannot remove your own admin access from inside the app."
+      );
       return;
     }
 
@@ -202,15 +393,25 @@ export default function AdminPanel({ user, users }) {
       email: updatedUser.email,
       address: updatedUser.address,
       phone: normalizePhoneNumber(updatedUser.phone),
-      serviceCategories: updatedUser.serviceCategories || [],
-      role: updatedUser.email === PRIMARY_OWNER_EMAIL ? "admin" : (updatedUser.role || "resident"),
-      approved: updatedUser.email === PRIMARY_OWNER_EMAIL ? true : (updatedUser.approved ?? true),
-      active: updatedUser.email === PRIMARY_OWNER_EMAIL ? true : (updatedUser.active ?? true),
+      serviceCategories:
+        updatedUser.serviceCategories || [],
+      role:
+        updatedUser.email === PRIMARY_OWNER_EMAIL
+          ? "admin"
+          : updatedUser.role || "resident",
+      approved:
+        updatedUser.email === PRIMARY_OWNER_EMAIL
+          ? true
+          : updatedUser.approved ?? true,
+      active:
+        updatedUser.email === PRIMARY_OWNER_EMAIL
+          ? true
+          : updatedUser.active ?? true,
       profileComplete: Boolean(
         updatedUser.name?.trim() &&
-        updatedUser.email?.trim() &&
-        updatedUser.address?.trim() &&
-        updatedUser.phone?.trim()
+          updatedUser.email?.trim() &&
+          updatedUser.address?.trim() &&
+          updatedUser.phone?.trim()
       )
     });
 
@@ -218,7 +419,11 @@ export default function AdminPanel({ user, users }) {
   };
 
   const addManualUser = async (newUser) => {
-    const name = newUser.name || newUser.email || "this user";
+    const name =
+      newUser.name ||
+      newUser.email ||
+      "this user";
+
     const confirmed = window.confirm(
       `Add ${name} as a new user?`
     );
@@ -230,10 +435,20 @@ export default function AdminPanel({ user, users }) {
       email: newUser.email,
       address: newUser.address,
       phone: normalizePhoneNumber(newUser.phone),
-      serviceCategories: newUser.serviceCategories || [],
-      role: newUser.email === PRIMARY_OWNER_EMAIL ? "admin" : (newUser.role || "resident"),
-      approved: newUser.email === PRIMARY_OWNER_EMAIL ? true : (newUser.approved ?? true),
-      active: newUser.email === PRIMARY_OWNER_EMAIL ? true : (newUser.active ?? true),
+      serviceCategories:
+        newUser.serviceCategories || [],
+      role:
+        newUser.email === PRIMARY_OWNER_EMAIL
+          ? "admin"
+          : newUser.role || "resident",
+      approved:
+        newUser.email === PRIMARY_OWNER_EMAIL
+          ? true
+          : newUser.approved ?? true,
+      active:
+        newUser.email === PRIMARY_OWNER_EMAIL
+          ? true
+          : newUser.active ?? true,
       profileComplete: true,
       manuallyCreated: true
     });
@@ -248,11 +463,17 @@ export default function AdminPanel({ user, users }) {
     }
 
     if (targetUser.id === user.uid) {
-      alert("You cannot delete your own account from inside the app.");
+      alert(
+        "You cannot delete your own account from inside the app."
+      );
       return;
     }
 
-    const name = targetUser.name || targetUser.email || "this user";
+    const name =
+      targetUser.name ||
+      targetUser.email ||
+      "this user";
+
     const confirmed = window.confirm(
       `Delete ${name}'s user profile? This removes the Firestore user record but does not remove the Firebase Authentication login account.`
     );
@@ -270,17 +491,62 @@ export default function AdminPanel({ user, users }) {
     setSortBy("name-asc");
   };
 
+  const summaryCards = [
+    {
+      label: "Approved",
+      value: summary.approved,
+      color: "text-green-700",
+      filter: "Approved"
+    },
+    {
+      label: "Pending",
+      value: summary.pending,
+      color: "text-yellow-700",
+      filter: "Pending"
+    },
+    {
+      label: "Active",
+      value: summary.active,
+      color: "text-blue-700",
+      filter: "Active"
+    },
+    {
+      label: "Inactive",
+      value: summary.inactive,
+      color: "text-red-700",
+      filter: "Inactive"
+    },
+    {
+      label: "Admins",
+      value: summary.admins,
+      color: "text-purple-700",
+      filter: "Admin"
+    },
+    {
+      label: "Residents",
+      value: summary.residents,
+      color: "text-gray-700",
+      filter: "Resident"
+    }
+  ];
+
   return (
     <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
         <div>
-          <h2 className="text-2xl font-bold">Admin User Management</h2>
+          <h2 className="text-2xl font-bold">
+            Admin User Management
+          </h2>
+
           <p className="text-sm text-gray-500">
-            Add users, edit profiles, approve users, activate/deactivate accounts, and manage admin access.
+            Add users, edit profiles, approve users,
+            activate/deactivate accounts, and manage admin
+            access.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddUser(true)}
           className="bg-red-600 text-white px-4 py-3 rounded-2xl font-semibold"
         >
@@ -288,45 +554,25 @@ export default function AdminPanel({ user, users }) {
         </button>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, minmax(140px, 1fr))",
-          gap: "12px",
-          marginBottom: "20px",
-          width: "100%",
-          alignItems: "stretch"
-        }}
-      >
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Approved</div>
-          <div className="text-2xl font-bold text-green-700">{summary.approved}</div>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
+        {summaryCards.map((card) => (
+          <button
+            key={card.label}
+            type="button"
+            onClick={() => applySummaryFilter(card.filter)}
+            className="bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-2xl p-4 text-left transition"
+          >
+            <div className="text-sm text-gray-500">
+              {card.label}
+            </div>
 
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Pending</div>
-          <div className="text-2xl font-bold text-yellow-700">{summary.pending}</div>
-        </div>
-
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Active</div>
-          <div className="text-2xl font-bold text-blue-700">{summary.active}</div>
-        </div>
-
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Inactive</div>
-          <div className="text-2xl font-bold text-red-700">{summary.inactive}</div>
-        </div>
-
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Admins</div>
-          <div className="text-2xl font-bold text-purple-700">{summary.admins}</div>
-        </div>
-
-        <div className="bg-gray-50 rounded-2xl p-4">
-          <div className="text-sm text-gray-500">Residents</div>
-          <div className="text-2xl font-bold text-gray-700">{summary.residents}</div>
-        </div>
+            <div
+              className={`text-2xl font-bold ${card.color}`}
+            >
+              {card.value}
+            </div>
+          </button>
+        ))}
       </div>
 
       <div className="bg-gray-50 rounded-3xl p-4 mb-5 grid lg:grid-cols-6 gap-3">
@@ -337,32 +583,91 @@ export default function AdminPanel({ user, users }) {
           className="border rounded-2xl px-4 py-3 bg-white lg:col-span-2"
         />
 
-        <select value={approvalFilter} onChange={(e) => setApprovalFilter(e.target.value)} className="border rounded-2xl px-4 py-3 bg-white">
-          {approvalFilters.map((filter) => <option key={filter} value={filter}>{filter} Approval</option>)}
+        <select
+          value={approvalFilter}
+          onChange={(e) =>
+            setApprovalFilter(e.target.value)
+          }
+          className="border rounded-2xl px-4 py-3 bg-white"
+        >
+          {approvalFilters.map((filter) => (
+            <option key={filter} value={filter}>
+              {filter} Approval
+            </option>
+          ))}
         </select>
 
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border rounded-2xl px-4 py-3 bg-white">
-          {statusFilters.map((filter) => <option key={filter} value={filter}>{filter} Status</option>)}
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value)
+          }
+          className="border rounded-2xl px-4 py-3 bg-white"
+        >
+          {statusFilters.map((filter) => (
+            <option key={filter} value={filter}>
+              {filter} Status
+            </option>
+          ))}
         </select>
 
-        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="border rounded-2xl px-4 py-3 bg-white">
-          {roleFilters.map((filter) => <option key={filter} value={filter}>{filter} Role</option>)}
+        <select
+          value={roleFilter}
+          onChange={(e) =>
+            setRoleFilter(e.target.value)
+          }
+          className="border rounded-2xl px-4 py-3 bg-white"
+        >
+          {roleFilters.map((filter) => (
+            <option key={filter} value={filter}>
+              {filter} Role
+            </option>
+          ))}
         </select>
 
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border rounded-2xl px-4 py-3 bg-white">
-          {sortOptions.map((option) => <option key={option.value} value={option.value}>Sort: {option.label}</option>)}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="border rounded-2xl px-4 py-3 bg-white"
+        >
+          {sortOptions.map((option) => (
+            <option
+              key={option.value}
+              value={option.value}
+            >
+              Sort: {option.label}
+            </option>
+          ))}
         </select>
       </div>
 
       <div className="flex justify-between items-center mb-4 text-sm text-gray-500">
-        <div>Showing {filteredUsers.length} of {users.length} users</div>
-        <button onClick={resetFilters} className="underline hover:text-gray-700">Reset filters</button>
+        <div>
+          Showing {filteredUsers.length} of {users.length} users
+        </div>
+
+        <button
+          type="button"
+          onClick={resetFilters}
+          className="underline hover:text-gray-700"
+        >
+          Reset filters
+        </button>
       </div>
 
       {showAddUser && (
         <ProfileEditor
           title="Add User"
-          user={{ name: "", email: "", address: "", phone: "", serviceCategories: [], role: "resident", approved: true, active: true }}
+          user={{
+            name: "",
+            email: "",
+            address: "",
+            phone: "",
+            serviceCategories: [],
+            role: "resident",
+            approved: true,
+            active: true
+          }}
           adminMode
           onCancel={() => setShowAddUser(false)}
           onSave={addManualUser}
@@ -399,28 +704,68 @@ export default function AdminPanel({ user, users }) {
               const approved = u.approved !== false;
               const active = u.active !== false;
               const role = getUserRole(u);
-              const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+              const isPrimaryOwner =
+                u.email === PRIMARY_OWNER_EMAIL;
 
               return (
-                <tr key={u.id} className="bg-gray-50 border rounded-2xl">
+                <tr
+                  key={u.id}
+                  className="bg-gray-50 border rounded-2xl"
+                >
                   <td className="p-3 rounded-l-2xl font-semibold">
                     {u.name || "Unnamed User"}
-                    {u.id === user.uid && <span className="ml-2 text-xs text-blue-600">You</span>}
+
+                    {u.id === user.uid && (
+                      <span className="ml-2 text-xs text-blue-600">
+                        You
+                      </span>
+                    )}
                   </td>
 
-                  <td className="p-3 text-sm text-gray-600">{u.email || "No email"}</td>
-                  <td className="p-3 text-sm text-gray-600">{formatPhoneNumber(u.phone) || "No phone"}</td>
-                  <td className="p-3 text-sm text-gray-600">{u.address || "No address"}</td>
+                  <td className="p-3 text-sm text-gray-600">
+                    {u.email || "No email"}
+                  </td>
+
+                  <td className="p-3 text-sm text-gray-600">
+                    {formatPhoneNumber(u.phone) || "No phone"}
+                  </td>
+
+                  <td className="p-3 text-sm text-gray-600">
+                    {u.address || "No address"}
+                  </td>
 
                   <td className="p-3 text-sm text-gray-700 capitalize">
-                    <span className="bg-gray-100 px-3 py-2 rounded-xl font-semibold inline-block">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateUserRole(
+                          u,
+                          role === "admin"
+                            ? "resident"
+                            : "admin"
+                        )
+                      }
+                      disabled={
+                        isPrimaryOwner || u.id === user.uid
+                      }
+                      className={
+                        isPrimaryOwner || u.id === user.uid
+                          ? "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl font-semibold inline-block cursor-not-allowed"
+                          : role === "admin"
+                            ? "bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-xl font-semibold inline-block"
+                            : "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl font-semibold inline-block"
+                      }
+                    >
                       {role}
-                    </span>
+                    </button>
                   </td>
 
                   <td className="p-3">
                     <button
-                      onClick={() => updateUserApproval(u, !approved)}
+                      type="button"
+                      onClick={() =>
+                        updateUserApproval(u, !approved)
+                      }
                       disabled={isPrimaryOwner}
                       className={
                         isPrimaryOwner
@@ -436,7 +781,10 @@ export default function AdminPanel({ user, users }) {
 
                   <td className="p-3">
                     <button
-                      onClick={() => updateUserActiveStatus(u, !active)}
+                      type="button"
+                      onClick={() =>
+                        updateUserActiveStatus(u, !active)
+                      }
                       disabled={isPrimaryOwner}
                       className={
                         isPrimaryOwner
@@ -453,6 +801,7 @@ export default function AdminPanel({ user, users }) {
                   <td className="p-3 rounded-r-2xl">
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={() => setEditingUser(u)}
                         className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-xl font-semibold"
                       >
@@ -460,8 +809,11 @@ export default function AdminPanel({ user, users }) {
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => deleteUserAccount(u)}
-                        disabled={isPrimaryOwner || u.id === user.uid}
+                        disabled={
+                          isPrimaryOwner || u.id === user.uid
+                        }
                         className={
                           isPrimaryOwner || u.id === user.uid
                             ? "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl font-semibold cursor-not-allowed"
@@ -479,7 +831,11 @@ export default function AdminPanel({ user, users }) {
         </table>
       </div>
 
-      {filteredUsers.length === 0 && <div className="text-center text-gray-500 py-8">No users match the selected filters.</div>}
+      {filteredUsers.length === 0 && (
+        <div className="text-center text-gray-500 py-8">
+          No users match the selected filters.
+        </div>
+      )}
     </div>
   );
 }
