@@ -13,10 +13,6 @@ import {
   normalizePhoneNumber
 } from "../utils/formatPhoneNumber";
 
-const approvalFilters = ["All", "Approved", "Pending"];
-const statusFilters = ["All", "Active", "Inactive"];
-const roleFilters = ["All", "Admin", "Resident"];
-
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
 
 const sortOptions = [
@@ -42,9 +38,7 @@ export default function AdminPanel({ user, users }) {
   const [editingUser, setEditingUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [search, setSearch] = useState("");
-  const [approvalFilter, setApprovalFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [roleFilter, setRoleFilter] = useState("All");
+  const [activeSummaryFilter, setActiveSummaryFilter] = useState("All");
   const [sortBy, setSortBy] = useState("name-asc");
 
   if (user.role !== "admin") return null;
@@ -66,25 +60,15 @@ export default function AdminPanel({ user, users }) {
       })
       .filter((u) => {
         const approved = u.approved !== false;
-
-        if (approvalFilter === "Approved") return approved;
-        if (approvalFilter === "Pending") return !approved;
-
-        return true;
-      })
-      .filter((u) => {
         const active = u.active !== false;
-
-        if (statusFilter === "Active") return active;
-        if (statusFilter === "Inactive") return !active;
-
-        return true;
-      })
-      .filter((u) => {
         const role = getUserRole(u);
 
-        if (roleFilter === "Admin") return role === "admin";
-        if (roleFilter === "Resident") return role !== "admin";
+        if (activeSummaryFilter === "Approved") return approved;
+        if (activeSummaryFilter === "Pending") return !approved;
+        if (activeSummaryFilter === "Active") return active;
+        if (activeSummaryFilter === "Inactive") return !active;
+        if (activeSummaryFilter === "Admin") return role === "admin";
+        if (activeSummaryFilter === "Resident") return role !== "admin";
 
         return true;
       });
@@ -119,14 +103,7 @@ export default function AdminPanel({ user, users }) {
     });
 
     return rows;
-  }, [
-    users,
-    search,
-    approvalFilter,
-    statusFilter,
-    roleFilter,
-    sortBy
-  ]);
+  }, [users, search, activeSummaryFilter, sortBy]);
 
   const summary = useMemo(() => {
     return {
@@ -141,60 +118,19 @@ export default function AdminPanel({ user, users }) {
 
   const applySummaryFilter = (type) => {
     setSearch("");
+    setActiveSummaryFilter(type);
 
-    if (type === "Approved") {
-      setApprovalFilter("Approved");
-      setStatusFilter("All");
-      setRoleFilter("All");
-      setSortBy("approved-first");
-      return;
-    }
-
-    if (type === "Pending") {
-      setApprovalFilter("Pending");
-      setStatusFilter("All");
-      setRoleFilter("All");
-      setSortBy("pending-first");
-      return;
-    }
-
-    if (type === "Active") {
-      setApprovalFilter("All");
-      setStatusFilter("Active");
-      setRoleFilter("All");
-      setSortBy("active-first");
-      return;
-    }
-
-    if (type === "Inactive") {
-      setApprovalFilter("All");
-      setStatusFilter("Inactive");
-      setRoleFilter("All");
-      setSortBy("inactive-first");
-      return;
-    }
-
-    if (type === "Admin") {
-      setApprovalFilter("All");
-      setStatusFilter("All");
-      setRoleFilter("Admin");
-      setSortBy("admin-first");
-      return;
-    }
-
-    if (type === "Resident") {
-      setApprovalFilter("All");
-      setStatusFilter("All");
-      setRoleFilter("Resident");
-      setSortBy("resident-first");
-    }
+    if (type === "Approved") setSortBy("approved-first");
+    if (type === "Pending") setSortBy("pending-first");
+    if (type === "Active") setSortBy("active-first");
+    if (type === "Inactive") setSortBy("inactive-first");
+    if (type === "Admin") setSortBy("admin-first");
+    if (type === "Resident") setSortBy("resident-first");
   };
 
   const resetFilters = () => {
     setSearch("");
-    setApprovalFilter("All");
-    setStatusFilter("All");
-    setRoleFilter("All");
+    setActiveSummaryFilter("All");
     setSortBy("name-asc");
   };
 
@@ -381,36 +317,42 @@ export default function AdminPanel({ user, users }) {
       label: "Approved",
       value: summary.approved,
       color: "text-green-700",
+      activeClass: "bg-green-100 border-green-400 ring-2 ring-green-200",
       filter: "Approved"
     },
     {
       label: "Pending",
       value: summary.pending,
       color: "text-yellow-700",
+      activeClass: "bg-yellow-100 border-yellow-400 ring-2 ring-yellow-200",
       filter: "Pending"
     },
     {
       label: "Active",
       value: summary.active,
       color: "text-blue-700",
+      activeClass: "bg-blue-100 border-blue-400 ring-2 ring-blue-200",
       filter: "Active"
     },
     {
       label: "Inactive",
       value: summary.inactive,
       color: "text-red-700",
+      activeClass: "bg-red-100 border-red-400 ring-2 ring-red-200",
       filter: "Inactive"
     },
     {
       label: "Admins",
       value: summary.admins,
       color: "text-purple-700",
+      activeClass: "bg-purple-100 border-purple-400 ring-2 ring-purple-200",
       filter: "Admin"
     },
     {
       label: "Residents",
       value: summary.residents,
       color: "text-gray-700",
+      activeClass: "bg-gray-200 border-gray-400 ring-2 ring-gray-200",
       filter: "Resident"
     }
   ];
@@ -438,67 +380,52 @@ export default function AdminPanel({ user, users }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mb-4">
-        {summaryCards.map((card) => (
-          <button
-            key={card.label}
-            type="button"
-            onClick={() => applySummaryFilter(card.filter)}
-            className="bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-2xl p-3 text-left transition"
-          >
-            <div className="text-xs text-gray-500">
-              {card.label}
-            </div>
+        {summaryCards.map((card) => {
+          const isSelected = activeSummaryFilter === card.filter;
 
-            <div className={`text-xl font-bold ${card.color}`}>
-              {card.value}
-            </div>
-          </button>
-        ))}
+          return (
+            <button
+              key={card.label}
+              type="button"
+              onClick={() => applySummaryFilter(card.filter)}
+              className={
+                isSelected
+                  ? `${card.activeClass} rounded-2xl p-3 text-left transition border`
+                  : "bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-2xl p-3 text-left transition"
+              }
+            >
+              <div className="text-xs text-gray-500">
+                {card.label}
+              </div>
+
+              <div className={`text-xl font-bold ${card.color}`}>
+                {card.value}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="bg-gray-50 rounded-2xl p-3 mb-4 grid lg:grid-cols-6 gap-2">
+      <div className="bg-gray-50 rounded-2xl p-3 mb-4 grid md:grid-cols-[1fr_auto_auto] gap-2">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, email, phone, address"
-          className="border rounded-xl px-3 py-2 bg-white text-sm lg:col-span-2"
+          className="border rounded-xl px-3 py-2 bg-white text-sm w-full"
         />
 
-        <select
-          value={approvalFilter}
-          onChange={(e) => setApprovalFilter(e.target.value)}
-          className="border rounded-xl px-2 py-2 bg-white text-sm"
+        <button
+          type="button"
+          onClick={() => setSearch("")}
+          disabled={!search}
+          className={
+            search
+              ? "bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-xl font-semibold text-sm"
+              : "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl font-semibold text-sm cursor-not-allowed"
+          }
         >
-          {approvalFilters.map((filter) => (
-            <option key={filter} value={filter}>
-              {filter} Approval
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded-xl px-2 py-2 bg-white text-sm"
-        >
-          {statusFilters.map((filter) => (
-            <option key={filter} value={filter}>
-              {filter} Status
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="border rounded-xl px-2 py-2 bg-white text-sm"
-        >
-          {roleFilters.map((filter) => (
-            <option key={filter} value={filter}>
-              {filter} Role
-            </option>
-          ))}
-        </select>
+          Clear Search
+        </button>
 
         <select
           value={sortBy}
@@ -516,6 +443,11 @@ export default function AdminPanel({ user, users }) {
       <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
         <div>
           Showing {filteredUsers.length} of {users.length} users
+          {activeSummaryFilter !== "All" && (
+            <span className="ml-2 font-semibold text-red-700">
+              Filter: {activeSummaryFilter}
+            </span>
+          )}
         </div>
 
         <button
