@@ -40,6 +40,17 @@ export default function useAuthUser() {
           return;
         }
 
+        const authMode = sessionStorage.getItem(AUTH_MODE_KEY);
+        const accessSuccess =
+          sessionStorage.getItem(ACCESS_SUCCESS_KEY) === "true";
+
+        // Do not interfere while LoginScreen is creating a new access request.
+        if (authMode === "requestAccess" || accessSuccess) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         const userRef = doc(db, "users", firebaseUser.uid);
         const userSnap = await getDoc(userRef);
 
@@ -85,17 +96,6 @@ export default function useAuthUser() {
         }
 
         if (profile.approved === false && profile.role !== "admin") {
-          const authMode = sessionStorage.getItem(AUTH_MODE_KEY);
-          const accessSuccess =
-            sessionStorage.getItem(ACCESS_SUCCESS_KEY) === "true";
-
-          if (authMode === "requestAccess" || accessSuccess) {
-            setUser(null);
-            await signOut(auth);
-            setLoading(false);
-            return;
-          }
-
           await blockAndSignOut(
             "Your account is pending approval. Please contact the Hurricane Hearts administrator if you need access sooner."
           );
