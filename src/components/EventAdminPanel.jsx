@@ -5,7 +5,7 @@ import {
   doc,
   serverTimestamp,
   setDoc,
-  updateDoc
+ updateDoc
 } from "firebase/firestore";
 
 import { db } from "../firebase/config";
@@ -203,15 +203,30 @@ Deactivate '${activeEvent.eventName}' anyway?`;
 
     <div className="bg-white rounded-3xl shadow-md p-4 mb-6 border-l-4 border-red-600">
 
-      <div className="text-center mb-4">
+      <div className="flex items-center justify-between mb-4">
 
-        <h2 className="text-xl font-bold">
-          Event Control
-        </h2>
+        <div>
 
-        <p className="text-xs text-gray-500 mt-1">
-          Control the active disaster event
-        </p>
+          <h2 className="text-xl font-bold">
+            Event Control
+          </h2>
+
+          <p className="text-xs text-gray-500 mt-1">
+            Control the active disaster event
+          </p>
+
+        </div>
+
+        {activeEvent && (
+
+          <button
+            onClick={deactivateEvent}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap"
+          >
+            Deactivate Event
+          </button>
+
+        )}
 
       </div>
 
@@ -227,19 +242,8 @@ Deactivate '${activeEvent.eventName}' anyway?`;
             {activeEvent.eventName}
           </div>
 
-          <div className="text-sm text-green-800 mb-4">
+          <div className="text-sm text-green-800">
             {activeEvent.eventDate}
-          </div>
-
-          <div className="flex justify-center">
-
-            <button
-              onClick={deactivateEvent}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm"
-            >
-              Deactivate Event
-            </button>
-
           </div>
 
         </div>
