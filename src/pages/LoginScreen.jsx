@@ -4,12 +4,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  signInWithPopup,
-  signInWithRedirect,
   signOut
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider } from "../firebase/config";
+import { auth, db } from "../firebase/config";
 import TermsAndConditions from "../components/TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 
@@ -77,24 +75,6 @@ export default function LoginScreen({ message }) {
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-      sessionStorage.setItem(AUTH_MODE_KEY, "login");
-
-      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if (mobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Google login failed. If you do not already have access, please choose Request Access.");
-    }
-  };
-
   const requestAccessWithEmail = async () => {
     try {
       if (!form.email.trim() || !form.password || !form.name.trim() || !form.address.trim() || !form.phone.trim()) {
@@ -155,31 +135,6 @@ export default function LoginScreen({ message }) {
       }
 
       alert("Unable to submit access request. Please try again.");
-    }
-  };
-
-  const requestAccessWithGoogle = async () => {
-    try {
-      if (!acceptedTerms) {
-        alert("Please review and accept the Terms and Conditions before requesting access with Google.");
-        return;
-      }
-
-      sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-      sessionStorage.setItem(AUTH_MODE_KEY, "requestAccess");
-      sessionStorage.setItem("hurricaneHeartsAcceptedTerms", "true");
-      sessionStorage.setItem("hurricaneHeartsTermsVersion", TERMS_VERSION);
-
-      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if (mobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Google request access failed. Please try again.");
     }
   };
 
@@ -312,13 +267,6 @@ export default function LoginScreen({ message }) {
               Forgot password? Reset Password
             </button>
           )}
-
-          <button
-            onClick={mode === "login" ? loginWithGoogle : requestAccessWithGoogle}
-            className="w-full bg-white hover:bg-gray-50 text-gray-800 py-4 rounded-2xl font-semibold transition border"
-          >
-            {mode === "login" ? "Login with Google" : "Request Access with Google"}
-          </button>
         </div>
 
         <p className="text-xs text-gray-500 mt-5 text-center">
