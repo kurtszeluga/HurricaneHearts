@@ -48,11 +48,7 @@ export default function LoginScreen({ message }) {
       sessionStorage.removeItem(ACCESS_SUCCESS_KEY);
       sessionStorage.setItem(AUTH_MODE_KEY, "login");
 
-      await signInWithEmailAndPassword(
-        auth,
-        form.email.trim(),
-        form.password
-      );
+      await signInWithEmailAndPassword(auth, form.email.trim(), form.password);
     } catch (error) {
       console.error(error);
       alert("Login failed. Please check your email and password.");
@@ -107,7 +103,7 @@ export default function LoginScreen({ message }) {
         form.password
       );
 
-      const profile = {
+      await setDoc(doc(db, "users", credential.user.uid), {
         uid: credential.user.uid,
         name: form.name.trim(),
         email: form.email.trim(),
@@ -124,27 +120,21 @@ export default function LoginScreen({ message }) {
         termsVersion: TERMS_VERSION,
         accessRequestedAt: serverTimestamp(),
         createdAt: serverTimestamp()
-      };
-
-      await setDoc(doc(db, "users", credential.user.uid), profile);
+      });
 
       sessionStorage.setItem(ACCESS_SUCCESS_KEY, "true");
       sessionStorage.setItem(AUTH_MODE_KEY, "login");
 
-      setForm({
-        email: "",
-        password: "",
-        name: "",
-        address: "",
-        phone: ""
-      });
-
+      setForm(emptyForm);
       setAcceptedTerms(false);
       setShowTerms(false);
       setMode("login");
+      setSubmitting(false);
       setShowSuccessSplash(true);
 
-      await signOut(auth);
+      signOut(auth).catch((error) => {
+        console.error("Sign out after access request failed:", error);
+      });
 
       window.setTimeout(() => {
         setShowSuccessSplash(false);
@@ -152,6 +142,7 @@ export default function LoginScreen({ message }) {
       }, 3500);
     } catch (error) {
       console.error(error);
+      setSubmitting(false);
 
       if (error.code === "auth/email-already-in-use") {
         alert("An account already exists for this email. Please use Login instead.");
@@ -164,8 +155,6 @@ export default function LoginScreen({ message }) {
       }
 
       alert("Unable to submit access request. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
   };
 
