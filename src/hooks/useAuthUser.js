@@ -4,6 +4,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
+const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
+const ACCESS_SUCCESS_KEY = "hurricaneHeartsAccessRequestSuccess";
 
 function isProfileComplete(profile) {
   return Boolean(
@@ -83,6 +85,17 @@ export default function useAuthUser() {
         }
 
         if (profile.approved === false && profile.role !== "admin") {
+          const authMode = sessionStorage.getItem(AUTH_MODE_KEY);
+          const accessSuccess =
+            sessionStorage.getItem(ACCESS_SUCCESS_KEY) === "true";
+
+          if (authMode === "requestAccess" || accessSuccess) {
+            setUser(null);
+            await signOut(auth);
+            setLoading(false);
+            return;
+          }
+
           await blockAndSignOut(
             "Your account is pending approval. Please contact the Hurricane Hearts administrator if you need access sooner."
           );
@@ -90,6 +103,7 @@ export default function useAuthUser() {
         }
 
         sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
+        sessionStorage.removeItem(ACCESS_SUCCESS_KEY);
         setAuthMessage("");
         setUser(profile);
         setLoading(false);
