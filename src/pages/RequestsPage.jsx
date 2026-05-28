@@ -38,7 +38,7 @@ export default function RequestsPage({
   onNewRequest,
   onEditRequest,
   activeEvent,
-  requestFilter = { type: "status", value: "Open" },
+  requestFilter = { type: "status", value: "All" },
   onRequestFilterChange
 }) {
   const [search, setSearch] = useState("");
@@ -84,18 +84,18 @@ export default function RequestsPage({
           )
         );
       });
-  }, [requests, requestFilter, search, user.uid, user.id, user.email]);
+  }, [requests, requestFilter, search, user]);
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-4">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Assistance Requests</h2>
-            <div className="text-xs font-semibold text-red-700 mt-1">
+            <h2 className="text-xl font-bold text-[#172033]">Assistance Requests</h2>
+            <div className="text-xs font-semibold text-[#b42318] mt-1">
               Showing: {requestFilter.value}
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#667085]">
               {activeEvent
                 ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
                 : "No event is active. Requests are currently disabled."}
@@ -111,8 +111,8 @@ export default function RequestsPage({
                   onClick={() => setRequestFilter(filter)}
                   className={
                     isSameFilter(requestFilter, filter)
-                      ? "bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold"
-                      : "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                      ? "bg-[#b42318] text-white px-3 py-1.5 rounded-md text-xs font-semibold"
+                      : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-1.5 rounded-md text-xs font-semibold"
                   }
                 >
                   {filter.label}
@@ -125,7 +125,7 @@ export default function RequestsPage({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search requests"
-                className="border rounded-xl px-3 py-2 text-sm w-full lg:w-72"
+                className="border border-[#c7d0dc] rounded-lg px-3 py-2 text-sm w-full lg:w-72"
               />
 
               <button
@@ -134,8 +134,8 @@ export default function RequestsPage({
                 disabled={!search}
                 className={
                   search
-                    ? "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-semibold"
-                    : "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl text-sm font-semibold cursor-not-allowed"
+                    ? "bg-[#e2e8f0] hover:bg-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-sm font-semibold"
+                    : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg text-sm font-semibold cursor-not-allowed"
                 }
               >
                 Clear
@@ -147,8 +147,8 @@ export default function RequestsPage({
                 disabled={!activeEvent}
                 className={
                   activeEvent
-                    ? "bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap"
-                    : "bg-gray-200 text-gray-400 px-3 py-2 rounded-xl text-sm font-semibold cursor-not-allowed whitespace-nowrap"
+                    ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap"
+                    : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg text-sm font-semibold cursor-not-allowed whitespace-nowrap"
                 }
               >
                 New Request
@@ -159,16 +159,16 @@ export default function RequestsPage({
       </div>
 
       {!activeEvent ? (
-        <div className="bg-white border rounded-2xl shadow-sm p-6 text-center text-gray-500">
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 text-center text-[#667085]">
           No event is currently active. The request module will open when an admin activates an event.
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="bg-white border rounded-2xl shadow-sm p-6 text-center text-gray-500">
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 text-center text-[#667085]">
           No requests match this filter.
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-3 py-2 bg-gray-50 border-b text-xs text-gray-600 flex flex-wrap gap-4 justify-end">
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+          <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs text-[#667085] flex flex-wrap gap-4 justify-end">
             <span><strong>N:</strong> # People Needed</span>
             <span><strong>C:</strong> Committed</span>
             <span><strong>R:</strong> Remaining</span>
@@ -176,7 +176,7 @@ export default function RequestsPage({
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+              <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
                   <th className="text-left px-2 py-2 font-bold min-w-[120px]">Name</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[120px]">Category</th>

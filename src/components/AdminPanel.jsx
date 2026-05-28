@@ -41,8 +41,6 @@ export default function AdminPanel({ user, users }) {
   const [activeSummaryFilter, setActiveSummaryFilter] = useState("All");
   const [sortBy, setSortBy] = useState("name-asc");
 
-  if (user.role !== "admin") return null;
-
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
 
@@ -115,6 +113,8 @@ export default function AdminPanel({ user, users }) {
       residents: users.filter((u) => getUserRole(u) !== "admin").length
     };
   }, [users]);
+
+  if (user.role !== "admin") return null;
 
   const applySummaryFilter = (type) => {
     setSearch("");
@@ -316,58 +316,58 @@ export default function AdminPanel({ user, users }) {
     {
       label: "Approved",
       value: summary.approved,
-      color: "text-green-700",
-      activeClass: "bg-green-100 border-green-400 ring-2 ring-green-200",
+      color: "text-[#067647]",
+      activeClass: "bg-[#ecfdf3] border-[#abefc6] ring-2 ring-[#dcfae6]",
       filter: "Approved"
     },
     {
       label: "Pending",
       value: summary.pending,
-      color: "text-yellow-700",
-      activeClass: "bg-yellow-100 border-yellow-400 ring-2 ring-yellow-200",
+      color: "text-[#92400e]",
+      activeClass: "bg-[#fffbeb] border-[#fde68a] ring-2 ring-[#fef3c7]",
       filter: "Pending"
     },
     {
       label: "Active",
       value: summary.active,
-      color: "text-blue-700",
-      activeClass: "bg-blue-100 border-blue-400 ring-2 ring-blue-200",
+      color: "text-[#1d4ed8]",
+      activeClass: "bg-[#eff6ff] border-[#bfdbfe] ring-2 ring-[#dbeafe]",
       filter: "Active"
     },
     {
       label: "Inactive",
       value: summary.inactive,
-      color: "text-red-700",
-      activeClass: "bg-red-100 border-red-400 ring-2 ring-red-200",
+      color: "text-[#b42318]",
+      activeClass: "bg-[#fff1f0] border-[#fecdca] ring-2 ring-[#fee4e2]",
       filter: "Inactive"
     },
     {
       label: "Admins",
       value: summary.admins,
-      color: "text-purple-700",
-      activeClass: "bg-purple-100 border-purple-400 ring-2 ring-purple-200",
+      color: "text-[#1f3a5f]",
+      activeClass: "bg-[#eff6ff] border-[#bfdbfe] ring-2 ring-[#dbeafe]",
       filter: "Admin"
     },
     {
       label: "Residents",
       value: summary.residents,
-      color: "text-gray-700",
-      activeClass: "bg-gray-200 border-gray-400 ring-2 ring-gray-200",
+      color: "text-[#475467]",
+      activeClass: "bg-[#e2e8f0] border-[#c7d0dc] ring-2 ring-[#d8e0ea]",
       filter: "Resident"
     }
   ];
 
   return (
-    <div className="bg-white rounded-3xl shadow-md p-4 mb-6">
+    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-4 mb-6">
       <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center mb-4">
         <div className="hidden md:block" aria-hidden="true" />
 
         <div className="text-center">
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl font-bold text-[#172033]">
             Admin User Management
           </h2>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[#667085]">
             Add users, edit profiles, approve users, activate/deactivate accounts, and manage admin access.
           </p>
         </div>
@@ -375,7 +375,7 @@ export default function AdminPanel({ user, users }) {
         <button
           type="button"
           onClick={() => setShowAddUser(true)}
-          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-semibold text-sm md:justify-self-end"
+          className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-lg font-semibold text-sm md:justify-self-end"
         >
           Add User
         </button>
@@ -392,11 +392,11 @@ export default function AdminPanel({ user, users }) {
               onClick={() => applySummaryFilter(card.filter)}
               className={
                 isSelected
-                  ? `${card.activeClass} rounded-xl px-2 py-1.5 text-center transition border`
-                  : "bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-xl px-2 py-1.5 text-center transition"
+                  ? `${card.activeClass} rounded-lg px-2 py-1.5 text-center transition border`
+                  : "bg-[#f1f5f9] hover:bg-[#fff1f0] border border-[#c7d0dc] hover:border-[#fecdca] rounded-lg px-2 py-1.5 text-center transition"
               }
             >
-              <div className="text-[10px] text-gray-500 leading-tight">
+              <div className="text-[10px] text-[#667085] leading-tight">
                 {card.label}
               </div>
 
@@ -408,12 +408,12 @@ export default function AdminPanel({ user, users }) {
         })}
       </div>
 
-      <div className="bg-gray-50 rounded-2xl p-3 mb-4 grid md:grid-cols-[1fr_auto_auto] gap-2">
+      <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-3 mb-4 grid md:grid-cols-[1fr_auto_auto] gap-2">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, email, phone, address"
-          className="border rounded-xl px-3 py-2 bg-white text-sm w-full"
+          className="border border-[#c7d0dc] rounded-lg px-3 py-2 bg-white text-sm w-full"
         />
 
         <button
@@ -422,8 +422,8 @@ export default function AdminPanel({ user, users }) {
           disabled={!search}
           className={
             search
-              ? "bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-xl font-semibold text-sm"
-              : "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl font-semibold text-sm cursor-not-allowed"
+              ? "bg-[#e2e8f0] hover:bg-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg font-semibold text-sm"
+              : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg font-semibold text-sm cursor-not-allowed"
           }
         >
           Clear Search
@@ -432,7 +432,7 @@ export default function AdminPanel({ user, users }) {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border rounded-xl px-2 py-2 bg-white text-sm"
+          className="border border-[#c7d0dc] rounded-lg px-2 py-2 bg-white text-sm"
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -442,11 +442,11 @@ export default function AdminPanel({ user, users }) {
         </select>
       </div>
 
-      <div className="flex justify-between items-center mb-3 text-xs text-gray-500">
+      <div className="flex justify-between items-center mb-3 text-xs text-[#667085]">
         <div>
           Showing {filteredUsers.length} of {users.length} users
           {activeSummaryFilter !== "All" && (
-            <span className="ml-2 font-semibold text-red-700">
+            <span className="ml-2 font-semibold text-[#b42318]">
               Filter: {activeSummaryFilter}
             </span>
           )}
@@ -455,7 +455,7 @@ export default function AdminPanel({ user, users }) {
         <button
           type="button"
           onClick={resetFilters}
-          className="underline hover:text-gray-700"
+          className="underline hover:text-[#172033]"
         >
           Reset filters
         </button>
@@ -498,29 +498,29 @@ export default function AdminPanel({ user, users }) {
           const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
 
           return (
-            <div key={u.id} className="bg-gray-50 rounded-3xl p-4">
+            <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-semibold text-gray-900 truncate">
+                  <div className="font-semibold text-[#172033] truncate">
                     {u.name || "Unnamed User"}
                   </div>
-                  <div className="text-[11px] text-gray-500 truncate">
+                  <div className="text-[11px] text-[#667085] truncate">
                     {u.email || "No email"}
                   </div>
-                  <div className="text-[11px] text-gray-500 mt-1 truncate">
+                  <div className="text-[11px] text-[#667085] mt-1 truncate">
                     {formatPhoneNumber(u.phone) || "No phone"}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEditingUser(u)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap"
+                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap"
                 >
                   Edit
                 </button>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[#475467]">
                 <div>
                   Role: <span className="font-semibold capitalize">{role}</span>
                 </div>
@@ -528,12 +528,12 @@ export default function AdminPanel({ user, users }) {
                   Address: {u.address || "No address"}
                 </div>
                 <div>
-                  Approved: <span className={approved ? "font-semibold text-green-700" : "font-semibold text-yellow-700"}>
+                  Approved: <span className={approved ? "font-semibold text-[#067647]" : "font-semibold text-[#92400e]"}>
                     {approved ? "Yes" : "No"}
                   </span>
                 </div>
                 <div>
-                  Active: <span className={active ? "font-semibold text-blue-700" : "font-semibold text-red-700"}>
+                  Active: <span className={active ? "font-semibold text-[#1d4ed8]" : "font-semibold text-[#b42318]"}>
                     {active ? "Yes" : "No"}
                   </span>
                 </div>
@@ -546,10 +546,10 @@ export default function AdminPanel({ user, users }) {
                   disabled={isPrimaryOwner || u.id === user.uid}
                   className={
                     isPrimaryOwner || u.id === user.uid
-                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
                       : role === "admin"
-                        ? "bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1f3a5f] border border-[#bfdbfe] px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-white hover:bg-[#e2e8f0] text-[#475467] border border-[#c7d0dc] px-2 py-1 rounded-lg text-[10px] font-semibold"
                   }
                 >
                   {role === "admin" ? "Make Resident" : "Make Admin"}
@@ -561,10 +561,10 @@ export default function AdminPanel({ user, users }) {
                   disabled={isPrimaryOwner}
                   className={
                     isPrimaryOwner
-                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
                       : approved
-                        ? "bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
-                        : "bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        ? "bg-[#ecfdf3] hover:bg-[#dcfae6] text-[#067647] border border-[#abefc6] px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] px-2 py-1 rounded-lg text-[10px] font-semibold"
                   }
                 >
                   {approved ? "Approved" : "Pending"}
@@ -576,10 +576,10 @@ export default function AdminPanel({ user, users }) {
                   disabled={isPrimaryOwner}
                   className={
                     isPrimaryOwner
-                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
                       : active
-                        ? "bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
-                        : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1d4ed8] border border-[#bfdbfe] px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg text-[10px] font-semibold"
                   }
                 >
                   {active ? "Deactivate" : "Activate"}
@@ -591,8 +591,8 @@ export default function AdminPanel({ user, users }) {
                   disabled={isPrimaryOwner || u.id === user.uid}
                   className={
                     isPrimaryOwner || u.id === user.uid
-                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
-                      : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                      ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg text-[10px] font-semibold"
                   }
                 >
                   Delete
@@ -606,7 +606,7 @@ export default function AdminPanel({ user, users }) {
       <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
-            <tr className="text-[11px] text-gray-500">
+            <tr className="text-[11px] text-[#667085]">
               <th className="px-2 py-1 min-w-[130px]">User</th>
               <th className="px-2 py-1 min-w-[150px]">Email</th>
               <th className="px-1 py-1 min-w-[90px]">Phone</th>
@@ -625,30 +625,30 @@ export default function AdminPanel({ user, users }) {
               const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
 
               return (
-                <tr key={u.id} className="bg-gray-50 align-top">
-                  <td className="px-2 py-2 rounded-l-2xl">
-                    <div className="font-semibold text-gray-900 text-xs leading-tight truncate max-w-[140px]">
+                <tr key={u.id} className="bg-[#f1f5f9] align-top">
+                  <td className="px-2 py-2 rounded-l-lg">
+                    <div className="font-semibold text-[#172033] text-xs leading-tight truncate max-w-[140px]">
                       {u.name || "Unnamed User"}
 
                       {u.id === user.uid && (
-                        <span className="ml-1 text-[10px] text-blue-600">
+                        <span className="ml-1 text-[10px] text-[#1d4ed8]">
                           You
                         </span>
                       )}
                     </div>
 
-                    <div className="text-[10px] text-gray-500 leading-tight truncate max-w-[140px]">
+                    <div className="text-[10px] text-[#667085] leading-tight truncate max-w-[140px]">
                       {u.address || "No address"}
                     </div>
                   </td>
 
-                  <td className="px-2 py-2 text-[11px] text-gray-600">
+                  <td className="px-2 py-2 text-[11px] text-[#475467]">
                     <div className="truncate max-w-[160px]">
                       {u.email || "No email"}
                     </div>
                   </td>
 
-                  <td className="px-1 py-2 text-[11px] text-gray-600 whitespace-nowrap">
+                  <td className="px-1 py-2 text-[11px] text-[#475467] whitespace-nowrap">
                     {formatPhoneNumber(u.phone) || "No phone"}
                   </td>
 
@@ -664,10 +664,10 @@ export default function AdminPanel({ user, users }) {
                       disabled={isPrimaryOwner || u.id === user.uid}
                       className={
                         isPrimaryOwner || u.id === user.uid
-                          ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
+                          ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
                           : role === "admin"
-                            ? "bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
-                            : "bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1f3a5f] border border-[#bfdbfe] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            : "bg-white hover:bg-[#e2e8f0] text-[#475467] border border-[#c7d0dc] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       }
                     >
                       {role}
@@ -681,10 +681,10 @@ export default function AdminPanel({ user, users }) {
                       disabled={isPrimaryOwner}
                       className={
                         isPrimaryOwner
-                          ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
+                          ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
                           : approved
-                            ? "bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
-                            : "bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            ? "bg-[#ecfdf3] hover:bg-[#dcfae6] text-[#067647] border border-[#abefc6] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            : "bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       }
                     >
                       {approved ? "Approved" : "Pending"}
@@ -698,22 +698,22 @@ export default function AdminPanel({ user, users }) {
                       disabled={isPrimaryOwner}
                       className={
                         isPrimaryOwner
-                          ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
+                          ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
                           : active
-                            ? "bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
-                            : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1d4ed8] border border-[#bfdbfe] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       }
                     >
                       {active ? "Active" : "Inactive"}
                     </button>
                   </td>
 
-                  <td className="px-1 py-2 rounded-r-2xl">
+                  <td className="px-1 py-2 rounded-r-lg">
                     <div className="flex gap-1">
                       <button
                         type="button"
                         onClick={() => setEditingUser(u)}
-                        className="bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded-lg font-semibold text-[10px]"
+                        className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       >
                         Edit
                       </button>
@@ -724,8 +724,8 @@ export default function AdminPanel({ user, users }) {
                         disabled={isPrimaryOwner || u.id === user.uid}
                         className={
                           isPrimaryOwner || u.id === user.uid
-                            ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
-                            : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg font-semibold text-[10px]"
+                            ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
+                            : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg font-semibold text-[10px]"
                         }
                       >
                         Delete
@@ -740,7 +740,7 @@ export default function AdminPanel({ user, users }) {
       </div>
 
       {filteredUsers.length === 0 && (
-        <div className="text-center text-gray-500 py-8 text-sm">
+        <div className="text-center text-[#667085] py-8 text-sm">
           No users match the selected filters.
         </div>
       )}

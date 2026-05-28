@@ -107,11 +107,11 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
+    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 mb-8">
       <div className="flex flex-col items-center gap-4 mb-5 text-center">
         <div>
-          <h2 className="text-2xl font-bold">Reports & CSV Export</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-2xl font-bold text-[#172033]">Reports & CSV Export</h2>
+          <p className="text-sm text-[#667085]">
             Export users, requests, and request history for backup and reporting.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       >
         <button
           onClick={exportUsers}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
+          className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-4 py-3 rounded-lg font-semibold text-center"
         >
           <div className="text-base font-bold mb-0.5">Export Users</div>
           <div className="text-xs opacity-90">
@@ -136,7 +136,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
 
         <button
           onClick={exportRequests}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
+          className="bg-[#16803c] hover:bg-[#126b32] text-white px-4 py-3 rounded-lg font-semibold text-center"
         >
           <div className="text-base font-bold mb-0.5 text-center">Export Requests</div>
           <div className="text-xs opacity-90">
@@ -146,7 +146,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
 
         <button
           onClick={exportHistory}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
+          className="bg-[#475467] hover:bg-[#344054] text-white px-4 py-3 rounded-lg font-semibold text-center"
         >
           <div className="text-base font-bold mb-0.5">Export Request History</div>
           <div className="text-xs opacity-90">

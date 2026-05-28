@@ -83,10 +83,10 @@ export default function ProfileSetup({ user, onProfileSaved }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="bg-white rounded-3xl shadow-xl p-8 max-w-xl w-full">
-        <h1 className="text-3xl font-bold mb-2">Request Access</h1>
-        <p className="text-gray-500 mb-6">
+    <div className="min-h-screen bg-[#e8edf3] flex items-center justify-center p-6">
+      <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-lg p-8 max-w-xl w-full">
+        <h1 className="text-3xl font-bold text-[#172033] mb-2">Request Access</h1>
+        <p className="text-[#667085] mb-6">
           Please complete your profile. An administrator will review and approve your account.
         </p>
 
@@ -95,34 +95,34 @@ export default function ProfileSetup({ user, onProfileSaved }) {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Full name"
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
           <input
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             placeholder="Email"
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
           <input
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
             placeholder="Arlington Ridge address"
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
           <input
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })}
             placeholder="Phone number"
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
         </div>
 
-        <div className="bg-gray-50 border rounded-2xl p-4 mt-5">
+        <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 mt-5">
           <div className="font-semibold mb-2">Willing to Help With</div>
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="text-sm text-[#667085] mb-3">
             Select any request categories you would be willing to support as a helper.
           </p>
 
@@ -135,8 +135,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
                   key={category}
                   className={
                     selected
-                      ? "border border-red-300 bg-red-50 rounded-2xl p-3 flex items-center gap-2 font-semibold"
-                      : "border rounded-2xl p-3 flex items-center gap-2 bg-white"
+                      ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold"
+                      : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white"
                   }
                 >
                   <input
@@ -151,15 +151,15 @@ export default function ProfileSetup({ user, onProfileSaved }) {
           </div>
         </div>
 
-        <div className="bg-gray-50 border rounded-2xl p-4 mt-5">
+        <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 mt-5">
           <div className="font-semibold mb-2">Terms and Conditions</div>
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="text-sm text-[#667085] mb-3">
             You must review and accept the Hurricane Hearts Terms and Conditions before requesting access.
           </p>
 
           <button
             onClick={() => setShowTerms(true)}
-            className="bg-white border px-4 py-2 rounded-xl font-semibold mr-3"
+            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] px-4 py-2 rounded-lg font-semibold mr-3"
           >
             View Terms
           </button>
@@ -176,7 +176,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
 
         <button
           onClick={saveProfile}
-          className="w-full mt-6 bg-red-600 text-white py-4 rounded-2xl font-semibold"
+          className="w-full mt-6 bg-[#b42318] hover:bg-[#9f1f16] text-white py-3 rounded-lg font-semibold"
         >
           Submit Access Request
         </button>

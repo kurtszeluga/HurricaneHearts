@@ -157,13 +157,13 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
+    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 mb-8">
       <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center mb-5">
         <div className="hidden lg:block" aria-hidden="true" />
 
         <div className="text-center">
-          <h2 className="text-2xl font-bold">Document Library</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-2xl font-bold text-[#172033]">Document Library</h2>
+          <p className="text-sm text-[#667085]">
             Store searchable links to emergency documents, checklists, forms, and guides.
           </p>
         </div>
@@ -171,25 +171,25 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
         {isAdmin && (
           <button
             onClick={startAdd}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-semibold lg:justify-self-end"
+            className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-2.5 rounded-lg font-semibold lg:justify-self-end"
           >
             Add Document Link
           </button>
         )}
       </div>
 
-      <div className="bg-gray-50 rounded-3xl p-4 mb-5 grid md:grid-cols-3 gap-3">
+      <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 mb-5 grid md:grid-cols-3 gap-3">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search documents"
-          className="border rounded-2xl px-4 py-3 bg-white md:col-span-2"
+          className="border border-[#c7d0dc] rounded-lg px-4 py-3 bg-white md:col-span-2"
         />
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="border rounded-2xl px-4 py-3 bg-white"
+          className="border border-[#c7d0dc] rounded-lg px-4 py-3 bg-white"
         >
           {documentCategories.map((category) => (
             <option key={category} value={category}>{category}</option>
@@ -198,8 +198,8 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
       </div>
 
       {showForm && isAdmin && (
-        <div className="bg-gray-50 border rounded-3xl p-5 mb-6">
-          <h3 className="text-xl font-bold mb-4">
+        <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-5 mb-6">
+          <h3 className="text-xl font-bold text-[#172033] mb-4">
             {editingDocument ? "Edit Document" : "Add Document"}
           </h3>
 
@@ -208,13 +208,13 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Document title"
-              className="border rounded-2xl p-4 bg-white"
+              className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
             />
 
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="border rounded-2xl p-4 bg-white"
+              className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
             >
               {editableCategories.map((category) => (
                 <option key={category} value={category}>{category}</option>
@@ -225,18 +225,18 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
               placeholder="Document link / URL"
-              className="border rounded-2xl p-4 bg-white md:col-span-2"
+              className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white md:col-span-2"
             />
 
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Short description"
-              className="border rounded-2xl p-4 bg-white md:col-span-2 min-h-[100px]"
+              className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white md:col-span-2 min-h-[100px]"
             />
           </div>
 
-          <label className="flex items-center gap-2 mt-4 font-semibold text-sm">
+          <label className="flex items-center gap-2 mt-4 font-semibold text-sm text-[#344054]">
             <input
               type="checkbox"
               checked={form.eventSpecific}
@@ -253,7 +253,7 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
           </label>
 
           {form.eventSpecific && (
-            <div className="bg-blue-50 text-blue-800 rounded-2xl p-4 mt-3 text-sm font-semibold">
+            <div className="bg-[#eff6ff] text-[#1e3a8a] border border-[#bfdbfe] rounded-lg p-4 mt-3 text-sm font-semibold">
               {activeEvent
                 ? `Linked to event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
                 : "No active event is available. Activate an event first or uncheck this option."}
@@ -263,14 +263,14 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
           <div className="mt-5 flex gap-3">
             <button
               onClick={saveDocument}
-              className="bg-red-600 text-white px-5 py-3 rounded-2xl font-semibold"
+              className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-2.5 rounded-lg font-semibold"
             >
               Save Document
             </button>
 
             <button
               onClick={cancelEdit}
-              className="bg-gray-100 text-gray-700 px-5 py-3 rounded-2xl font-semibold"
+              className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-4 py-2.5 rounded-lg font-semibold"
             >
               Cancel
             </button>
@@ -279,39 +279,40 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
       )}
 
       {filteredDocuments.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
+        <div className="text-center text-[#667085] py-8 border border-dashed border-[#c7d0dc] rounded-lg bg-[#f1f5f9]">
           No documents match your search.
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="overflow-hidden border border-[#c7d0dc] rounded-lg">
           {filteredDocuments.map((item) => (
-            <div key={item.id} className="border rounded-3xl p-5 bg-gray-50">
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div>
-                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">
+            <div
+              key={item.id}
+              className="grid gap-3 border-b border-[#d8e0ea] bg-white p-4 last:border-b-0 md:grid-cols-[1fr_auto]"
+            >
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-[#667085] uppercase mb-1">
                     {item.category || "Document"}
-                  </div>
-                  <h3 className="text-lg font-bold">{item.title}</h3>
+                </div>
+                <h3 className="text-lg font-bold text-[#172033]">{item.title}</h3>
                   {item.eventSpecific && (
-                    <div className="text-xs text-blue-700 font-semibold mt-1">
+                    <div className="text-xs text-[#1d4ed8] font-semibold mt-1">
                       Event: {item.eventName || "Event-specific"}
                     </div>
                   )}
-                </div>
-              </div>
 
               {item.description && (
-                <p className="text-sm text-gray-700 mb-4 whitespace-pre-wrap">
+                <p className="text-sm text-[#475467] mt-2 whitespace-pre-wrap">
                   {item.description}
                 </p>
               )}
+              </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-start justify-start gap-2 md:justify-end">
                 <a
                   href={item.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold"
+                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-2 rounded-lg text-sm font-semibold"
                 >
                   Open Document
                 </a>
@@ -320,14 +321,14 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
                   <>
                     <button
                       onClick={() => startEdit(item)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-xl font-semibold"
+                      className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-sm font-semibold"
                     >
                       Edit
                     </button>
 
                     <button
                       onClick={() => removeDocument(item)}
-                      className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-xl font-semibold"
+                      className="bg-[#fff1f0] hover:bg-[#fee4e2] border border-[#fecdca] text-[#b42318] px-3 py-2 rounded-lg text-sm font-semibold"
                     >
                       Delete
                     </button>

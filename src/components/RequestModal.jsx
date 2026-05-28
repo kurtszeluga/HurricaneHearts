@@ -21,19 +21,6 @@ const requestCategories = [
   "Other"
 ];
 
-const categoryAbbreviations = {
-  "Wellness Check": "Well",
-  Transportation: "Trans",
-  "Food-Water": "Food",
-  "Adopt A Buddy": "Buddy",
-  "Storm Prep": "Prep",
-  "Storm Cleanup": "Clean",
-  "Power-Generator Help": "Power",
-  "Pet Assistance": "Pets",
-  "Borrow Supplies": "Borrow",
-  Other: "Other"
-};
-
 const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 async function addRequestHistory({ requestId, action, user, details = "", eventId = "" }) {
@@ -83,6 +70,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     if (!open) return;
 
     if (editingRequest) {
+      // Reset the modal form whenever it opens for a new request context.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         categories: editingRequest.categories || [],
         need: editingRequest.need || "",
@@ -93,7 +82,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     } else {
       setForm({ categories: [], need: "", urgency: "Medium", peopleNeeded: "Unknown", requestorUid: user.uid });
     }
-  }, [open, editingRequest]);
+  }, [open, editingRequest, user.uid]);
 
   if (!open) return null;
 
@@ -227,26 +216,26 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-2">
+      <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#172033] mb-2">
           {isEditing ? "Edit Request" : "Request Assistance"}
         </h2>
 
         {!isEditing && activeEvent && (
-          <div className="bg-blue-50 text-blue-800 rounded-2xl p-4 mb-5 text-sm font-semibold">
+          <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-5 text-sm font-semibold">
             Active Event: {activeEvent.eventName} — {activeEvent.eventDate}
           </div>
         )}
 
         {isAdmin && !isEditing && (
-          <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <div className="mb-5 bg-[#eff6ff] border border-[#bfdbfe] rounded-lg p-4">
             <label className="block font-semibold mb-2">
               Submit Request On Behalf Of
             </label>
             <select
               value={form.requestorUid}
               onChange={(e) => setForm({ ...form, requestorUid: e.target.value })}
-              className="w-full border rounded-2xl p-3 bg-white"
+              className="w-full border border-[#c7d0dc] rounded-lg p-3 bg-white"
             >
               <option value={user.uid}>Myself</option>
               {eligibleResidents.map((resident) => (
@@ -255,7 +244,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                 </option>
               ))}
             </select>
-            <p className="text-xs text-blue-800 mt-2">
+            <p className="text-xs text-[#1e3a8a] mt-2">
               Use this when a resident cannot enter the request themselves.
             </p>
           </div>
@@ -263,7 +252,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
         <div className="mb-5">
           <div className="font-semibold mb-2">Request Categories</div>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-[#667085] mb-3">
             Select all categories that apply.
           </p>
 
@@ -285,9 +274,9 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                     alignItems: "center",
                     gap: "10px",
                     padding: "12px",
-                    borderRadius: "16px",
-                    border: selected ? "1px solid #fca5a5" : "1px solid #e5e7eb",
-                    background: selected ? "#fef2f2" : "#ffffff",
+                    borderRadius: "8px",
+                    border: selected ? "1px solid #fecdca" : "1px solid #c7d0dc",
+                    background: selected ? "#fff1f0" : "#ffffff",
                     fontWeight: selected ? "700" : "400",
                     cursor: "pointer"
                   }}
@@ -308,14 +297,14 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           value={form.need}
           onChange={(e) => setForm({ ...form, need: e.target.value })}
           placeholder="Describe what help is needed"
-          className="w-full border rounded-2xl p-4 min-h-[120px] mb-4"
+          className="w-full border border-[#c7d0dc] rounded-lg p-3.5 min-h-[120px] mb-4"
         />
 
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <select
             value={form.urgency}
             onChange={(e) => setForm({ ...form, urgency: e.target.value })}
-            className="w-full border rounded-2xl p-4"
+            className="w-full border border-[#c7d0dc] rounded-lg p-3.5"
           >
             <option>Low</option>
             <option>Medium</option>
@@ -326,7 +315,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           <select
             value={form.peopleNeeded}
             onChange={(e) => setForm({ ...form, peopleNeeded: e.target.value })}
-            className="w-full border rounded-2xl p-4"
+            className="w-full border border-[#c7d0dc] rounded-lg p-3.5"
           >
             {peopleNeededOptions.map((option) => (
               <option key={option} value={option}>
@@ -337,11 +326,11 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         </div>
 
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-3 rounded-2xl bg-gray-100">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-lg bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] font-semibold">
             Cancel
           </button>
 
-          <button onClick={submit} className="px-5 py-3 rounded-2xl bg-red-600 text-white">
+          <button onClick={submit} className="px-4 py-2.5 rounded-lg bg-[#b42318] hover:bg-[#9f1f16] text-white font-semibold">
             {isEditing ? "Save Changes" : "Submit Request"}
           </button>
         </div>

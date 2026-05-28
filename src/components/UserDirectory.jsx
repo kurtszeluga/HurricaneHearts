@@ -163,35 +163,33 @@ export default function UserDirectory({ users = [] }) {
         );
       })
       .sort((a, b) => {
-        let valueA = "";
-        let valueB = "";
+        const sortValue = (user) => {
+          if (sortConfig.key === "name") {
+            return user.name || "";
+          }
 
-        if (sortConfig.key === "name") {
-          valueA = a.name || "";
-          valueB = b.name || "";
-        } else if (sortConfig.key === "phone") {
-          valueA = a.phone || "";
-          valueB = b.phone || "";
-        } else {
-          const aSelected = (a.serviceCategories || []).includes(sortConfig.key);
-          const bSelected = (b.serviceCategories || []).includes(sortConfig.key);
-          valueA = aSelected ? "1" : "0";
-          valueB = bSelected ? "1" : "0";
+          if (sortConfig.key === "phone") {
+            return user.phone || "";
+          }
+
+          return (user.serviceCategories || []).includes(sortConfig.key)
+            ? "1"
+            : "0";
         }
 
-        const comparison = valueA.localeCompare(valueB);
+        const comparison = sortValue(a).localeCompare(sortValue(b));
         return sortConfig.direction === "asc" ? comparison : -comparison;
       });
   }, [users, search, sortConfig]);
 
   return (
-    <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
+    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 mb-8">
       <div className="grid gap-4 mb-5 md:grid-cols-[1fr_auto_1fr] md:items-center">
         <div className="hidden md:block" aria-hidden="true" />
 
         <div className="text-center">
-          <h2 className="text-xl font-bold">Resident Directory</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="text-xl font-bold text-[#172033]">Resident Directory</h2>
+          <p className="text-xs text-[#667085]">
             Search residents and view helper categories.
           </p>
         </div>
@@ -201,7 +199,7 @@ export default function UserDirectory({ users = [] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, address, phone, email, or category"
-            className="border rounded-xl px-3 py-2 text-sm w-full md:w-80"
+            className="border border-[#c7d0dc] rounded-lg px-3 py-2 text-sm w-full md:w-80"
           />
 
           <button
@@ -210,8 +208,8 @@ export default function UserDirectory({ users = [] }) {
             disabled={!search}
             className={
               search
-                ? "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-semibold"
-                : "bg-gray-100 text-gray-400 px-3 py-2 rounded-xl text-sm font-semibold cursor-not-allowed"
+                ? "bg-[#e2e8f0] hover:bg-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-sm font-semibold"
+                : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg text-sm font-semibold cursor-not-allowed"
             }
           >
             Clear
@@ -224,16 +222,16 @@ export default function UserDirectory({ users = [] }) {
           const selectedCategories = (u.serviceCategories || []).filter(Boolean);
 
           return (
-            <div key={u.id} className="bg-gray-50 rounded-3xl p-4 shadow-sm">
+            <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-semibold text-gray-900 truncate">
+                  <div className="font-semibold text-[#172033] truncate">
                     {u.name || "Unnamed User"}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">
+                  <div className="text-xs text-[#667085] truncate">
                     {u.email || "No email"}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1 truncate">
+                  <div className="text-xs text-[#667085] mt-1 truncate">
                     {formatPhoneNumber(u.phone) || "No phone"}
                   </div>
                 </div>
@@ -241,13 +239,13 @@ export default function UserDirectory({ users = [] }) {
                 <button
                   type="button"
                   onClick={() => setSelectedUser(u)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap"
+                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap"
                 >
                   Details
                 </button>
               </div>
 
-              <div className="text-xs text-gray-600 mt-3 break-words">
+              <div className="text-xs text-[#475467] mt-3 break-words">
                 {u.address || "No address"}
               </div>
 
@@ -255,13 +253,13 @@ export default function UserDirectory({ users = [] }) {
                 {selectedCategories.slice(0, 6).map((category) => (
                   <span
                     key={category}
-                    className="bg-red-50 text-red-700 px-2 py-1 rounded-full text-[11px]"
+                    className="bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-full text-[11px]"
                   >
                     {category}
                   </span>
                 ))}
                 {selectedCategories.length > 6 && (
-                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-[11px]">
+                  <span className="bg-[#f2f4f7] text-[#475467] px-2 py-1 rounded-full text-[11px]">
                     +{selectedCategories.length - 6} more
                   </span>
                 )}
@@ -274,12 +272,12 @@ export default function UserDirectory({ users = [] }) {
       <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
-            <tr className="text-xs text-gray-500 uppercase">
+            <tr className="text-xs text-[#667085] uppercase">
               <th className="px-2 py-2 sticky left-0 bg-white z-10 min-w-[130px]">
                 <button
                   type="button"
                   onClick={() => changeSort("name")}
-                  className="font-bold hover:text-red-600"
+                  className="font-bold hover:text-[#b42318]"
                 >
                   Name{sortLabel("name")}
                 </button>
@@ -288,7 +286,7 @@ export default function UserDirectory({ users = [] }) {
                 <button
                   type="button"
                   onClick={() => changeSort("phone")}
-                  className="font-bold hover:text-red-600"
+                  className="font-bold hover:text-[#b42318]"
                 >
                   Phone{sortLabel("phone")}
                 </button>
@@ -299,7 +297,7 @@ export default function UserDirectory({ users = [] }) {
                     type="button"
                     onClick={() => changeSort(category)}
                     title={category}
-                    className="font-bold hover:text-red-600 leading-tight"
+                    className="font-bold hover:text-[#b42318] leading-tight"
                   >
                     {categoryAbbreviations[category] || category}{sortLabel(category)}
                   </button>
@@ -311,8 +309,8 @@ export default function UserDirectory({ users = [] }) {
 
           <tbody>
             {filteredUsers.map((u) => (
-              <tr key={u.id} className="bg-gray-50">
-                <td className="px-2 py-2 font-semibold rounded-l-xl sticky left-0 bg-gray-50 z-10 min-w-[130px]">
+              <tr key={u.id} className="bg-[#f1f5f9]">
+                <td className="px-2 py-2 font-semibold rounded-l-lg sticky left-0 bg-[#f1f5f9] z-10 min-w-[130px]">
                   {u.name || "Unnamed User"}
                 </td>
 
@@ -326,8 +324,8 @@ export default function UserDirectory({ users = [] }) {
                       <span
                         className={
                           selected
-                            ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-100 text-green-700 font-bold text-xs"
-                            : "inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-300 text-xs"
+                            ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#ecfdf3] text-[#067647] font-bold text-xs"
+                            : "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#e2e8f0] text-[#98a2b3] text-xs"
                         }
                       >
                         {selected ? "✓" : ""}
@@ -339,7 +337,7 @@ export default function UserDirectory({ users = [] }) {
                 <td className="px-2 py-2 rounded-r-xl min-w-[70px]">
                   <button
                     onClick={() => setSelectedUser(u)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg text-xs font-semibold"
+                    className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-2 py-1 rounded-md text-xs font-semibold"
                   >
                     Details
                   </button>
@@ -351,7 +349,7 @@ export default function UserDirectory({ users = [] }) {
       </div>
 
       {filteredUsers.length === 0 && (
-        <div className="text-center text-gray-500 py-8">
+        <div className="text-center text-[#667085] py-8">
           No residents match your search.
         </div>
       )}

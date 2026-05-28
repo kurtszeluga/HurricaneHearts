@@ -76,7 +76,9 @@ export default function useAuthUser() {
           profileComplete: false,
           termsAccepted: existing.termsAccepted ?? false,
           termsVersion: existing.termsVersion || "",
-          authProvider: existing.authProvider || "password"
+          authProvider: existing.authProvider || "password",
+          firstLoginProfileRequired:
+            existing.firstLoginProfileRequired ?? false
         };
 
         profile.profileComplete = isProfileComplete(profile);

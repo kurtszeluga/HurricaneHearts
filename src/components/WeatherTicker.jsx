@@ -2,14 +2,14 @@ import useNwsAlerts from "../hooks/useNwsAlerts";
 
 function severityClass(severity) {
   if (severity === "Extreme" || severity === "Severe") {
-    return "bg-red-600 text-white";
+    return "bg-[#b42318] text-white border-[#9f1f16]";
   }
 
   if (severity === "Moderate") {
-    return "bg-yellow-100 text-yellow-900 border-yellow-300";
+    return "bg-[#fffbeb] text-[#92400e] border-[#fde68a]";
   }
 
-  return "bg-blue-50 text-blue-800 border-blue-200";
+  return "bg-[#eff6ff] text-[#1e3a8a] border-[#bfdbfe]";
 }
 
 export default function WeatherTicker({ enabled = true }) {
@@ -20,7 +20,7 @@ export default function WeatherTicker({ enabled = true }) {
   if (loading && alerts.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl px-4 py-2 text-xs font-semibold flex items-center justify-between">
+        <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg px-4 py-2 text-xs font-semibold flex items-center justify-between">
           <div>Loading NWS weather alerts...</div>
           <div className="text-[10px] opacity-90">{lastFetchedAt ? `Updated: ${new Date(lastFetchedAt).toLocaleString()}` : ""}</div>
         </div>
@@ -31,7 +31,7 @@ export default function WeatherTicker({ enabled = true }) {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-        <div className="bg-gray-50 border border-gray-200 text-gray-600 rounded-2xl px-4 py-2 text-xs font-semibold flex items-center justify-between">
+        <div className="bg-white/8 border border-white/15 text-slate-200 rounded-lg px-4 py-2 text-xs font-semibold flex items-center justify-between">
           <div>NWS weather alerts are temporarily unavailable.</div>
           <div className="text-[10px] opacity-90">{lastFetchedAt ? `Updated: ${new Date(lastFetchedAt).toLocaleString()}` : ""}</div>
         </div>
@@ -42,7 +42,7 @@ export default function WeatherTicker({ enabled = true }) {
   if (alerts.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-2xl px-4 py-2 text-xs font-semibold flex items-center justify-between">
+        <div className="bg-[#ecfdf3] border border-[#abefc6] text-[#067647] rounded-lg px-4 py-2 text-xs font-semibold flex items-center justify-between">
           <div>NWS: No active weather alerts for the Arlington Ridge / Leesburg area.</div>
           <div className="text-[10px] opacity-90">{lastFetchedAt ? `Updated: ${new Date(lastFetchedAt).toLocaleString()}` : ""}</div>
         </div>
@@ -64,7 +64,7 @@ export default function WeatherTicker({ enabled = true }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
-      <div className={`border rounded-2xl overflow-hidden text-xs font-semibold ${severityClass(highestSeverity)}`}>
+      <div className={`border rounded-lg overflow-hidden text-xs font-semibold ${severityClass(highestSeverity)}`}>
         <div className="flex items-center gap-3 px-4 py-2">
           <span className="shrink-0 font-bold">NWS ALERTS</span>
 

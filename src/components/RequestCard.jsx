@@ -5,10 +5,10 @@ import { db } from "../firebase/config";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 
 const urgencyColors = {
-  Low: "bg-green-100 text-green-700",
-  Medium: "bg-yellow-100 text-yellow-700",
-  High: "bg-orange-100 text-orange-700",
-  Critical: "bg-red-100 text-red-700"
+  Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
+  Medium: "bg-[#fffbeb] text-[#92400e] border border-[#fde68a]",
+  High: "bg-[#fff7ed] text-[#9a3412] border border-[#fed7aa]",
+  Critical: "bg-[#fff1f0] text-[#b42318] border border-[#fecdca]"
 };
 
 function classNames(...classes) {
@@ -420,9 +420,9 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
 
   return (
     <>
-      <tr className="hover:bg-gray-50 align-top">
+      <tr className="hover:bg-[#f1f5f9] align-top">
         <td className="px-2 py-2">
-          <div className="font-semibold text-gray-900 text-sm">
+          <div className="font-semibold text-[#172033] text-sm">
             {request.residentName || "Resident"}
           </div>
         </td>
@@ -432,13 +432,13 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
             {(request.categories || []).slice(0, 2).map((category) => (
               <span
                 key={category}
-                className="bg-red-50 text-red-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                className="bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-md text-xs font-semibold"
               >
                 {category}
               </span>
             ))}
             {(request.categories || []).length > 2 && (
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs font-semibold">
+              <span className="bg-[#f2f4f7] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold">
                 +{request.categories.length - 2}
               </span>
             )}
@@ -456,19 +456,19 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
           </span>
         </td>
 
-        <td className="px-2 py-2 text-xs text-gray-700 whitespace-nowrap">
+        <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
           <div>N: {peopleNeeded}</div>
           <div>C: {peopleCommitted}</div>
           <div>R: {peopleRemaining}</div>
         </td>
 
         <td className="px-2 py-2">
-          <span className="inline-flex px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold">
+          <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
             {request.status || "Open"}
           </span>
         </td>
 
-        <td className="px-2 py-2 text-xs text-gray-700 min-w-[120px]">
+        <td className="px-2 py-2 text-xs text-[#475467] min-w-[120px]">
           {claimedBy}
         </td>
 
@@ -476,7 +476,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
           <div className="flex flex-wrap gap-1">
             <button
               onClick={() => setShowDetails(true)}
-              className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold"
+              className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
             >
               Details
             </button>
@@ -484,7 +484,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
             {canEditRequest && request.status !== "Cancelled" && request.status !== "Completed" && (
               <button
                 onClick={() => onEdit(request)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded-lg text-xs font-semibold"
+                className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold"
               >
                 Edit
               </button>
@@ -493,7 +493,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
             {canEditRequest && request.status !== "Cancelled" && request.status !== "Completed" && (
               <button
                 onClick={cancelRequest}
-                className="bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                className="bg-[#fff1f0] hover:bg-[#fee4e2] border border-[#fecdca] text-[#b42318] px-2 py-1 rounded-md text-xs font-semibold"
               >
                 Cancel
               </button>
@@ -502,7 +502,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
             {canClaim && (
               <button
                 onClick={() => setShowClaimForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg text-xs font-semibold"
+                className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-2 py-1 rounded-md text-xs font-semibold"
               >
                 Claim
               </button>
@@ -511,7 +511,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
             {request.status === "Assigned" && (isClaimedByCurrentUser || isAdmin) && (
               <button
                 onClick={completeRequest}
-                className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg text-xs font-semibold"
+                className="bg-[#16803c] hover:bg-[#126b32] text-white px-2 py-1 rounded-md text-xs font-semibold"
               >
                 Complete
               </button>
@@ -535,9 +535,9 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
       {showClaimForm &&
         createPortal(
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl shadow-2xl p-5 w-full max-w-md">
+            <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-2xl p-5 w-full max-w-md">
               <h2 className="text-xl font-bold mb-2">Claim Request</h2>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-[#667085] mb-4">
                 Select the number of people you can provide and add a short comment.
               </p>
 
@@ -549,7 +549,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
                   <select
                     value={claimHelperUid}
                     onChange={(e) => setClaimHelperUid(e.target.value)}
-                    className="w-full border rounded-2xl p-3 mb-4 bg-white"
+                    className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
                   >
                     <option value={user.uid}>Myself</option>
                     {eligibleHelpers
@@ -572,7 +572,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
               <select
                 value={claimPeople}
                 onChange={(e) => setClaimPeople(e.target.value)}
-                className="w-full border rounded-2xl p-3 mb-4 bg-white"
+                className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
               >
                 {Array.from(
                   { length: peopleRemaining === "Unknown" ? 10 : Math.max(Number(peopleRemaining), 1) },
@@ -589,7 +589,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
                 value={claimComment}
                 onChange={(e) => setClaimComment(e.target.value)}
                 placeholder="Example: I can bring two people and hand tools."
-                className="w-full border rounded-2xl p-3 min-h-[90px] mb-4"
+                className="w-full border border-[#c7d0dc] rounded-lg p-3 min-h-[90px] mb-4"
               />
 
               <div className="flex justify-end gap-2">
@@ -600,14 +600,14 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
                     setClaimComment("");
                     setClaimHelperUid(user.uid);
                   }}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-semibold"
+                  className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-4 py-2 rounded-lg font-semibold"
                 >
                   Cancel
                 </button>
 
                 <button
                   onClick={claimRequest}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold"
+                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-4 py-2 rounded-lg font-semibold"
                 >
                   Submit Claim
                 </button>

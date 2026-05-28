@@ -13,6 +13,7 @@ import {
   formatPhoneNumber,
   normalizePhoneNumber
 } from "../utils/formatPhoneNumber";
+import { queueAccessRequestEmails } from "../utils/emailNotifications";
 
 const BLOCK_MESSAGE_KEY =
   "hurricaneHeartsAuthMessage";
@@ -190,44 +191,60 @@ export default function LoginScreen({ message }) {
           form.password
         );
 
+      const accessRequestProfile = {
+        uid: credential.user.uid,
+
+        name: form.name.trim(),
+
+        email: form.email.trim(),
+
+        address: form.address.trim(),
+
+        phone: normalizePhoneNumber(
+          form.phone
+        ),
+
+        serviceCategories: [],
+
+        role: "resident",
+
+        approved: false,
+
+        active: true,
+
+        profileComplete: true,
+
+        firstLoginProfileRequired: true,
+
+        firstLoginProfileCompletedAt: null,
+
+        authProvider: "password",
+
+        termsAccepted: true,
+
+        termsAcceptedAt: serverTimestamp(),
+
+        termsVersion: TERMS_VERSION,
+
+        accessRequestedAt: serverTimestamp(),
+
+        createdAt: serverTimestamp()
+      };
+
       await setDoc(
         doc(db, "users", credential.user.uid),
-        {
-          uid: credential.user.uid,
-
-          name: form.name.trim(),
-
-          email: form.email.trim(),
-
-          address: form.address.trim(),
-
-          phone: normalizePhoneNumber(
-            form.phone
-          ),
-
-          serviceCategories: [],
-
-          role: "resident",
-
-          approved: false,
-
-          active: true,
-
-          profileComplete: true,
-
-          authProvider: "password",
-
-          termsAccepted: true,
-
-          termsAcceptedAt: serverTimestamp(),
-
-          termsVersion: TERMS_VERSION,
-
-          accessRequestedAt: serverTimestamp(),
-
-          createdAt: serverTimestamp()
-        }
+        accessRequestProfile
       );
+
+      await queueAccessRequestEmails(
+        db,
+        accessRequestProfile
+      ).catch((error) => {
+        console.error(
+          "Access request email queue error:",
+          error
+        );
+      });
 
       sessionStorage.setItem(
         ACCESS_SUCCESS_KEY,
@@ -304,15 +321,15 @@ export default function LoginScreen({ message }) {
 
     return (
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-blue-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#e8edf3] p-6">
 
-        <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center">
+        <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-lg p-8 max-w-md w-full text-center">
 
-          <div className="text-3xl font-bold text-red-600 mb-4">
+          <div className="text-2xl font-bold text-[#b42318] mb-4">
             Request Submitted
           </div>
 
-          <p className="text-gray-700 text-lg leading-relaxed">
+          <p className="text-[#475467] text-base leading-relaxed">
             Your Hurricane Hearts account request has been submitted and is pending administrator approval.
           </p>
 
@@ -326,7 +343,7 @@ export default function LoginScreen({ message }) {
                 ACCESS_SUCCESS_KEY
               );
             }}
-            className="mt-6 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-semibold transition"
+            className="mt-6 bg-[#b42318] hover:bg-[#9f1f16] text-white px-5 py-2.5 rounded-lg font-semibold transition"
           >
             Return to Login
           </button>
@@ -339,12 +356,12 @@ export default function LoginScreen({ message }) {
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#e8edf3] flex items-center justify-center p-6">
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full"
+        className="bg-white border border-[#c7d0dc] rounded-xl shadow-lg p-8 max-w-md w-full"
       >
 
         <div className="flex items-center gap-4 mb-6">
@@ -352,16 +369,16 @@ export default function LoginScreen({ message }) {
           <img
             src="/hurricane-hearts-logo.jpg"
             alt="Hurricane Hearts logo"
-            className="w-16 h-16 object-contain shrink-0"
+            className="w-14 h-14 object-contain shrink-0 rounded-lg border border-[#c7d0dc] bg-white p-1"
           />
 
           <div>
 
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-3xl font-bold text-[#172033] leading-tight">
 
               Hurricane He
 
-              <span className="text-red-600">
+              <span className="text-[#b42318]">
                 AR
               </span>
 
@@ -369,7 +386,7 @@ export default function LoginScreen({ message }) {
 
             </h1>
 
-            <p className="text-gray-600">
+            <p className="text-[#667085] text-sm font-semibold uppercase tracking-wide">
               Arlington Ridge Community
             </p>
 
@@ -379,7 +396,7 @@ export default function LoginScreen({ message }) {
 
         {displayMessage && (
 
-          <div className="bg-yellow-100 text-yellow-800 rounded-2xl p-4 mb-6 text-sm font-medium">
+          <div className="bg-[#fff7ed] text-[#7c2d12] border border-[#fed7aa] rounded-lg p-4 mb-6 text-sm font-medium">
 
             {displayMessage}
 
@@ -394,8 +411,8 @@ export default function LoginScreen({ message }) {
             disabled={submitting}
             className={
               mode === "login"
-                ? "flex-1 bg-red-600 text-white py-3 rounded-2xl font-semibold"
-                : "flex-1 bg-gray-100 text-gray-700 py-3 rounded-2xl font-semibold"
+                ? "flex-1 bg-[#b42318] text-white py-2.5 rounded-lg font-semibold"
+                : "flex-1 bg-[#f1f5f9] text-[#475467] border border-[#c7d0dc] py-2.5 rounded-lg font-semibold"
             }
           >
             Login
@@ -409,8 +426,8 @@ export default function LoginScreen({ message }) {
             disabled={submitting}
             className={
               mode === "requestAccess"
-                ? "flex-1 bg-red-600 text-white py-3 rounded-2xl font-semibold"
-                : "flex-1 bg-gray-100 text-gray-700 py-3 rounded-2xl font-semibold"
+                ? "flex-1 bg-[#b42318] text-white py-2.5 rounded-lg font-semibold"
+                : "flex-1 bg-[#f1f5f9] text-[#475467] border border-[#c7d0dc] py-2.5 rounded-lg font-semibold"
             }
           >
             Request Access
@@ -432,7 +449,7 @@ export default function LoginScreen({ message }) {
               }
               placeholder="Full name"
               disabled={submitting}
-              className="border rounded-2xl p-4"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
             />
 
             <input
@@ -445,7 +462,7 @@ export default function LoginScreen({ message }) {
               }
               placeholder="Arlington Ridge address"
               disabled={submitting}
-              className="border rounded-2xl p-4"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
             />
 
             <input
@@ -458,10 +475,10 @@ export default function LoginScreen({ message }) {
               }
               placeholder="Phone number"
               disabled={submitting}
-              className="border rounded-2xl p-4"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
             />
 
-            <div className="bg-gray-50 border rounded-2xl p-4">
+            <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4">
 
               <div className="font-semibold mb-2">
                 Terms and Conditions
@@ -473,7 +490,7 @@ export default function LoginScreen({ message }) {
                   setShowTerms(true)
                 }
                 disabled={submitting}
-                className="bg-white border px-4 py-2 rounded-xl font-semibold mr-3"
+                className="bg-white border border-[#c7d0dc] px-4 py-2 rounded-lg font-semibold mr-3"
               >
                 View Terms
               </button>
@@ -513,7 +530,7 @@ export default function LoginScreen({ message }) {
             placeholder="Email address"
             type="email"
             disabled={submitting}
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
           <input
@@ -527,7 +544,7 @@ export default function LoginScreen({ message }) {
             placeholder="Password"
             type="password"
             disabled={submitting}
-            className="border rounded-2xl p-4"
+            className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
           <button
@@ -540,8 +557,8 @@ export default function LoginScreen({ message }) {
             }
             className={
               submitting
-                ? "w-full bg-gray-400 text-white py-4 rounded-2xl font-semibold transition cursor-not-allowed"
-                : "w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-semibold transition"
+                ? "w-full bg-gray-400 text-white py-3 rounded-lg font-semibold transition cursor-not-allowed"
+                : "w-full bg-[#b42318] hover:bg-[#9f1f16] text-white py-3 rounded-lg font-semibold transition"
             }
           >
 
@@ -559,7 +576,7 @@ export default function LoginScreen({ message }) {
               type="button"
               onClick={resetPassword}
               disabled={submitting}
-              className="text-sm text-red-600 hover:text-red-700 underline font-semibold"
+              className="text-sm text-[#b42318] hover:text-[#9f1f16] underline font-semibold"
             >
               Forgot password? Reset Password
             </button>

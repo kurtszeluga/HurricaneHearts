@@ -18,21 +18,21 @@ function formatEventDateTime(value) {
 
 export default function Navbar({ user, activeEvent, onEditProfile }) {
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <header className="bg-[#172033] text-white border-b border-[#101828] shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <img
               src="/hurricane-hearts-logo.jpg"
               alt="Hurricane Hearts logo"
-              className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain shrink-0"
+              className="w-11 h-11 sm:w-14 sm:h-14 object-contain shrink-0 rounded-lg bg-white p-1"
             />
 
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
-                Hurricane He<span className="text-red-600">AR</span>ts
+              <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+                Hurricane He<span className="text-[#b42318]">AR</span>ts
               </h1>
-              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+              <p className="text-xs sm:text-sm text-slate-300 font-semibold uppercase tracking-wide">
                 Arlington Ridge Community
               </p>
             </div>
@@ -40,24 +40,24 @@ export default function Navbar({ user, activeEvent, onEditProfile }) {
 
           <div className="flex items-center justify-between md:justify-end gap-3 sm:gap-4">
             <div className="text-left md:text-right">
-              <div className="font-semibold text-gray-900 text-sm sm:text-base">
-                User: <span className="font-normal">{user.name || user.email}</span>
+              <div className="font-semibold text-white text-sm">
+                User: <span className="font-normal text-slate-200">{user.name || user.email}</span>
               </div>
-              <div className="text-xs sm:text-sm text-gray-500 capitalize">
+              <div className="text-xs text-slate-300 capitalize">
                 {user.role || "resident"}
               </div>
             </div>
 
             <button
               onClick={onEditProfile}
-              className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-semibold text-sm sm:text-base shrink-0"
+              className="bg-white/10 hover:bg-white/15 border border-white/15 text-white px-3 py-2 rounded-lg font-semibold text-sm shrink-0"
             >
               Edit Profile
             </button>
 
             <button
               onClick={() => signOut(auth)}
-              className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl font-semibold text-sm sm:text-base shrink-0"
+              className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-lg font-semibold text-sm shrink-0"
             >
               Logout
             </button>
@@ -65,16 +65,16 @@ export default function Navbar({ user, activeEvent, onEditProfile }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3">
         {activeEvent ? (
-          <div className="bg-yellow-50 border border-yellow-300 text-yellow-900 rounded-2xl px-4 sm:px-5 py-3 text-sm font-semibold grid gap-2 grid-cols-1 md:grid-cols-[1.2fr_1fr_1.2fr_auto] md:items-center">
+          <div className="bg-[#fff7ed] border border-[#fed7aa] text-[#7c2d12] rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold grid gap-2 grid-cols-1 md:grid-cols-[1.2fr_1fr_1.2fr_auto] md:items-center">
             <span>ACTIVE EVENT: {activeEvent.eventName}</span>
             <span>Event Date: {activeEvent.eventDate || "Not provided"}</span>
             <span>Activated: {formatEventDateTime(activeEvent.activatedAt) || "Not recorded"}</span>
-            <span className="text-green-700">Status: Active</span>
+            <span className="text-[#16803c]">Status: Active</span>
           </div>
         ) : (
-          <div className="bg-gray-50 border border-gray-200 text-gray-600 rounded-2xl px-4 sm:px-5 py-3 text-sm font-semibold">
+          <div className="bg-white/8 border border-white/15 text-slate-200 rounded-lg px-4 py-2 text-sm font-semibold">
             No active event. Request assistance is currently disabled.
           </div>
         )}

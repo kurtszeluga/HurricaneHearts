@@ -134,14 +134,14 @@ Deactivate '${activeEvent.eventName}' anyway?`;
   };
 
   return (
-    <div className="bg-green-200 text-green-900 rounded-xl shadow-sm p-3 mb-4">
+    <div className="bg-[#ecfdf3] text-[#064e3b] border border-[#abefc6] rounded-lg shadow-sm p-3 mb-4">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
         <div className="flex items-center gap-3 pl-8">
           {activeEvent && (
             <button
               type="button"
               onClick={deactivateEvent}
-              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1 rounded-lg font-semibold text-xs whitespace-nowrap"
+              className="bg-[#b42318] text-white hover:bg-[#9f1f16] px-3 py-1 rounded-md font-semibold text-xs whitespace-nowrap"
             >
               Deactivate Event
             </button>
@@ -167,20 +167,20 @@ Deactivate '${activeEvent.eventName}' anyway?`;
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="Event name"
-                className="px-2 py-1 rounded-md text-sm w-40 bg-white text-black"
+                className="px-2 py-1 rounded-md text-sm w-40 bg-white border border-[#abefc6] text-[#172033]"
               />
 
               <input
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
                 type="date"
-                className="px-2 py-1 rounded-md text-sm w-36 bg-white text-black"
+                className="px-2 py-1 rounded-md text-sm w-36 bg-white border border-[#abefc6] text-[#172033]"
               />
 
               <button
                 type="button"
                 onClick={activateEvent}
-                className="bg-white text-green-700 px-3 py-1 rounded-lg font-semibold text-sm"
+                className="bg-[#16803c] hover:bg-[#126b32] text-white px-3 py-1 rounded-md font-semibold text-sm"
               >
                 Activate
               </button>

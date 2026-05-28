@@ -63,27 +63,27 @@ export default function HomePage({
   const categoryBadges = (request) => (
     <div className="flex flex-wrap justify-center gap-1 max-w-[220px] mx-auto">
       {(request.categories || []).slice(0, 2).map((category) => (
-        <span key={category} className="bg-red-50 text-red-700 px-2 py-1 rounded-lg text-xs font-semibold">
+        <span key={category} className="bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-md text-xs font-semibold">
           {category}
         </span>
       ))}
       {(request.categories || []).length > 2 && (
-        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-lg text-xs font-semibold">
+        <span className="bg-[#f2f4f7] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold">
           +{request.categories.length - 2}
         </span>
       )}
     </div>
   );
 
-  const summaryButtonClass = "px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap";
+  const summaryButtonClass = "px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold whitespace-nowrap border";
 
   return (
     <div className="space-y-3">
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-3">
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 mb-3 text-center">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Request Summary</h2>
-            <p className="text-xs text-gray-500 leading-snug">
+            <h2 className="text-lg font-bold text-[#172033]">Request Summary</h2>
+            <p className="text-xs text-[#667085] leading-snug">
               {activeEvent
                 ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
                 : "No event is active. Request assistance is currently disabled."}
@@ -96,8 +96,8 @@ export default function HomePage({
             disabled={!activeEvent}
             className={
               activeEvent
-                ? "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap"
-                : "bg-gray-200 text-gray-400 px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm cursor-not-allowed whitespace-nowrap"
+                ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap"
+                : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm cursor-not-allowed whitespace-nowrap"
             }
           >
             Request Assistance
@@ -105,41 +105,41 @@ export default function HomePage({
         </div>
 
         <div className="flex flex-wrap items-stretch justify-center gap-1.5">
-          <button onClick={() => onGoToRequests({ type: "status", value: "Open" })} className={`bg-blue-50 hover:bg-blue-100 text-blue-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "status", value: "Open" })} className={`bg-[#eff6ff] hover:bg-[#dbeafe] border-[#bfdbfe] text-[#1d4ed8] ${summaryButtonClass}`}>
             Open: {openRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "status", value: "Assigned" })} className={`bg-yellow-50 hover:bg-yellow-100 text-yellow-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "status", value: "Assigned" })} className={`bg-[#fffbeb] hover:bg-[#fef3c7] border-[#fde68a] text-[#92400e] ${summaryButtonClass}`}>
             Assigned: {assignedRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "special", value: "Partially Claimed" })} className={`bg-orange-50 hover:bg-orange-100 text-orange-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "special", value: "Partially Claimed" })} className={`bg-[#fff7ed] hover:bg-[#ffedd5] border-[#fed7aa] text-[#9a3412] ${summaryButtonClass}`}>
             Partial: {partiallyClaimedRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "status", value: "Completed" })} className={`bg-green-50 hover:bg-green-100 text-green-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "status", value: "Completed" })} className={`bg-[#ecfdf3] hover:bg-[#dcfae6] border-[#abefc6] text-[#067647] ${summaryButtonClass}`}>
             Completed: {completedRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "status", value: "Cancelled" })} className={`bg-gray-100 hover:bg-gray-200 text-gray-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "status", value: "Cancelled" })} className={`bg-[#f2f4f7] hover:bg-[#d8e0ea] border-[#c7d0dc] text-[#475467] ${summaryButtonClass}`}>
             Cancelled: {cancelledRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })} className={`bg-purple-50 hover:bg-purple-100 text-purple-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })} className={`bg-[#f1f5f9] hover:bg-[#e2e8f0] border-[#c7d0dc] text-[#1f3a5f] ${summaryButtonClass}`}>
             My Requests: {myRequests.length}
           </button>
 
-          <button onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })} className={`bg-indigo-50 hover:bg-indigo-100 text-indigo-700 ${summaryButtonClass}`}>
+          <button onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })} className={`bg-[#f1f5f9] hover:bg-[#e2e8f0] border-[#c7d0dc] text-[#1f3a5f] ${summaryButtonClass}`}>
             My Claims: {myClaims.length}
           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">My Claims</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="text-lg font-bold text-[#172033]">My Claims</h2>
+            <p className="text-xs text-[#667085]">
               Requests you have claimed or are helping with.
             </p>
           </div>
@@ -147,20 +147,20 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-semibold"
+            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-xs font-semibold"
           >
             Manage My Claims
           </button>
         </div>
 
         {myActiveClaims.length === 0 ? (
-          <div className="p-4 text-sm text-gray-500 text-center">
+          <div className="p-4 text-sm text-[#667085] text-center">
             You do not have any active claims.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+              <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
                   <th className="text-center px-2 py-2 font-bold min-w-[140px]">Resident</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
@@ -176,19 +176,19 @@ export default function HomePage({
                   const myClaim = getMyClaim(request);
 
                   return (
-                    <tr key={request.id} className="hover:bg-gray-50 align-top">
-                      <td className="px-2 py-2 font-semibold text-center text-gray-900">
+                    <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
+                      <td className="px-2 py-2 font-semibold text-center text-[#172033]">
                         {request.residentName || "Resident"}
                       </td>
                       <td className="px-2 py-2">{categoryBadges(request)}</td>
-                      <td className="px-2 py-2 text-center text-xs text-gray-700">
+                      <td className="px-2 py-2 text-center text-xs text-[#475467]">
                         {getClaimedBy(request)}
                       </td>
-                      <td className="px-2 py-2 text-center text-xs text-gray-700">
+                      <td className="px-2 py-2 text-center text-xs text-[#475467]">
                         {myClaim ? `${myClaim.peopleProvided || 1} people` : "Assigned"}
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span className="inline-flex px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold">
+                        <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
                           {request.status || "Open"}
                         </span>
                       </td>
@@ -197,14 +197,14 @@ export default function HomePage({
                           <button
                             type="button"
                             onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
-                            className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                            className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             Details
                           </button>
                           <button
                             type="button"
                             onClick={() => onGoToRequests({ type: "status", value: "Assigned" })}
-                            className="bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                            className="bg-[#ecfdf3] hover:bg-[#dcfae6] border border-[#abefc6] text-[#067647] px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             Complete
                           </button>
@@ -219,11 +219,11 @@ export default function HomePage({
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">My Requests</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="text-lg font-bold text-[#172033]">My Requests</h2>
+            <p className="text-xs text-[#667085]">
               Requests you submitted or that were submitted on your behalf.
             </p>
           </div>
@@ -231,20 +231,20 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-semibold"
+            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-xs font-semibold"
           >
             Manage My Requests
           </button>
         </div>
 
         {myActiveRequests.length === 0 ? (
-          <div className="p-4 text-sm text-gray-500 text-center">
+          <div className="p-4 text-sm text-[#667085] text-center">
             You do not have any active requests.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+              <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
                   <th className="text-center px-2 py-2 font-bold min-w-[130px]">Category</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
@@ -257,19 +257,19 @@ export default function HomePage({
 
               <tbody className="divide-y divide-gray-100">
                 {myActiveRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-gray-50 align-top">
+                  <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
                     <td className="px-2 py-2">{categoryBadges(request)}</td>
-                    <td className="px-2 py-2 text-center text-sm text-gray-700">{request.urgency || "Medium"}</td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-700 whitespace-nowrap">
+                    <td className="px-2 py-2 text-center text-sm text-[#475467]">{request.urgency || "Medium"}</td>
+                    <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
                       <div>N: {request.peopleNeeded ?? "Unknown"}</div>
                       <div>C: {request.peopleCommitted || 0}</div>
                       <div>R: {request.peopleRemaining ?? "Unknown"}</div>
                     </td>
-                    <td className="px-2 py-2 text-center text-xs text-gray-700">
+                    <td className="px-2 py-2 text-center text-xs text-[#475467]">
                       {getClaimedBy(request)}
                     </td>
                     <td className="px-2 py-2 text-center">
-                      <span className="inline-flex px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold">
+                      <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
                         {request.status || "Open"}
                       </span>
                     </td>
@@ -278,14 +278,14 @@ export default function HomePage({
                         <button
                           type="button"
                           onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
-                          className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                          className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Details
                         </button>
                         <button
                           type="button"
                           onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg text-xs font-semibold"
+                          className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Manage
                         </button>

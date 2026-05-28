@@ -65,9 +65,9 @@ export default function ProfileEditor({
   };
 
   return (
-    <div className="bg-gray-50 border rounded-3xl p-5 mb-6">
+    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-5 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold">{title}</h3>
+        <h3 className="text-xl font-bold text-[#172033]">{title}</h3>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -75,34 +75,34 @@ export default function ProfileEditor({
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           placeholder="Full name"
-          className="border rounded-2xl p-4 bg-white"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
         />
 
         <input
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           placeholder="Email"
-          className="border rounded-2xl p-4 bg-white"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
         />
 
         <input
           value={form.phone}
           onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })}
           placeholder="Phone"
-          className="border rounded-2xl p-4 bg-white"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
         />
 
         <input
           value={form.address}
           onChange={(e) => setForm({ ...form, address: e.target.value })}
           placeholder="Address"
-          className="border rounded-2xl p-4 bg-white"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
         />
       </div>
 
-      <div className="bg-white border rounded-3xl p-5 mt-5">
-        <div className="font-bold mb-2">Willing to Help With</div>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-5 mt-5">
+        <div className="font-bold text-[#172033] mb-2">Willing to Help With</div>
+        <p className="text-sm text-[#667085] mb-4">
           Check any request categories this user is willing to support.
         </p>
 
@@ -121,8 +121,8 @@ export default function ProfileEditor({
                 key={category}
                 className={
                   selected
-                    ? "border border-red-300 bg-red-50 rounded-2xl p-3 flex items-center gap-2 font-semibold cursor-pointer"
-                    : "border rounded-2xl p-3 flex items-center gap-2 bg-white cursor-pointer"
+                    ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold cursor-pointer"
+                    : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white cursor-pointer"
                 }
               >
                 <input
@@ -147,8 +147,8 @@ export default function ProfileEditor({
               onChange={(e) => setForm({ ...form, role: e.target.value })}
               className={
                 isPrimaryOwner
-                  ? "border rounded-xl px-3 py-2 bg-gray-100 text-gray-500"
-                  : "border rounded-xl px-3 py-2 bg-white"
+                  ? "border border-[#c7d0dc] rounded-lg px-3 py-2 bg-[#e2e8f0] text-[#667085]"
+                  : "border border-[#c7d0dc] rounded-lg px-3 py-2 bg-white"
               }
             >
               <option value="resident">Resident</option>
@@ -156,7 +156,7 @@ export default function ProfileEditor({
             </select>
 
             {isPrimaryOwner && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[#667085]">
                 Primary admin must remain approved, active, and Admin.
               </span>
             )}
@@ -187,7 +187,7 @@ export default function ProfileEditor({
       <div className="mt-5 flex gap-3">
         <button
           onClick={save}
-          className="bg-red-600 text-white px-5 py-3 rounded-2xl font-semibold"
+          className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-2.5 rounded-lg font-semibold"
         >
           Save
         </button>
@@ -195,7 +195,7 @@ export default function ProfileEditor({
         {onCancel && (
           <button
             onClick={onCancel}
-            className="bg-gray-100 text-gray-700 px-5 py-3 rounded-2xl font-semibold"
+            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-4 py-2.5 rounded-lg font-semibold"
           >
             Cancel
           </button>

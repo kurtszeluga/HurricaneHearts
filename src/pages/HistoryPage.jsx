@@ -5,15 +5,12 @@ import { db } from "../firebase/config";
 function formatDateTime(value) {
   if (!value) return "Not recorded";
 
-  let rawDate = null;
-
-  if (typeof value?.toDate === "function") {
-    rawDate = value.toDate();
-  } else if (typeof value?.seconds === "number") {
-    rawDate = new Date(value.seconds * 1000);
-  } else {
-    rawDate = new Date(value);
-  }
+  const rawDate =
+    typeof value?.toDate === "function"
+      ? value.toDate()
+      : typeof value?.seconds === "number"
+        ? new Date(value.seconds * 1000)
+        : new Date(value);
 
   if (!rawDate || Number.isNaN(rawDate.getTime())) return "Not recorded";
 
@@ -347,22 +344,22 @@ export default function HistoryPage({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-gray-50 border-b">
-          <h2 className="text-lg font-bold text-gray-900">Event History</h2>
-          <p className="text-xs text-gray-500">
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#f1f5f9] border-b border-[#c7d0dc]">
+          <h2 className="text-lg font-bold text-[#172033]">Event History</h2>
+          <p className="text-xs text-[#667085]">
             Select an event to view the request activity recorded for that event.
           </p>
         </div>
 
         {events.length === 0 ? (
-          <div className="p-4 text-sm text-gray-500 text-center">
+          <div className="p-4 text-sm text-[#667085] text-center">
             No event history or event request records were found yet.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+              <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
                   <th className="text-left px-3 py-2 font-bold min-w-[160px]">Event Title</th>
                   <th className="text-left px-3 py-2 font-bold min-w-[140px]">Date/Time Activation</th>
@@ -373,30 +370,30 @@ export default function HistoryPage({
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[#d8e0ea]">
                 {events.map((event) => (
-                  <tr key={event.eventId} className="hover:bg-gray-50 align-top">
-                    <td className="px-3 py-2 font-semibold text-gray-900">
+                  <tr key={event.eventId} className="hover:bg-[#f1f5f9] align-top">
+                    <td className="px-3 py-2 font-semibold text-[#172033]">
                       <div>{event.eventName}</div>
                       {event.eventDate && (
-                        <div className="text-xs font-normal text-gray-500">Event Date: {event.eventDate}</div>
+                        <div className="text-xs font-normal text-[#667085]">Event Date: {event.eventDate}</div>
                       )}
                       {event.reopenedAt && (
-                        <div className="text-[11px] font-normal text-green-700 mt-1">
+                        <div className="text-[11px] font-normal text-[#067647] mt-1">
                           Reopened by {event.reopenedByName}
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-gray-700">{displayActivationTime(event)}</td>
-                    <td className="px-3 py-2 text-gray-700">{event.activatedByName || "Not recorded"}</td>
-                    <td className="px-3 py-2 text-gray-700">{displayDeactivationTime(event)}</td>
-                    <td className="px-3 py-2 text-gray-700">{event.deactivatedByName || "Not recorded"}</td>
+                    <td className="px-3 py-2 text-[#475467]">{displayActivationTime(event)}</td>
+                    <td className="px-3 py-2 text-[#475467]">{event.activatedByName || "Not recorded"}</td>
+                    <td className="px-3 py-2 text-[#475467]">{displayDeactivationTime(event)}</td>
+                    <td className="px-3 py-2 text-[#475467]">{event.deactivatedByName || "Not recorded"}</td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
                         <button
                           type="button"
                           onClick={() => setSelectedEventId(event.eventId)}
-                          className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                          className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-3 py-1.5 rounded-md text-xs font-semibold"
                         >
                           View History
                         </button>
@@ -405,7 +402,7 @@ export default function HistoryPage({
                           <button
                             type="button"
                             onClick={() => reopenEvent(event)}
-                            className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                            className="bg-[#ecfdf3] hover:bg-[#dcfae6] border border-[#abefc6] text-[#067647] px-3 py-1.5 rounded-md text-xs font-semibold"
                           >
                             Reopen
                           </button>
@@ -421,13 +418,13 @@ export default function HistoryPage({
       </div>
 
       {selectedEvent && (
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-4 py-3 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-[#f1f5f9] border-b border-[#c7d0dc] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-[#172033]">
                 Request Activity: {selectedEvent.eventName}
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[#667085]">
                 Showing request history records tied to this event.
               </p>
             </div>
@@ -435,20 +432,20 @@ export default function HistoryPage({
             <button
               type="button"
               onClick={() => setSelectedEventId(null)}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-semibold"
+              className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-xs font-semibold"
             >
               Close
             </button>
           </div>
 
           {selectedRequestHistory.length === 0 ? (
-            <div className="p-4 text-sm text-gray-500 text-center">
+            <div className="p-4 text-sm text-[#667085] text-center">
               No request activity has been recorded for this event yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+                <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                   <tr>
                     <th className="text-left px-3 py-2 font-bold min-w-[140px]">Date/Time</th>
                     <th className="text-left px-3 py-2 font-bold min-w-[110px]">Action</th>
@@ -457,13 +454,13 @@ export default function HistoryPage({
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-[#d8e0ea]">
                   {selectedRequestHistory.map((entry) => (
-                    <tr key={entry.id || `${entry.requestId}-${entry.createdAt?.seconds || entry.action || "history"}`} className="hover:bg-gray-50 align-top">
-                      <td className="px-3 py-2 text-gray-700">{formatDateTime(entry.createdAt || entry.timestamp)}</td>
-                      <td className="px-3 py-2 font-semibold text-gray-900">{entry.action || "Activity"}</td>
-                      <td className="px-3 py-2 text-gray-700">{entry.byName || entry.byEmail || "Not recorded"}</td>
-                      <td className="px-3 py-2 text-gray-700">{entry.details || "Not recorded"}</td>
+                    <tr key={entry.id || `${entry.requestId}-${entry.createdAt?.seconds || entry.action || "history"}`} className="hover:bg-[#f1f5f9] align-top">
+                      <td className="px-3 py-2 text-[#475467]">{formatDateTime(entry.createdAt || entry.timestamp)}</td>
+                      <td className="px-3 py-2 font-semibold text-[#172033]">{entry.action || "Activity"}</td>
+                      <td className="px-3 py-2 text-[#475467]">{entry.byName || entry.byEmail || "Not recorded"}</td>
+                      <td className="px-3 py-2 text-[#475467]">{entry.details || "Not recorded"}</td>
                     </tr>
                   ))}
                 </tbody>

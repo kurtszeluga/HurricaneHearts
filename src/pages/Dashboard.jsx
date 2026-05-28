@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import Navbar from "../components/Navbar";
@@ -61,19 +61,41 @@ export default function Dashboard({
   eventHistory = [],
   notifications = []
 }) {
-  const [activePage, setActivePage] = useState("Home");
-  const [requestFilter, setRequestFilter] = useState({ type: "status", value: "Open" });
+  const requiresFirstLoginProfile =
+    user.firstLoginProfileRequired === true;
+
+  const [activePage, setActivePage] = useState(() =>
+    requiresFirstLoginProfile
+      ? "Profile"
+      : user.role === "admin"
+        ? "Admin"
+        : "Home"
+  );
+  const [showFirstLoginSplash, setShowFirstLoginSplash] =
+    useState(requiresFirstLoginProfile);
+  const [requestFilter, setRequestFilter] = useState(() =>
+    user.role === "admin"
+      ? { type: "status", value: "Open" }
+      : { type: "status", value: "All" }
+  );
   const [openModal, setOpenModal] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const adminPages = ["Admin", "Reports"];
+  const adminPages = ["Admin", "History", "Notifications", "Reports"];
   const visiblePages = pageOptions.filter((page) => {
     if (adminPages.includes(page)) return user.role === "admin";
     return true;
   });
 
   const goToPage = (page) => {
+    if (requiresFirstLoginProfile && page !== "Profile") {
+      setActivePage("Profile");
+      setShowFirstLoginSplash(true);
+      setMenuOpen(false);
+      return;
+    }
+
     setActivePage(page);
     setMenuOpen(false);
   };
@@ -95,17 +117,27 @@ export default function Dashboard({
         address: updatedUser.address,
         phone: normalizePhoneNumber(updatedUser.phone),
         serviceCategories,
-        profileComplete: true
+        profileComplete: true,
+        firstLoginProfileRequired: false,
+        firstLoginProfileCompletedAt:
+          requiresFirstLoginProfile
+            ? serverTimestamp()
+            : user.firstLoginProfileCompletedAt || null
       };
 
       await updateDoc(doc(db, "users", user.uid), updatedProfile);
 
       setUser({
         ...user,
-        ...updatedProfile
+        ...updatedProfile,
+        firstLoginProfileCompletedAt:
+          requiresFirstLoginProfile
+            ? new Date().toISOString()
+            : user.firstLoginProfileCompletedAt || null
       });
 
       alert("Profile saved.");
+      setShowFirstLoginSplash(false);
       setActivePage("Home");
     } catch (error) {
       console.error("Profile save error:", error);
@@ -145,10 +177,18 @@ export default function Dashboard({
     if (activePage === "Profile") {
       return (
         <ProfileEditor
-          title="Edit My Profile"
+          title={
+            requiresFirstLoginProfile
+              ? "Review My Profile"
+              : "Edit My Profile"
+          }
           user={user}
           onSave={saveMyProfile}
-          onCancel={() => setActivePage("Home")}
+          onCancel={
+            requiresFirstLoginProfile
+              ? null
+              : () => setActivePage("Home")
+          }
         />
       );
     }
@@ -189,7 +229,7 @@ export default function Dashboard({
       return <DocumentsPage user={user} documents={documents} activeEvent={activeEvent} />;
     }
 
-    if (activePage === "History") {
+    if (activePage === "History" && user.role === "admin") {
       return (
         <HistoryPage
           user={user}
@@ -201,7 +241,7 @@ export default function Dashboard({
       );
     }
 
-    if (activePage === "Notifications") {
+    if (activePage === "Notifications" && user.role === "admin") {
       return <NotificationsPage notifications={notifications} />;
     }
 
@@ -224,36 +264,59 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#e8edf3]">
       <Navbar user={user} activeEvent={activeEvent} onEditProfile={openProfilePage} />
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div className="bg-white border rounded-xl shadow-sm px-3 py-2 mb-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-3 sm:py-4">
+        {showFirstLoginSplash && (
+          <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-3 text-center shadow-sm">
+            <h2 className="text-lg font-bold">
+              Welcome to Hurricane Hearts
+            </h2>
+
+            <p className="text-sm mt-1">
+              Please review your contact information and select any
+              categories you would be willing to volunteer for. If you do not
+              want to volunteer right now, just confirm your contact
+              information and save.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setShowFirstLoginSplash(false)}
+              className="mt-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            >
+              Continue
+            </button>
+          </div>
+        )}
+
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-md px-3 py-2 mb-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 flex justify-center">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight text-center underline underline-offset-4 decoration-red-500">
+              <h2 className="text-lg sm:text-xl font-bold text-[#172033] leading-tight text-center underline underline-offset-4 decoration-[#b42318]">
                 {pageLabels[activePage]}
               </h2>
             </div>
 
             <div className="flex-none w-auto">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-600 whitespace-nowrap">Menu:</span>
+                <span className="text-xs font-semibold text-[#667085] whitespace-nowrap">Menu:</span>
                 <div className="relative w-40">
                   <button
                     type="button"
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="w-full bg-gray-50 hover:bg-gray-100 border rounded-lg px-3 py-1.5 flex items-center justify-between font-semibold text-gray-800 text-sm"
+                    className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#c7d0dc] rounded-md px-3 py-1.5 flex items-center justify-between font-semibold text-[#172033] text-sm"
                   >
                     <span className="flex items-center gap-2">
                       <span>{pageIcons[activePage]}</span>
                       <span className="hidden sm:inline">{pageLabels[activePage]}</span>
                     </span>
-                    <span className="text-xs text-gray-500">{menuOpen ? "▲" : "▼"}</span>
+                    <span className="text-xs text-[#667085]">{menuOpen ? "▲" : "▼"}</span>
                   </button>
 
                   {menuOpen && (
-                    <div className="absolute right-0 sm:left-auto sm:w-40 mt-2 bg-white border rounded-2xl shadow-xl p-1 z-40 text-xs">
+                    <div className="absolute right-0 sm:left-auto sm:w-40 mt-2 bg-white border border-[#c7d0dc] rounded-lg shadow-xl p-1 z-40 text-xs">
                       {visiblePages.map((page) => (
                         <button
                           key={page}
@@ -261,8 +324,8 @@ export default function Dashboard({
                           onClick={() => goToPage(page)}
                           className={
                             activePage === page
-                              ? "w-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
-                              : "w-full hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
+                              ? "w-full bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] px-3 py-1.5 rounded-md font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
+                              : "w-full hover:bg-[#f1f5f9] text-[#475467] px-3 py-1.5 rounded-md font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
                           }
                         >
                           <span className="text-base w-5 text-center">{pageIcons[page]}</span>
@@ -282,7 +345,7 @@ export default function Dashboard({
         </main>
       </div>
 
-      <footer className="text-center text-xs text-gray-500 py-4">
+      <footer className="text-center text-xs text-[#667085] py-4">
         © 2026 Hurricane Hearts — Arlington Ridge Community v.1.0
       </footer>
 
