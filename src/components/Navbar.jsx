@@ -67,7 +67,7 @@ export default function Navbar({ user, activeEvent, onEditProfile }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
         {activeEvent ? (
-          <div className="bg-yellow-50 border border-yellow-300 text-yellow-900 rounded-2xl px-4 sm:px-5 py-3 text-sm font-semibold grid gap-1 md:grid-cols-[1.2fr_1fr_1.2fr_auto] md:items-center">
+          <div className="bg-yellow-50 border border-yellow-300 text-yellow-900 rounded-2xl px-4 sm:px-5 py-3 text-sm font-semibold grid gap-2 grid-cols-1 md:grid-cols-[1.2fr_1fr_1.2fr_auto] md:items-center">
             <span>ACTIVE EVENT: {activeEvent.eventName}</span>
             <span>Event Date: {activeEvent.eventDate || "Not provided"}</span>
             <span>Activated: {formatEventDateTime(activeEvent.activatedAt) || "Not recorded"}</span>

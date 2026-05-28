@@ -364,12 +364,12 @@ export default function HistoryPage({
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="text-left px-3 py-2 font-bold min-w-[180px]">Event Title</th>
-                  <th className="text-left px-3 py-2 font-bold min-w-[160px]">Date/Time Activation</th>
-                  <th className="text-left px-3 py-2 font-bold min-w-[140px]">Activated By</th>
-                  <th className="text-left px-3 py-2 font-bold min-w-[160px]">Date/Time Termination</th>
-                  <th className="text-left px-3 py-2 font-bold min-w-[140px]">Terminated By</th>
-                  <th className="text-left px-3 py-2 font-bold min-w-[170px]">History</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[160px]">Event Title</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[140px]">Date/Time Activation</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[120px]">Activated By</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[140px]">Date/Time Termination</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[120px]">Terminated By</th>
+                  <th className="text-left px-3 py-2 font-bold min-w-[150px]">History</th>
                 </tr>
               </thead>
 
@@ -450,10 +450,10 @@ export default function HistoryPage({
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
                   <tr>
-                    <th className="text-left px-3 py-2 font-bold min-w-[160px]">Date/Time</th>
-                    <th className="text-left px-3 py-2 font-bold min-w-[130px]">Action</th>
-                    <th className="text-left px-3 py-2 font-bold min-w-[160px]">By</th>
-                    <th className="text-left px-3 py-2 font-bold min-w-[260px]">Details</th>
+                    <th className="text-left px-3 py-2 font-bold min-w-[140px]">Date/Time</th>
+                    <th className="text-left px-3 py-2 font-bold min-w-[110px]">Action</th>
+                    <th className="text-left px-3 py-2 font-bold min-w-[140px]">By</th>
+                    <th className="text-left px-3 py-2 font-bold min-w-[220px]">Details</th>
                   </tr>
                 </thead>
 

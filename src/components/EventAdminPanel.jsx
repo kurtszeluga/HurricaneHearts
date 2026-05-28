@@ -134,77 +134,60 @@ Deactivate '${activeEvent.eventName}' anyway?`;
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-3 mb-4 border-l-4 border-red-600">
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div>
-          <h2 className="text-lg font-bold leading-tight">Event Control</h2>
-          <p className="text-[11px] text-gray-500 leading-tight">
-            Control the active disaster event
-          </p>
+    <div className="bg-green-200 text-green-900 rounded-xl shadow-sm p-3 mb-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+        <div className="flex items-center gap-3 pl-8">
+          {activeEvent && (
+            <button
+              type="button"
+              onClick={deactivateEvent}
+              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1 rounded-lg font-semibold text-xs whitespace-nowrap"
+            >
+              Deactivate Event
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col items-center gap-0 min-w-0">
+          <h2 className="text-sm font-bold leading-tight">Event Control</h2>
+          <p className="text-[11px] opacity-90 leading-tight mt-0">Manage the current event</p>
         </div>
 
         {activeEvent && (
-          <button
-            type="button"
-            onClick={deactivateEvent}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-semibold text-xs whitespace-nowrap"
-          >
-            Deactivate Event
-          </button>
+          <div className="flex flex-col items-center min-w-0">
+            <div className="text-sm font-semibold truncate text-center">{activeEvent.eventName}</div>
+            <div className="text-[11px] opacity-90 truncate text-center">{activeEvent.eventDate}</div>
+          </div>
+        )}
+
+        {!activeEvent && (
+          <div className="flex items-center justify-end gap-3">
+            <>
+              <input
+                value={eventName}
+                onChange={(e) => setEventName(e.target.value)}
+                placeholder="Event name"
+                className="px-2 py-1 rounded-md text-sm w-40 bg-white text-black"
+              />
+
+              <input
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                type="date"
+                className="px-2 py-1 rounded-md text-sm w-36 bg-white text-black"
+              />
+
+              <button
+                type="button"
+                onClick={activateEvent}
+                className="bg-white text-green-700 px-3 py-1 rounded-lg font-semibold text-sm"
+              >
+                Activate
+              </button>
+            </>
+          </div>
         )}
       </div>
-
-      {activeEvent ? (
-        <div className="bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-center">
-          <div className="text-[10px] uppercase tracking-wide text-green-700 font-semibold leading-tight">
-            Active Event
-          </div>
-
-          <div className="text-base font-bold text-green-900 leading-tight">
-            {activeEvent.eventName}
-          </div>
-
-          <div className="text-xs text-green-800 leading-tight">
-            {activeEvent.eventDate}
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col md:flex-row md:items-end md:justify-center gap-2">
-          <div className="w-full md:w-[360px]">
-            <label className="block text-[10px] text-gray-500 mb-0.5 text-center">
-              Event Name
-            </label>
-
-            <input
-              value={eventName}
-              onChange={(e) => setEventName(e.target.value)}
-              placeholder="Hurricane Milton"
-              className="border rounded-lg px-3 py-1.5 bg-white w-full text-sm text-center"
-            />
-          </div>
-
-          <div className="w-full md:w-[170px]">
-            <label className="block text-[10px] text-gray-500 mb-0.5 text-center">
-              Event Date
-            </label>
-
-            <input
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              type="date"
-              className="border rounded-lg px-3 py-1.5 bg-white w-full text-sm text-center"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={activateEvent}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg font-semibold text-sm h-[34px] whitespace-nowrap"
-          >
-            Activate
-          </button>
-        </div>
-      )}
     </div>
   );
 }

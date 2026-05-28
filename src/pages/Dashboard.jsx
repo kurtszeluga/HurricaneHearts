@@ -228,35 +228,32 @@ export default function Dashboard({
       <Navbar user={user} activeEvent={activeEvent} onEditProfile={openProfilePage} />
 
       <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div className="bg-white border rounded-2xl shadow-sm p-3 mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+        <div className="bg-white border rounded-xl shadow-sm px-3 py-2 mb-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 flex justify-center">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight text-center underline underline-offset-4 decoration-red-500">
                 {pageLabels[activePage]}
               </h2>
             </div>
 
-            <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">
-                  Menu:
-                </span>
-
-                <div className="relative w-full sm:w-56">
+            <div className="flex-none w-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-600 whitespace-nowrap">Menu:</span>
+                <div className="relative w-40">
                   <button
                     type="button"
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="w-full bg-gray-50 hover:bg-gray-100 border rounded-xl px-4 py-2.5 flex items-center justify-between font-semibold text-gray-800"
+                    className="w-full bg-gray-50 hover:bg-gray-100 border rounded-lg px-3 py-1.5 flex items-center justify-between font-semibold text-gray-800 text-sm"
                   >
                     <span className="flex items-center gap-2">
                       <span>{pageIcons[activePage]}</span>
-                      <span>{pageLabels[activePage]}</span>
+                      <span className="hidden sm:inline">{pageLabels[activePage]}</span>
                     </span>
                     <span className="text-xs text-gray-500">{menuOpen ? "▲" : "▼"}</span>
                   </button>
 
                   {menuOpen && (
-                    <div className="absolute right-0 left-0 sm:left-auto sm:w-56 mt-2 bg-white border rounded-2xl shadow-xl p-2 z-40">
+                    <div className="absolute right-0 sm:left-auto sm:w-40 mt-2 bg-white border rounded-2xl shadow-xl p-1 z-40 text-xs">
                       {visiblePages.map((page) => (
                         <button
                           key={page}
@@ -264,8 +261,8 @@ export default function Dashboard({
                           onClick={() => goToPage(page)}
                           className={
                             activePage === page
-                              ? "w-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
-                              : "w-full hover:bg-gray-50 text-gray-700 px-3 py-2.5 rounded-xl font-semibold text-left flex items-center gap-2 text-sm"
+                              ? "w-full bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
+                              : "w-full hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
                           }
                         >
                           <span className="text-base w-5 text-center">{pageIcons[page]}</span>
@@ -276,10 +273,6 @@ export default function Dashboard({
                   )}
                 </div>
               </div>
-
-              <p className="text-xs text-gray-500 sm:pl-14">
-                Use the menu to move between Hurricane Hearts pages.
-              </p>
             </div>
           </div>
         </div>

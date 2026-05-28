@@ -26,6 +26,7 @@ export default function useNwsAlerts(enabled, latitude = DEFAULT_LAT, longitude 
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [lastFetchedAt, setLastFetchedAt] = useState(null);
 
   useEffect(() => {
     if (!enabled) {
@@ -58,12 +59,14 @@ export default function useNwsAlerts(enabled, latitude = DEFAULT_LAT, longitude 
 
         if (!cancelled) {
           setAlerts(features.map(simplifyAlert));
+          setLastFetchedAt(new Date().toISOString());
         }
       } catch (err) {
         console.error("NWS alerts error:", err);
         if (!cancelled) {
           setError("Unable to load NWS alerts");
           setAlerts([]);
+          setLastFetchedAt(new Date().toISOString());
         }
       } finally {
         if (!cancelled) {
@@ -79,7 +82,7 @@ export default function useNwsAlerts(enabled, latitude = DEFAULT_LAT, longitude 
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [enabled, latitude, longitude]);
+    }, [enabled, latitude, longitude]);
 
-  return { alerts, loading, error };
+  return { alerts, loading, error, lastFetchedAt };
 }

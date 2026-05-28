@@ -3,8 +3,7 @@ export default function HomePage({
   activeEvent,
   requests,
   onNewRequest,
-  onGoToRequests,
-  onGoToDirectory
+  onGoToRequests
 }) {
   const myRequests = requests.filter((r) => r.residentUid === user.uid || r.residentEmail === user.email);
   const myClaims = requests.filter((r) => {
@@ -62,7 +61,7 @@ export default function HomePage({
   };
 
   const categoryBadges = (request) => (
-    <div className="flex flex-wrap gap-1 max-w-[220px]">
+    <div className="flex flex-wrap justify-center gap-1 max-w-[220px] mx-auto">
       {(request.categories || []).slice(0, 2).map((category) => (
         <span key={category} className="bg-red-50 text-red-700 px-2 py-1 rounded-lg text-xs font-semibold">
           {category}
@@ -81,9 +80,9 @@ export default function HomePage({
   return (
     <div className="space-y-3">
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 mb-3 text-center">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Dashboard</h2>
+            <h2 className="text-lg font-bold text-gray-900">Request Summary</h2>
             <p className="text-xs text-gray-500 leading-snug">
               {activeEvent
                 ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
@@ -105,7 +104,7 @@ export default function HomePage({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-stretch gap-1.5">
+        <div className="flex flex-wrap items-stretch justify-center gap-1.5">
           <button onClick={() => onGoToRequests({ type: "status", value: "Open" })} className={`bg-blue-50 hover:bg-blue-100 text-blue-700 ${summaryButtonClass}`}>
             Open: {openRequests.length}
           </button>
@@ -137,7 +136,7 @@ export default function HomePage({
       </div>
 
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
           <div>
             <h2 className="text-lg font-bold text-gray-900">My Claims</h2>
             <p className="text-xs text-gray-500">
@@ -163,12 +162,12 @@ export default function HomePage({
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="text-left px-2 py-2 font-bold min-w-[140px]">Resident</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[150px]">Category</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[100px]">My Claim</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[100px]">Status</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[140px]">Actions</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Resident</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[100px]">My Claim</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[100px]">Status</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Actions</th>
                 </tr>
               </thead>
 
@@ -178,23 +177,23 @@ export default function HomePage({
 
                   return (
                     <tr key={request.id} className="hover:bg-gray-50 align-top">
-                      <td className="px-2 py-2 font-semibold text-gray-900">
+                      <td className="px-2 py-2 font-semibold text-center text-gray-900">
                         {request.residentName || "Resident"}
                       </td>
                       <td className="px-2 py-2">{categoryBadges(request)}</td>
-                      <td className="px-2 py-2 text-xs text-gray-700">
+                      <td className="px-2 py-2 text-center text-xs text-gray-700">
                         {getClaimedBy(request)}
                       </td>
-                      <td className="px-2 py-2 text-xs text-gray-700">
+                      <td className="px-2 py-2 text-center text-xs text-gray-700">
                         {myClaim ? `${myClaim.peopleProvided || 1} people` : "Assigned"}
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-2 text-center">
                         <span className="inline-flex px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold">
                           {request.status || "Open"}
                         </span>
                       </td>
                       <td className="px-2 py-2">
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap justify-center gap-1">
                           <button
                             type="button"
                             onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
@@ -221,7 +220,7 @@ export default function HomePage({
       </div>
 
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="px-3 py-2 bg-gray-50 border-b flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
           <div>
             <h2 className="text-lg font-bold text-gray-900">My Requests</h2>
             <p className="text-xs text-gray-500">
@@ -247,12 +246,12 @@ export default function HomePage({
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="text-left px-2 py-2 font-bold min-w-[150px]">Category</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[110px]">Urgency</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[110px]">People</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[100px]">Status</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[140px]">Actions</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[130px]">Category</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[90px]">People</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[110px]">Claimed By</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[90px]">Status</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[120px]">Actions</th>
                 </tr>
               </thead>
 
@@ -260,22 +259,22 @@ export default function HomePage({
                 {myActiveRequests.map((request) => (
                   <tr key={request.id} className="hover:bg-gray-50 align-top">
                     <td className="px-2 py-2">{categoryBadges(request)}</td>
-                    <td className="px-2 py-2 text-sm text-gray-700">{request.urgency || "Medium"}</td>
-                    <td className="px-2 py-2 text-xs text-gray-700 whitespace-nowrap">
+                    <td className="px-2 py-2 text-center text-sm text-gray-700">{request.urgency || "Medium"}</td>
+                    <td className="px-2 py-2 text-center text-xs text-gray-700 whitespace-nowrap">
                       <div>N: {request.peopleNeeded ?? "Unknown"}</div>
                       <div>C: {request.peopleCommitted || 0}</div>
                       <div>R: {request.peopleRemaining ?? "Unknown"}</div>
                     </td>
-                    <td className="px-2 py-2 text-xs text-gray-700">
+                    <td className="px-2 py-2 text-center text-xs text-gray-700">
                       {getClaimedBy(request)}
                     </td>
-                    <td className="px-2 py-2">
+                    <td className="px-2 py-2 text-center">
                       <span className="inline-flex px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold">
                         {request.status || "Open"}
                       </span>
                     </td>
                     <td className="px-2 py-2">
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap justify-center gap-1">
                         <button
                           type="button"
                           onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}

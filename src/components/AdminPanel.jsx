@@ -379,7 +379,7 @@ export default function AdminPanel({ user, users }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mb-4">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 mb-4">
         {summaryCards.map((card) => {
           const isSelected = activeSummaryFilter === card.filter;
 
@@ -390,15 +390,15 @@ export default function AdminPanel({ user, users }) {
               onClick={() => applySummaryFilter(card.filter)}
               className={
                 isSelected
-                  ? `${card.activeClass} rounded-2xl p-3 text-left transition border`
-                  : "bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-2xl p-3 text-left transition"
+                  ? `${card.activeClass} rounded-xl px-2 py-1.5 text-center transition border`
+                  : "bg-gray-50 hover:bg-red-50 border border-gray-100 hover:border-red-200 rounded-xl px-2 py-1.5 text-center transition"
               }
             >
-              <div className="text-xs text-gray-500">
+              <div className="text-[10px] text-gray-500 leading-tight">
                 {card.label}
               </div>
 
-              <div className={`text-xl font-bold ${card.color}`}>
+              <div className={`text-base font-bold leading-tight ${card.color}`}>
                 {card.value}
               </div>
             </button>
@@ -488,17 +488,130 @@ export default function AdminPanel({ user, users }) {
         />
       )}
 
-      <div className="overflow-x-auto">
+      <div className="space-y-4 md:hidden">
+        {filteredUsers.map((u) => {
+          const approved = u.approved !== false;
+          const active = u.active !== false;
+          const role = getUserRole(u);
+          const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+
+          return (
+            <div key={u.id} className="bg-gray-50 rounded-3xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">
+                    {u.name || "Unnamed User"}
+                  </div>
+                  <div className="text-[11px] text-gray-500 truncate">
+                    {u.email || "No email"}
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-1 truncate">
+                    {formatPhoneNumber(u.phone) || "No phone"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(u)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap"
+                >
+                  Edit
+                </button>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-gray-600">
+                <div>
+                  Role: <span className="font-semibold capitalize">{role}</span>
+                </div>
+                <div className="break-words">
+                  Address: {u.address || "No address"}
+                </div>
+                <div>
+                  Approved: <span className={approved ? "font-semibold text-green-700" : "font-semibold text-yellow-700"}>
+                    {approved ? "Yes" : "No"}
+                  </span>
+                </div>
+                <div>
+                  Active: <span className={active ? "font-semibold text-blue-700" : "font-semibold text-red-700"}>
+                    {active ? "Yes" : "No"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateUserRole(u, role === "admin" ? "resident" : "admin")}
+                  disabled={isPrimaryOwner || u.id === user.uid}
+                  className={
+                    isPrimaryOwner || u.id === user.uid
+                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      : role === "admin"
+                        ? "bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                  }
+                >
+                  {role === "admin" ? "Make Resident" : "Make Admin"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => updateUserApproval(u, !approved)}
+                  disabled={isPrimaryOwner}
+                  className={
+                    isPrimaryOwner
+                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      : approved
+                        ? "bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                  }
+                >
+                  {approved ? "Approved" : "Pending"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => updateUserActiveStatus(u, !active)}
+                  disabled={isPrimaryOwner}
+                  className={
+                    isPrimaryOwner
+                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      : active
+                        ? "bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                        : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                  }
+                >
+                  {active ? "Deactivate" : "Activate"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => deleteUserAccount(u)}
+                  disabled={isPrimaryOwner || u.id === user.uid}
+                  className={
+                    isPrimaryOwner || u.id === user.uid
+                      ? "bg-gray-100 text-gray-400 px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
+                      : "bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                  }
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
             <tr className="text-[11px] text-gray-500">
-              <th className="px-2 py-1 w-[150px]">User</th>
-              <th className="px-2 py-1 w-[170px]">Email</th>
-              <th className="px-1 py-1 w-[110px]">Phone</th>
-              <th className="px-1 py-1 w-[90px]">Role</th>
-              <th className="px-1 py-1 w-[95px]">Approved</th>
-              <th className="px-1 py-1 w-[85px]">Status</th>
-              <th className="px-1 py-1 w-[120px]">Actions</th>
+              <th className="px-2 py-1 min-w-[130px]">User</th>
+              <th className="px-2 py-1 min-w-[150px]">Email</th>
+              <th className="px-1 py-1 min-w-[90px]">Phone</th>
+              <th className="px-1 py-1 min-w-[80px]">Role</th>
+              <th className="px-1 py-1 min-w-[80px]">Approved</th>
+              <th className="px-1 py-1 min-w-[80px]">Status</th>
+              <th className="px-1 py-1 min-w-[110px]">Actions</th>
             </tr>
           </thead>
 

@@ -186,15 +186,17 @@ export default function UserDirectory({ users = [] }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-        <div>
+      <div className="grid gap-4 mb-5 md:grid-cols-[1fr_auto_1fr] md:items-center">
+        <div className="hidden md:block" aria-hidden="true" />
+
+        <div className="text-center">
           <h2 className="text-xl font-bold">Resident Directory</h2>
           <p className="text-xs text-gray-500">
             Search residents and view helper categories.
           </p>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex gap-2 w-full md:w-auto md:justify-self-end">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -217,7 +219,59 @@ export default function UserDirectory({ users = [] }) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="space-y-4 md:hidden">
+        {filteredUsers.map((u) => {
+          const selectedCategories = (u.serviceCategories || []).filter(Boolean);
+
+          return (
+            <div key={u.id} className="bg-gray-50 rounded-3xl p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-gray-900 truncate">
+                    {u.name || "Unnamed User"}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {u.email || "No email"}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 truncate">
+                    {formatPhoneNumber(u.phone) || "No phone"}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedUser(u)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap"
+                >
+                  Details
+                </button>
+              </div>
+
+              <div className="text-xs text-gray-600 mt-3 break-words">
+                {u.address || "No address"}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedCategories.slice(0, 6).map((category) => (
+                  <span
+                    key={category}
+                    className="bg-red-50 text-red-700 px-2 py-1 rounded-full text-[11px]"
+                  >
+                    {category}
+                  </span>
+                ))}
+                {selectedCategories.length > 6 && (
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-[11px]">
+                    +{selectedCategories.length - 6} more
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
             <tr className="text-xs text-gray-500 uppercase">

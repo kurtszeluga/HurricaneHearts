@@ -178,13 +178,13 @@ export default function RequestsPage({
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
                 <tr>
-                  <th className="text-left px-2 py-2 font-bold min-w-[130px]">Name</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[140px]">Category</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[80px]">Urgency</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[110px]">People</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[100px]">Status</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Name</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Category</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[70px]">Urgency</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[100px]">People</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[90px]">Status</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[180px]">Actions</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[150px]">Actions</th>
                 </tr>
               </thead>
 

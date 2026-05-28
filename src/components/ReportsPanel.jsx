@@ -108,7 +108,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
 
   return (
     <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+      <div className="flex flex-col items-center gap-4 mb-5 text-center">
         <div>
           <h2 className="text-2xl font-bold">Reports & CSV Export</h2>
           <p className="text-sm text-gray-500">
@@ -120,36 +120,36 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "16px"
+          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+          gap: "12px"
         }}
       >
         <button
           onClick={exportUsers}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-2xl font-semibold text-left"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
         >
-          <div className="text-lg font-bold mb-1">Export Users</div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-bold mb-0.5">Export Users</div>
+          <div className="text-xs opacity-90">
             Download all resident and admin account records.
           </div>
         </button>
 
         <button
           onClick={exportRequests}
-          className="bg-green-600 hover:bg-green-700 text-white p-5 rounded-2xl font-semibold text-left"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
         >
-          <div className="text-lg font-bold mb-1">Export Requests</div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-bold mb-0.5 text-center">Export Requests</div>
+          <div className="text-xs opacity-90">
             Download all requests, statuses, categories, and outcomes.
           </div>
         </button>
 
         <button
           onClick={exportHistory}
-          className="bg-purple-600 hover:bg-purple-700 text-white p-5 rounded-2xl font-semibold text-left"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-semibold text-center"
         >
-          <div className="text-lg font-bold mb-1">Export Request History</div>
-          <div className="text-sm opacity-90">
+          <div className="text-base font-bold mb-0.5">Export Request History</div>
+          <div className="text-xs opacity-90">
             Download the complete request audit timeline.
           </div>
         </button>
