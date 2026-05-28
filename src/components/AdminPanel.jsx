@@ -359,8 +359,10 @@ export default function AdminPanel({ user, users }) {
 
   return (
     <div className="bg-white rounded-3xl shadow-md p-4 mb-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-        <div>
+      <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center mb-4">
+        <div className="hidden md:block" aria-hidden="true" />
+
+        <div className="text-center">
           <h2 className="text-xl font-bold">
             Admin User Management
           </h2>
@@ -373,7 +375,7 @@ export default function AdminPanel({ user, users }) {
         <button
           type="button"
           onClick={() => setShowAddUser(true)}
-          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-semibold text-sm"
+          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-semibold text-sm md:justify-self-end"
         >
           Add User
         </button>

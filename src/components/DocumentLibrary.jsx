@@ -158,8 +158,10 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
 
   return (
     <div className="bg-white rounded-3xl shadow-md p-6 mb-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
-        <div>
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center mb-5">
+        <div className="hidden lg:block" aria-hidden="true" />
+
+        <div className="text-center">
           <h2 className="text-2xl font-bold">Document Library</h2>
           <p className="text-sm text-gray-500">
             Store searchable links to emergency documents, checklists, forms, and guides.
@@ -169,7 +171,7 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
         {isAdmin && (
           <button
             onClick={startAdd}
-            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-semibold"
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-semibold lg:justify-self-end"
           >
             Add Document Link
           </button>
