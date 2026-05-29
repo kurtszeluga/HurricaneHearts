@@ -12,6 +12,7 @@ import {
   formatPhoneNumber,
   normalizePhoneNumber
 } from "../utils/formatPhoneNumber";
+import { queueApprovalEmail } from "../utils/emailNotifications";
 
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
 
@@ -152,6 +153,15 @@ export default function AdminPanel({ user, users }) {
     await updateDoc(doc(db, "users", targetUser.id), {
       approved
     });
+
+    if (approved && targetUser.approved === false) {
+      await queueApprovalEmail(db, {
+        ...targetUser,
+        uid: targetUser.uid || targetUser.id
+      }).catch((error) => {
+        console.error("Approval email queue error:", error);
+      });
+    }
   };
 
   const updateUserActiveStatus = async (targetUser, active) => {
@@ -227,6 +237,11 @@ export default function AdminPanel({ user, users }) {
       return;
     }
 
+    const wasPending = editingUser?.approved === false;
+    const isNowApproved = updatedUser.email === PRIMARY_OWNER_EMAIL
+      ? true
+      : updatedUser.approved ?? true;
+
     await updateDoc(doc(db, "users", updatedUser.id), {
       name: updatedUser.name,
       email: updatedUser.email,
@@ -252,6 +267,15 @@ export default function AdminPanel({ user, users }) {
           updatedUser.phone?.trim()
       )
     });
+
+    if (wasPending && isNowApproved) {
+      await queueApprovalEmail(db, {
+        ...updatedUser,
+        uid: updatedUser.uid || updatedUser.id
+      }).catch((error) => {
+        console.error("Approval email queue error:", error);
+      });
+    }
 
     setEditingUser(null);
   };

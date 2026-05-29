@@ -80,29 +80,29 @@ export default function Dashboard({
   );
   const [openModal, setOpenModal] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const adminPages = ["Admin", "History", "Notifications", "Reports"];
   const visiblePages = pageOptions.filter((page) => {
     if (adminPages.includes(page)) return user.role === "admin";
     return true;
   });
+  const navigationPages =
+    activePage === "Profile"
+      ? ["Profile", ...visiblePages]
+      : visiblePages;
 
   const goToPage = (page) => {
     if (requiresFirstLoginProfile && page !== "Profile") {
       setActivePage("Profile");
       setShowFirstLoginSplash(true);
-      setMenuOpen(false);
       return;
     }
 
     setActivePage(page);
-    setMenuOpen(false);
   };
 
   const openProfilePage = () => {
     setActivePage("Profile");
-    setMenuOpen(false);
   };
 
   const saveMyProfile = async (updatedUser) => {
@@ -153,7 +153,6 @@ export default function Dashboard({
     }
 
     setActivePage("Requests");
-    setMenuOpen(false);
   };
 
   const openNewRequest = () => {
@@ -242,7 +241,7 @@ export default function Dashboard({
     }
 
     if (activePage === "Notifications" && user.role === "admin") {
-      return <NotificationsPage notifications={notifications} />;
+      return <NotificationsPage user={user} notifications={notifications} />;
     }
 
     if (activePage === "Admin" && user.role === "admin") {
@@ -291,51 +290,46 @@ export default function Dashboard({
           </div>
         )}
 
-        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-md px-3 py-2 mb-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 flex justify-center">
-              <h2 className="text-lg sm:text-xl font-bold text-[#172033] leading-tight text-center underline underline-offset-4 decoration-[#b42318]">
-                {pageLabels[activePage]}
-              </h2>
-            </div>
+        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm px-3 py-2 mb-3">
+          <div className="flex items-center gap-3">
+            <h2 className="shrink-0 text-base sm:text-lg font-bold text-[#172033] leading-tight underline underline-offset-4 decoration-[#b42318]">
+              {pageLabels[activePage]}
+            </h2>
 
-            <div className="flex-none w-auto">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#667085] whitespace-nowrap">Menu:</span>
-                <div className="relative w-40">
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="w-full bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#c7d0dc] rounded-md px-3 py-1.5 flex items-center justify-between font-semibold text-[#172033] text-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{pageIcons[activePage]}</span>
-                      <span className="hidden sm:inline">{pageLabels[activePage]}</span>
-                    </span>
-                    <span className="text-xs text-[#667085]">{menuOpen ? "▲" : "▼"}</span>
-                  </button>
+            <nav className="hidden md:flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto">
+              {visiblePages.map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => goToPage(page)}
+                  className={
+                    activePage === page
+                      ? "shrink-0 bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-3 py-1.5 rounded-md font-semibold text-xs underline underline-offset-4"
+                      : "shrink-0 hover:bg-[#f1f5f9] text-[#475467] border border-transparent px-3 py-1.5 rounded-md font-semibold text-xs underline underline-offset-4"
+                  }
+                >
+                  <span className="mr-1">{pageIcons[page]}</span>
+                  {pageLabels[page]}
+                </button>
+              ))}
+            </nav>
 
-                  {menuOpen && (
-                    <div className="absolute right-0 sm:left-auto sm:w-40 mt-2 bg-white border border-[#c7d0dc] rounded-lg shadow-xl p-1 z-40 text-xs">
-                      {visiblePages.map((page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => goToPage(page)}
-                          className={
-                            activePage === page
-                              ? "w-full bg-[#eff6ff] text-[#1d4ed8] border border-[#bfdbfe] px-3 py-1.5 rounded-md font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
-                              : "w-full hover:bg-[#f1f5f9] text-[#475467] px-3 py-1.5 rounded-md font-semibold text-left flex items-center gap-2 text-xs underline underline-offset-2"
-                          }
-                        >
-                          <span className="text-base w-5 text-center">{pageIcons[page]}</span>
-                          <span>{pageLabels[page]}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+            <div className="md:hidden min-w-0 flex-1">
+              <label className="sr-only" htmlFor="mobile-page-menu">
+                Menu
+              </label>
+              <select
+                id="mobile-page-menu"
+                value={activePage}
+                onChange={(event) => goToPage(event.target.value)}
+                className="w-full bg-[#f8fafc] border border-[#c7d0dc] rounded-md px-3 py-1.5 text-sm font-semibold text-[#172033] focus:outline-none focus:ring-2 focus:ring-[#b42318]"
+              >
+                {navigationPages.map((page) => (
+                  <option key={page} value={page}>
+                    {pageLabels[page]}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

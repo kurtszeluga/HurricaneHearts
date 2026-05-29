@@ -103,8 +103,10 @@ service cloud.firestore {
     }
 
     match /system/{docId} {
-      allow read: if isActiveApprovedUser();
-      allow create, update: if isAdmin() && docId == "activeEvent";
+      allow read: if isActiveApprovedUser()
+        && (docId != "emailSettings" || isAdmin());
+      allow create, update: if isAdmin()
+        && docId in ["activeEvent", "emailSettings"];
       allow delete: if isAdmin();
     }
 
@@ -126,13 +128,22 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    match /mail/{mailId} {
-      allow create: if signedIn()
-        && request.resource.data.accessRequestUid == request.auth.uid
-        && request.resource.data.type in [
-          "access-request-welcome",
-          "admin-access-request"
-        ];
+    match /mailQueue/{mailId} {
+      allow create: if request.resource.data.status == "pending"
+        && (
+          (
+            signedIn()
+            && request.resource.data.accessRequestUid == request.auth.uid
+            && request.resource.data.type in [
+              "access-request-welcome",
+              "admin-access-request"
+            ]
+          )
+          || (
+            isAdmin()
+            && request.resource.data.type == "account-approved"
+          )
+        );
 
       allow read, update, delete: if false;
     }

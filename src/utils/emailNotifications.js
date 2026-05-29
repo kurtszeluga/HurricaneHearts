@@ -19,10 +19,11 @@ function textToHtml(text) {
 }
 
 async function queueEmail(db, { to, subject, text, type, accessRequestUid }) {
-  await addDoc(collection(db, "mail"), {
+  await addDoc(collection(db, "mailQueue"), {
     to,
     type,
     accessRequestUid,
+    status: "pending",
     createdAt: serverTimestamp(),
     message: {
       subject,
@@ -67,4 +68,23 @@ Please sign in to the Admin Panel to approve or manage this account.`;
       accessRequestUid: profile.uid
     })
   ]);
+}
+
+export async function queueApprovalEmail(db, profile) {
+  const firstName = profile.name?.split(" ")[0] || "there";
+  const approvalText = `Hi ${firstName},
+
+Good news. Your Hurricane Hearts account has been approved.
+
+You can now sign in to Hurricane Hearts. The first time you sign in after approval, please review your profile and either select any assistance categories you would be willing to volunteer for, or confirm your contact information and save.
+
+Thank you for being part of Hurricane Hearts.`;
+
+  await queueEmail(db, {
+    to: profile.email,
+    subject: "Your Hurricane Hearts account has been approved",
+    text: approvalText,
+    type: "account-approved",
+    accessRequestUid: profile.uid || profile.id
+  });
 }
