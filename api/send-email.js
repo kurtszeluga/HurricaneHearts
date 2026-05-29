@@ -219,6 +219,18 @@ async function getUserProfile(db, uid) {
   return snap.exists ? { id: snap.id, ...snap.data() } : null;
 }
 
+async function getActiveApprovedUsers(db) {
+  const snap = await db
+    .collection("users")
+    .where("active", "==", true)
+    .where("approved", "==", true)
+    .get();
+
+  return snap.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .filter((user) => user.email);
+}
+
 async function getRequest(db, requestId) {
   const snap = await db.doc(`requests/${requestId}`).get();
 
@@ -234,6 +246,35 @@ function isAdminProfile(profile, decodedToken) {
 }
 
 async function authorizeEmail({ db, decodedToken, email }) {
+  if (email.type === "admin-blast-active-users") {
+    const adminProfile = await getUserProfile(db, decodedToken.uid);
+
+    if (!isAdminProfile(adminProfile, decodedToken)) {
+      throw new Error("Only admins can send blast emails.");
+    }
+
+    const subject = email.message?.subject?.trim();
+    const text = email.message?.text?.trim();
+    const html = email.message?.html?.trim();
+
+    if (!subject || (!text && !html)) {
+      throw new Error("Blast email is missing a subject or message.");
+    }
+
+    const users = await getActiveApprovedUsers(db);
+
+    if (users.length === 0) {
+      throw new Error("No active approved users have email addresses.");
+    }
+
+    return users.map((user) => ({
+      ...email,
+      to: [user.email],
+      targetUid: user.uid || user.id,
+      targetName: user.name || user.email || "User"
+    }));
+  }
+
   if (
     email.type === "access-request-welcome" ||
     email.type === "admin-access-request"
@@ -439,42 +480,46 @@ export default async function handler(request, response) {
     const emailEnabled = await getEmailEnabled(db);
 
     for (const email of emails) {
-      const authorizedEmail = await authorizeEmail({
+      const authorizedEmails = await authorizeEmail({
         db,
         decodedToken,
         email
       });
 
-      try {
-        if (!emailEnabled) {
-          await recordEmail(db, authorizedEmail, null, "disabled");
+      for (const authorizedEmail of Array.isArray(authorizedEmails)
+        ? authorizedEmails
+        : [authorizedEmails]) {
+        try {
+          if (!emailEnabled) {
+            await recordEmail(db, authorizedEmail, null, "disabled");
+            results.push({
+              type: authorizedEmail.type,
+              status: "disabled",
+              resendId: ""
+            });
+            continue;
+          }
+
+          const result = await sendWithResend(authorizedEmail);
+          const status = result.dryRun ? "dry-run" : "sent";
+
+          await recordEmail(db, authorizedEmail, result, status);
           results.push({
             type: authorizedEmail.type,
-            status: "disabled",
-            resendId: ""
+            status,
+            resendId: result.resendId || ""
           });
-          continue;
+        } catch (error) {
+          await recordEmail(
+            db,
+            authorizedEmail,
+            null,
+            "error",
+            error.message || "Unknown email send error."
+          );
+
+          throw error;
         }
-
-        const result = await sendWithResend(authorizedEmail);
-        const status = result.dryRun ? "dry-run" : "sent";
-
-        await recordEmail(db, authorizedEmail, result, status);
-        results.push({
-          type: authorizedEmail.type,
-          status,
-          resendId: result.resendId || ""
-        });
-      } catch (error) {
-        await recordEmail(
-          db,
-          authorizedEmail,
-          null,
-          "error",
-          error.message || "Unknown email send error."
-        );
-
-        throw error;
       }
     }
 

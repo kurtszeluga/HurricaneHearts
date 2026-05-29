@@ -8,6 +8,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { queueEventActivatedBlastEmail } from "../utils/emailNotifications";
 
 function todayString() {
   return new Date().toISOString().slice(0, 10);
@@ -77,6 +78,21 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
       activatedByName,
       createdAt: serverTimestamp()
     });
+
+    const sendBlast = window.confirm(
+      `Send a blast email to all active users announcing '${cleanEventName}'?`
+    );
+
+    if (sendBlast) {
+      await queueEventActivatedBlastEmail(db, {
+        eventId,
+        eventName: cleanEventName,
+        eventDate
+      }).catch((error) => {
+        console.error("Event activation blast email error:", error);
+        alert(error.message || "Unable to send event activation blast email.");
+      });
+    }
 
     setEventName("");
   };

@@ -26,7 +26,9 @@ function createEmail({
   type,
   accessRequestUid,
   requestId,
-  claimUid
+  claimUid,
+  eventId,
+  eventName
 }) {
   return {
     to,
@@ -34,6 +36,8 @@ function createEmail({
     accessRequestUid,
     requestId,
     claimUid,
+    eventId,
+    eventName,
     message: {
       subject,
       text,
@@ -216,4 +220,34 @@ Please sign in to Hurricane Hearts to review the request if needed.`;
       requestId: request.id
     })
   ]);
+}
+
+export async function queueBlastEmail(_db, { subject, text, eventId = "", eventName = "" }) {
+  await sendEmailBatch([
+    createEmail({
+      to: PRIMARY_ADMIN_EMAIL,
+      subject,
+      text,
+      type: "admin-blast-active-users",
+      eventId,
+      eventName
+    })
+  ]);
+}
+
+export async function queueEventActivatedBlastEmail(db, { eventId, eventName, eventDate }) {
+  const subject = `Hurricane Hearts event activated: ${eventName}`;
+  const text = `A Hurricane Hearts event has been activated.
+
+Event: ${eventName}
+Date: ${eventDate}
+
+Hurricane Hearts is now open for requests related to this event. Please sign in if you need assistance or would like to monitor requests from neighbors.`;
+
+  await queueBlastEmail(db, {
+    subject,
+    text,
+    eventId,
+    eventName
+  });
 }

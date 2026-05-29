@@ -38,6 +38,7 @@ function formatEmailType(type) {
   if (type === "request-claimed-claimant") return "Claimed - Claimant";
   if (type === "request-cancelled-requestor") return "Cancelled - Requestor";
   if (type === "request-cancelled-admin") return "Cancelled - Admin";
+  if (type === "admin-blast-active-users") return "Blast Email";
 
   return type || "Email";
 }
