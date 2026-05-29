@@ -129,6 +129,8 @@ service cloud.firestore {
     }
 
     match /mailQueue/{mailId} {
+      allow read: if isAdmin();
+
       allow create: if request.resource.data.status == "pending"
         && (
           (
@@ -145,7 +147,7 @@ service cloud.firestore {
           )
         );
 
-      allow read, update, delete: if false;
+      allow update, delete: if false;
     }
   }
 }
