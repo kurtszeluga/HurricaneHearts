@@ -16,6 +16,7 @@ function parseRecipients(value) {
 export default function EmailSettingsPanel({ user }) {
   const [adminRecipients, setAdminRecipients] = useState(PRIMARY_ADMIN_EMAIL);
   const [draftRecipients, setDraftRecipients] = useState(PRIMARY_ADMIN_EMAIL);
+  const [emailEnabled, setEmailEnabled] = useState(true);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,7 +31,10 @@ export default function EmailSettingsPanel({ user }) {
       const settings = settingsSnap.exists() ? settingsSnap.data() : {};
 
       if (Array.isArray(settings.adminNotificationRecipients)) {
-        return settings.adminNotificationRecipients;
+        return {
+          enabled: settings.emailEnabled !== false,
+          recipients: settings.adminNotificationRecipients
+        };
       }
     } catch (error) {
       console.warn("Email settings primary load skipped:", error);
@@ -40,14 +44,21 @@ export default function EmailSettingsPanel({ user }) {
     const activeEvent = activeEventSnap.exists() ? activeEventSnap.data() : {};
 
     if (Array.isArray(activeEvent.emailSettings?.adminNotificationRecipients)) {
-      return activeEvent.emailSettings.adminNotificationRecipients;
+      return {
+        enabled: activeEvent.emailSettings.emailEnabled !== false,
+        recipients: activeEvent.emailSettings.adminNotificationRecipients
+      };
     }
 
-    return [PRIMARY_ADMIN_EMAIL];
+    return {
+      enabled: true,
+      recipients: [PRIMARY_ADMIN_EMAIL]
+    };
   }
 
-  async function saveEmailSettings(recipients) {
+  async function saveEmailSettings(recipients, enabled = emailEnabled) {
     const payload = {
+      emailEnabled: enabled,
       adminNotificationRecipients: recipients,
       updatedAt: serverTimestamp(),
       updatedByEmail: user.email || "",
@@ -80,12 +91,13 @@ export default function EmailSettingsPanel({ user }) {
 
     async function loadSettings() {
       try {
-        const recipients = await loadEmailSettings();
+        const settings = await loadEmailSettings();
 
         if (mounted) {
-          const nextRecipients = recipients.join("\n");
+          const nextRecipients = settings.recipients.join("\n");
           setAdminRecipients(nextRecipients);
           setDraftRecipients(nextRecipients);
+          setEmailEnabled(settings.enabled);
           setStatus({ type: "", message: "" });
         }
       } catch (error) {
@@ -146,6 +158,35 @@ export default function EmailSettingsPanel({ user }) {
     }
   };
 
+  const toggleEmailEnabled = async () => {
+    const nextEnabled = !emailEnabled;
+    const recipients = parseRecipients(adminRecipients);
+
+    setStatus({ type: "", message: "" });
+    setEmailEnabled(nextEnabled);
+
+    try {
+      setSaving(true);
+
+      await saveEmailSettings(recipients, nextEnabled);
+      setStatus({
+        type: "success",
+        message: nextEnabled
+          ? "Automatic emails enabled."
+          : "Automatic emails disabled for testing."
+      });
+    } catch (error) {
+      console.error("Email enabled setting save error:", error);
+      setEmailEnabled(!nextEnabled);
+      setStatus({
+        type: "error",
+        message: "Unable to save email delivery setting."
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const startEditing = () => {
     setDraftRecipients(adminRecipients);
     setEditing(true);
@@ -186,6 +227,53 @@ export default function EmailSettingsPanel({ user }) {
               {status.message}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="mt-5 border border-[#c7d0dc] rounded-lg bg-[#f8fafc] px-4 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#344054]">
+              Automatic email delivery
+            </p>
+            <p className="text-xs text-[#667085] mt-1">
+              Turn this off during testing to prevent live app emails.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={emailEnabled}
+            onClick={toggleEmailEnabled}
+            disabled={loading || saving}
+            className={
+              emailEnabled
+                ? "relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-[#067647] transition disabled:opacity-60"
+                : "relative inline-flex h-8 w-14 shrink-0 items-center rounded-full bg-[#98a2b3] transition disabled:opacity-60"
+            }
+          >
+            <span
+              className={
+                emailEnabled
+                  ? "inline-block h-6 w-6 translate-x-7 rounded-full bg-white transition"
+                  : "inline-block h-6 w-6 translate-x-1 rounded-full bg-white transition"
+              }
+            />
+            <span className="sr-only">
+              {emailEnabled ? "Disable emails" : "Enable emails"}
+            </span>
+          </button>
+        </div>
+
+        <div
+          className={
+            emailEnabled
+              ? "mt-3 inline-flex rounded-full bg-[#ecfdf3] px-3 py-1 text-xs font-semibold text-[#067647]"
+              : "mt-3 inline-flex rounded-full bg-[#fef3f2] px-3 py-1 text-xs font-semibold text-[#b42318]"
+          }
+        >
+          {emailEnabled ? "Emails active" : "Emails disabled"}
         </div>
       </div>
 

@@ -1,6 +1,12 @@
 # Hurricane Hearts Email Functions
 
-This backend sends queued app emails through Resend.
+This is the original Firebase Functions backend for queued Resend emails. It
+still works for emulator testing, but deploying Firebase Functions requires the
+Firebase Blaze plan.
+
+The app now uses the Blaze-free serverless route in `../api/send-email.js` for
+production email delivery. Keep Resend and Firebase Admin secrets in the hosting
+provider's server environment variables, never in the React app.
 
 ## How it works
 

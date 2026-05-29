@@ -55,6 +55,23 @@ async function applyEmailSettings(email) {
   };
 }
 
+async function getEmailEnabled() {
+  const settingsSnap = await db.doc("system/emailSettings").get();
+
+  if (settingsSnap.exists) {
+    const settings = settingsSnap.data() || {};
+
+    if (typeof settings.emailEnabled === "boolean") {
+      return settings.emailEnabled;
+    }
+  }
+
+  const activeEventSnap = await db.doc("system/activeEvent").get();
+  const activeEvent = activeEventSnap.exists ? activeEventSnap.data() : {};
+
+  return activeEvent.emailSettings?.emailEnabled !== false;
+}
+
 export const sendQueuedEmailWithResend = onDocumentCreated(
   {
     document: "mailQueue/{mailId}",
@@ -85,6 +102,18 @@ export const sendQueuedEmailWithResend = onDocumentCreated(
 
     try {
       const emailToSend = await applyEmailSettings(email);
+
+      if (!(await getEmailEnabled())) {
+        await ref.set(
+          {
+            status: "disabled",
+            disabledAt: admin.firestore.FieldValue.serverTimestamp()
+          },
+          { merge: true }
+        );
+
+        return;
+      }
 
       if (shouldDryRun()) {
         const dryRunPayload = buildResendPayload(emailToSend, RESEND_FROM_EMAIL);

@@ -1,6 +1,7 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { auth } from "../firebase/config";
 
 export const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
+const DEFAULT_EMAIL_API_PATH = "/api/send-email";
 
 function escapeHtml(value) {
   return value
@@ -18,22 +19,49 @@ function textToHtml(text) {
     .join("");
 }
 
-async function queueEmail(db, { to, subject, text, type, accessRequestUid }) {
-  await addDoc(collection(db, "mailQueue"), {
+function createEmail({ to, subject, text, type, accessRequestUid }) {
+  return {
     to,
     type,
     accessRequestUid,
-    status: "pending",
-    createdAt: serverTimestamp(),
     message: {
       subject,
       text,
       html: textToHtml(text)
     }
-  });
+  };
 }
 
-export async function queueAccessRequestEmails(db, profile) {
+async function sendEmailBatch(emails) {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error("A signed-in user is required to send app emails.");
+  }
+
+  const token = await currentUser.getIdToken();
+  const apiUrl =
+    import.meta.env.VITE_EMAIL_API_URL || DEFAULT_EMAIL_API_PATH;
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ emails })
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body?.error || "Unable to send app email.");
+  }
+
+  return body;
+}
+
+export async function queueAccessRequestEmails(_db, profile) {
   const firstName = profile.name?.split(" ")[0] || "there";
   const welcomeText = `Hi ${firstName},
 
@@ -52,15 +80,15 @@ Address: ${profile.address || "Not provided"}
 
 Please sign in to the Admin Panel to approve or manage this account.`;
 
-  await Promise.all([
-    queueEmail(db, {
+  await sendEmailBatch([
+    createEmail({
       to: profile.email,
       subject: "Welcome to Hurricane Hearts",
       text: welcomeText,
       type: "access-request-welcome",
       accessRequestUid: profile.uid
     }),
-    queueEmail(db, {
+    createEmail({
       to: PRIMARY_ADMIN_EMAIL,
       subject: "New Hurricane Hearts user pending approval",
       text: adminText,
@@ -70,7 +98,7 @@ Please sign in to the Admin Panel to approve or manage this account.`;
   ]);
 }
 
-export async function queueApprovalEmail(db, profile) {
+export async function queueApprovalEmail(_db, profile) {
   const firstName = profile.name?.split(" ")[0] || "there";
   const approvalText = `Hi ${firstName},
 
@@ -80,11 +108,13 @@ You can now sign in to Hurricane Hearts. The first time you sign in after approv
 
 Thank you for being part of Hurricane Hearts.`;
 
-  await queueEmail(db, {
-    to: profile.email,
-    subject: "Your Hurricane Hearts account has been approved",
-    text: approvalText,
-    type: "account-approved",
-    accessRequestUid: profile.uid || profile.id
-  });
+  await sendEmailBatch([
+    createEmail({
+      to: profile.email,
+      subject: "Your Hurricane Hearts account has been approved",
+      text: approvalText,
+      type: "account-approved",
+      accessRequestUid: profile.uid || profile.id
+    })
+  ]);
 }
