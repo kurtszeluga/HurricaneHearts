@@ -9,6 +9,7 @@ import useUsers from "./hooks/useUsers";
 import LoginScreen from "./pages/LoginScreen.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import ProfileSetup from "./components/ProfileSetup";
+import PullToRefresh from "./components/PullToRefresh";
 
 export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
@@ -37,16 +38,19 @@ export default function App() {
   }
 
   return (
-    <Dashboard
-      user={user}
-      setUser={setUser}
-      activeEvent={activeEvent}
-      requests={requests}
-      users={users}
-      documents={documents}
-      requestHistory={requestHistory}
-      eventHistory={eventHistory}
-      notifications={notifications}
-    />
+    <>
+      <PullToRefresh />
+      <Dashboard
+        user={user}
+        setUser={setUser}
+        activeEvent={activeEvent}
+        requests={requests}
+        users={users}
+        documents={documents}
+        requestHistory={requestHistory}
+        eventHistory={eventHistory}
+        notifications={notifications}
+      />
+    </>
   );
 }
