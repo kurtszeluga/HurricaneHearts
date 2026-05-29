@@ -36,6 +36,21 @@ export default function HomePage({
   const myActiveRequests = myRequests.filter((request) => {
     return request.status !== "Completed" && request.status !== "Cancelled";
   });
+  const newOpenRequests = requests
+    .filter((request) => {
+      return (
+        request.status === "Open" &&
+        request.residentUid !== user.uid &&
+        request.residentEmail !== user.email
+      );
+    })
+    .sort((a, b) => {
+      const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+      const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+
+      return dateB - dateA;
+    })
+    .slice(0, 5);
 
   const getMyClaim = (request) => {
     const userIds = [user.uid, user.id].filter(Boolean);
@@ -133,6 +148,75 @@ export default function HomePage({
             My Claims: {myClaims.length}
           </button>
         </div>
+      </div>
+
+      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-3 py-2 bg-[#fff7ed] border-b border-[#fed7aa] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+          <div>
+            <h2 className="text-lg font-bold text-[#172033]">New Open Requests</h2>
+            <p className="text-xs text-[#667085]">
+              Recent open requests from neighbors that may need help.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onGoToRequests({ type: "status", value: "Open" })}
+            className="bg-white hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-3 py-2 rounded-lg text-xs font-semibold"
+          >
+            View Open Requests
+          </button>
+        </div>
+
+        {newOpenRequests.length === 0 ? (
+          <div className="p-4 text-sm text-[#667085] text-center">
+            No new open requests right now.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#f8fafc] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
+                <tr>
+                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Resident</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[90px]">People</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[120px]">Action</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100">
+                {newOpenRequests.map((request) => (
+                  <tr key={request.id} className="hover:bg-[#fff7ed] align-top">
+                    <td className="px-2 py-2 font-semibold text-center text-[#172033]">
+                      {request.residentName || "Resident"}
+                    </td>
+                    <td className="px-2 py-2">{categoryBadges(request)}</td>
+                    <td className="px-2 py-2 text-center text-sm text-[#475467]">
+                      {request.urgency || "Medium"}
+                    </td>
+                    <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
+                      <div>N: {request.peopleNeeded ?? "Unknown"}</div>
+                      <div>C: {request.peopleCommitted || 0}</div>
+                      <div>R: {request.peopleRemaining ?? "Unknown"}</div>
+                    </td>
+                    <td className="px-2 py-2">
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => onGoToRequests({ type: "status", value: "Open" })}
+                          className="bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-2 py-1 rounded-md text-xs font-semibold"
+                        >
+                          Claim / Details
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
