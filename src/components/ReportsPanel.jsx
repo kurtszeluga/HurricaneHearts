@@ -60,7 +60,13 @@ function formatDate(value) {
 export default function ReportsPanel({ user, users = [], requests = [], requestHistory = [] }) {
   if (user.role !== "admin") return null;
 
+  const confirmExport = (label, count) => {
+    return window.confirm(`Export ${count} ${label} record${count === 1 ? "" : "s"} to CSV?`);
+  };
+
   const exportUsers = () => {
+    if (!confirmExport("user", users.length)) return;
+
     const rows = users.map((u) => ({
       Name: u.name || "",
       Email: u.email || "",
@@ -76,6 +82,8 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
   };
 
   const exportRequests = () => {
+    if (!confirmExport("request", requests.length)) return;
+
     const rows = requests.map((r) => ({
       Resident: r.residentName || "",
       Email: r.residentEmail || "",
@@ -94,6 +102,8 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
   };
 
   const exportHistory = () => {
+    if (!confirmExport("request history", requestHistory.length)) return;
+
     const rows = requestHistory.map((h) => ({
       RequestId: h.requestId || "",
       Action: h.action || "",
