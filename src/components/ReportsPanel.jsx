@@ -57,11 +57,79 @@ function formatDate(value) {
   return "";
 }
 
+function slugify(value) {
+  return String(value || "all-events")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function ReportsPanel({ user, users = [], requests = [], requestHistory = [] }) {
   if (user.role !== "admin") return null;
 
   const confirmExport = (label, count) => {
     return window.confirm(`Export ${count} ${label} record${count === 1 ? "" : "s"} to CSV?`);
+  };
+
+  const eventOptions = requests.reduce(
+    (options, request) => {
+      const eventId = request.eventId || "";
+      const existing = options.find((option) => option.eventId === eventId);
+
+      if (existing) return options;
+
+      return [
+        ...options,
+        {
+          eventId,
+          label:
+            request.eventName ||
+            request.eventDate ||
+            eventId ||
+            "No event assigned"
+        }
+      ];
+    },
+    []
+  );
+
+  const chooseEvent = (reportName) => {
+    if (eventOptions.length === 0) {
+      alert("No events are available for this report.");
+      return null;
+    }
+
+    const optionsText = [
+      "0. All events",
+      ...eventOptions.map((event, index) => `${index + 1}. ${event.label}`)
+    ].join("\n");
+
+    const answer = window.prompt(
+      `Which event should the ${reportName} report include?\n\n${optionsText}`,
+      "0"
+    );
+
+    if (answer === null) return null;
+
+    const selectedIndex = Number(answer.trim());
+
+    if (selectedIndex === 0) {
+      return {
+        eventId: "__all__",
+        label: "All events"
+      };
+    }
+
+    if (
+      !Number.isInteger(selectedIndex) ||
+      selectedIndex < 1 ||
+      selectedIndex > eventOptions.length
+    ) {
+      alert("Please enter a valid event number.");
+      return null;
+    }
+
+    return eventOptions[selectedIndex - 1];
   };
 
   const exportUsers = () => {
@@ -82,9 +150,20 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
   };
 
   const exportRequests = () => {
-    if (!confirmExport("request", requests.length)) return;
+    const selectedEvent = chooseEvent("requests");
 
-    const rows = requests.map((r) => ({
+    if (!selectedEvent) return;
+
+    const filteredRequests =
+      selectedEvent.eventId === "__all__"
+        ? requests
+        : requests.filter((request) => (request.eventId || "") === selectedEvent.eventId);
+
+    if (!confirmExport("request", filteredRequests.length)) return;
+
+    const rows = filteredRequests.map((r) => ({
+      Event: r.eventName || selectedEvent.label || "",
+      EventId: r.eventId || "",
       Resident: r.residentName || "",
       Email: r.residentEmail || "",
       Phone: formatPhoneNumber(r.residentPhone) || "",
@@ -98,13 +177,24 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       CreatedAt: formatDate(r.createdAt)
     }));
 
-    downloadCsv("hurricane-hearts-requests.csv", rows);
+    downloadCsv(`hurricane-hearts-requests-${slugify(selectedEvent.label)}.csv`, rows);
   };
 
   const exportHistory = () => {
-    if (!confirmExport("request history", requestHistory.length)) return;
+    const selectedEvent = chooseEvent("request history");
 
-    const rows = requestHistory.map((h) => ({
+    if (!selectedEvent) return;
+
+    const filteredHistory =
+      selectedEvent.eventId === "__all__"
+        ? requestHistory
+        : requestHistory.filter((entry) => (entry.eventId || "") === selectedEvent.eventId);
+
+    if (!confirmExport("request history", filteredHistory.length)) return;
+
+    const rows = filteredHistory.map((h) => ({
+      Event: selectedEvent.label || "",
+      EventId: h.eventId || "",
       RequestId: h.requestId || "",
       Action: h.action || "",
       Details: h.details || "",
@@ -113,7 +203,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       CreatedAt: formatDate(h.createdAt)
     }));
 
-    downloadCsv("hurricane-hearts-request-history.csv", rows);
+    downloadCsv(`hurricane-hearts-request-history-${slugify(selectedEvent.label)}.csv`, rows);
   };
 
   return (
