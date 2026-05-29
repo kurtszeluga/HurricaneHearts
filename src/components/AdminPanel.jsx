@@ -2,11 +2,10 @@ import { useMemo, useState } from "react";
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   updateDoc
 } from "firebase/firestore";
-import { db } from "../firebase/config";
+import { auth, db } from "../firebase/config";
 import ProfileEditor from "./ProfileEditor";
 import {
   formatPhoneNumber,
@@ -15,6 +14,7 @@ import {
 import { queueApprovalEmail } from "../utils/emailNotifications";
 
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
+const DELETE_USER_API_PATH = "/api/delete-user";
 
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
@@ -328,12 +328,49 @@ export default function AdminPanel({ user, users }) {
     const name = targetUser.name || targetUser.email || "this user";
 
     const confirmed = window.confirm(
-      `Delete ${name}'s user profile? This removes the Firestore user record but does not remove the Firebase Authentication login account.`
+      `Delete ${name}'s user account? This removes both the app profile and Firebase Authentication login when one exists.`
     );
 
     if (!confirmed) return;
 
-    await deleteDoc(doc(db, "users", targetUser.id));
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      alert("Please sign in again before deleting a user.");
+      return;
+    }
+
+    try {
+      const token = await currentUser.getIdToken();
+      const apiUrl =
+        import.meta.env.VITE_DELETE_USER_API_URL || DELETE_USER_API_PATH;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: targetUser.id
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Unable to delete user account.");
+      }
+
+      if (!result.authDeleted) {
+        alert(
+          `${name}'s app profile was deleted. No matching Firebase Authentication account was found.`
+        );
+      }
+    } catch (error) {
+      console.error("Delete user account error:", error);
+      alert(error.message || "Unable to delete user account.");
+    }
   };
 
   const summaryCards = [
