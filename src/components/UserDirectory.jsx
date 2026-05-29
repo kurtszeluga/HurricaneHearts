@@ -122,6 +122,18 @@ export default function UserDirectory({ users = [] }) {
     "Borrow Supplies": "Borrow",
     Other: "Other"
   };
+  const categoryDescriptions = {
+    "Wellness Check": "Wellness Check - willing to check on residents by phone or in person.",
+    Transportation: "Transportation - willing to help residents get to appointments, stores, shelters, or other needed locations.",
+    "Food-Water": "Food and Water - willing to help deliver or share food, water, ice, or basic supplies.",
+    "Adopt A Buddy": "Adopt A Buddy - willing to be paired with a neighbor for ongoing check-ins and support.",
+    "Storm Prep": "Storm Preparation - willing to help before a storm with shutters, outdoor items, supplies, or readiness tasks.",
+    "Storm Cleanup": "Storm Cleanup - willing to help after a storm with debris, yard cleanup, or light recovery tasks.",
+    "Power-Generator Help": "Power and Generator Help - willing to help with power needs, generator setup, charging, or related support.",
+    "Pet Assistance": "Pet Assistance - willing to help with pets, pet supplies, walking, feeding, or temporary support.",
+    "Borrow Supplies": "Borrow Supplies - willing to lend tools, equipment, batteries, chargers, or other useful supplies.",
+    Other: "Other - willing to help with needs that do not fit another listed category."
+  };
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
@@ -273,37 +285,54 @@ export default function UserDirectory({ users = [] }) {
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
             <tr className="text-xs text-[#667085] uppercase">
-              <th className="px-2 py-2 sticky left-0 bg-white z-10 min-w-[130px]">
+              <th
+                className="px-2 py-2 sticky left-0 bg-white z-10 min-w-[130px]"
+                title="Resident name - click to sort residents alphabetically."
+              >
                 <button
                   type="button"
                   onClick={() => changeSort("name")}
+                  title="Resident name - click to sort residents alphabetically."
                   className="font-bold hover:text-[#b42318]"
                 >
                   Name{sortLabel("name")}
                 </button>
               </th>
-              <th className="px-2 py-2 min-w-[105px]">
+              <th
+                className="px-2 py-2 min-w-[105px]"
+                title="Resident phone number - click to sort by phone number."
+              >
                 <button
                   type="button"
                   onClick={() => changeSort("phone")}
+                  title="Resident phone number - click to sort by phone number."
                   className="font-bold hover:text-[#b42318]"
                 >
                   Phone{sortLabel("phone")}
                 </button>
               </th>
               {requestCategories.map((category) => (
-                <th key={category} className="px-1 py-2 text-center min-w-[54px]">
+                <th
+                  key={category}
+                  className="px-1 py-2 text-center min-w-[54px]"
+                  title={categoryDescriptions[category] || category}
+                >
                   <button
                     type="button"
                     onClick={() => changeSort(category)}
-                    title={category}
+                    title={categoryDescriptions[category] || category}
                     className="font-bold hover:text-[#b42318] leading-tight"
                   >
                     {categoryAbbreviations[category] || category}{sortLabel(category)}
                   </button>
                 </th>
               ))}
-              <th className="px-2 py-2 min-w-[70px]">Details</th>
+              <th
+                className="px-2 py-2 min-w-[70px]"
+                title="Details - open the resident profile with contact information and helper categories."
+              >
+                Details
+              </th>
             </tr>
           </thead>
 
