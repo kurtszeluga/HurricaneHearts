@@ -109,6 +109,17 @@ function PrintableUserDetails({ user, onClose }) {
   );
 }
 
+function HeaderTooltip({ label, tooltip, children }) {
+  return (
+    <span className="group relative inline-flex justify-center">
+      <span>{children || label}</span>
+      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-64 -translate-x-1/2 rounded-md border border-[#c7d0dc] bg-[#172033] px-3 py-2 text-center text-xs font-semibold normal-case leading-snug text-white shadow-lg group-hover:block group-focus-within:block">
+        {tooltip}
+      </span>
+    </span>
+  );
+}
+
 export default function UserDirectory({ users = [] }) {
   const categoryAbbreviations = {
     "Wellness Check": "Well",
@@ -285,53 +296,48 @@ export default function UserDirectory({ users = [] }) {
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
             <tr className="text-xs text-[#667085] uppercase">
-              <th
-                className="px-2 py-2 sticky left-0 bg-white z-10 min-w-[130px]"
-                title="Resident name - click to sort residents alphabetically."
-              >
+              <th className="px-2 py-2 sticky left-0 bg-white z-10 min-w-[130px]">
                 <button
                   type="button"
                   onClick={() => changeSort("name")}
-                  title="Resident name - click to sort residents alphabetically."
                   className="font-bold hover:text-[#b42318]"
                 >
-                  Name{sortLabel("name")}
+                  <HeaderTooltip tooltip="Resident name - click to sort residents alphabetically.">
+                    Name{sortLabel("name")}
+                  </HeaderTooltip>
                 </button>
               </th>
-              <th
-                className="px-2 py-2 min-w-[105px]"
-                title="Resident phone number - click to sort by phone number."
-              >
+              <th className="px-2 py-2 min-w-[105px]">
                 <button
                   type="button"
                   onClick={() => changeSort("phone")}
-                  title="Resident phone number - click to sort by phone number."
                   className="font-bold hover:text-[#b42318]"
                 >
-                  Phone{sortLabel("phone")}
+                  <HeaderTooltip tooltip="Resident phone number - click to sort by phone number.">
+                    Phone{sortLabel("phone")}
+                  </HeaderTooltip>
                 </button>
               </th>
               {requestCategories.map((category) => (
                 <th
                   key={category}
                   className="px-1 py-2 text-center min-w-[54px]"
-                  title={categoryDescriptions[category] || category}
                 >
                   <button
                     type="button"
                     onClick={() => changeSort(category)}
-                    title={categoryDescriptions[category] || category}
                     className="font-bold hover:text-[#b42318] leading-tight"
                   >
-                    {categoryAbbreviations[category] || category}{sortLabel(category)}
+                    <HeaderTooltip tooltip={categoryDescriptions[category] || category}>
+                      {categoryAbbreviations[category] || category}{sortLabel(category)}
+                    </HeaderTooltip>
                   </button>
                 </th>
               ))}
-              <th
-                className="px-2 py-2 min-w-[70px]"
-                title="Details - open the resident profile with contact information and helper categories."
-              >
-                Details
+              <th className="px-2 py-2 min-w-[70px]">
+                <HeaderTooltip tooltip="Details - open the resident profile with contact information and helper categories.">
+                  Details
+                </HeaderTooltip>
               </th>
             </tr>
           </thead>
