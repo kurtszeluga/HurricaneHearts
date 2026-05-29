@@ -34,6 +34,10 @@ function formatEmailType(type) {
   if (type === "access-request-welcome") return "Welcome";
   if (type === "admin-access-request") return "Pending Approval";
   if (type === "account-approved") return "Approval";
+  if (type === "request-claimed-requestor") return "Claimed - Requestor";
+  if (type === "request-claimed-claimant") return "Claimed - Claimant";
+  if (type === "request-cancelled-requestor") return "Cancelled - Requestor";
+  if (type === "request-cancelled-admin") return "Cancelled - Admin";
 
   return type || "Email";
 }

@@ -19,11 +19,21 @@ function textToHtml(text) {
     .join("");
 }
 
-function createEmail({ to, subject, text, type, accessRequestUid }) {
+function createEmail({
+  to,
+  subject,
+  text,
+  type,
+  accessRequestUid,
+  requestId,
+  claimUid
+}) {
   return {
     to,
     type,
     accessRequestUid,
+    requestId,
+    claimUid,
     message: {
       subject,
       text,
@@ -115,6 +125,95 @@ Thank you for being part of Hurricane Hearts.`;
       text: approvalText,
       type: "account-approved",
       accessRequestUid: profile.uid || profile.id
+    })
+  ]);
+}
+
+export async function queueRequestClaimedEmails(_db, { request, claim }) {
+  const requestorName = request.residentName || "there";
+  const claimantName = claim.name || claim.email || "A resident";
+  const requestLabel = request.need || "your request";
+  const peopleProvided = claim.peopleProvided || 1;
+  const commentLine = claim.comment
+    ? `Claim comment: ${claim.comment}`
+    : "No claim comment was provided.";
+
+  const requestorText = `Hi ${requestorName},
+
+${claimantName} has claimed your Hurricane Hearts request.
+
+Request: ${requestLabel}
+People committed: ${peopleProvided}
+${commentLine}
+
+You can sign in to Hurricane Hearts to monitor the request.`;
+
+  const claimantText = `Hi ${claimantName},
+
+Thank you for claiming a Hurricane Hearts request.
+
+Requestor: ${request.residentName || "Resident"}
+Request: ${requestLabel}
+People committed: ${peopleProvided}
+${commentLine}
+
+You can sign in to Hurricane Hearts to monitor or update the request.`;
+
+  await sendEmailBatch([
+    createEmail({
+      to: request.residentEmail,
+      subject: "Your Hurricane Hearts request was claimed",
+      text: requestorText,
+      type: "request-claimed-requestor",
+      requestId: request.id,
+      claimUid: claim.uid
+    }),
+    createEmail({
+      to: claim.email,
+      subject: "You claimed a Hurricane Hearts request",
+      text: claimantText,
+      type: "request-claimed-claimant",
+      requestId: request.id,
+      claimUid: claim.uid
+    })
+  ]);
+}
+
+export async function queueRequestCancelledEmails(_db, { request, cancelledBy, reason }) {
+  const requestorText = `Hi ${request.residentName || "there"},
+
+Your Hurricane Hearts request was cancelled.
+
+Request: ${request.need || "Request"}
+Cancelled by: ${cancelledBy.name || cancelledBy.email || "Hurricane Hearts"}
+Reason: ${reason}
+
+You can sign in to Hurricane Hearts to review your requests.`;
+
+  const adminText = `A Hurricane Hearts request was cancelled.
+
+Requestor: ${request.residentName || "Resident"}
+Email: ${request.residentEmail || "Not provided"}
+Request: ${request.need || "Request"}
+Cancelled by: ${cancelledBy.name || cancelledBy.email || "User"}
+Reason: ${reason}
+
+Please sign in to Hurricane Hearts to review the request if needed.`;
+
+  await sendEmailBatch([
+    createEmail({
+      to: request.residentEmail,
+      subject: "Your Hurricane Hearts request was cancelled",
+      text: requestorText,
+      type: "request-cancelled-requestor",
+      requestId: request.id
+    }),
+    createEmail({
+      to: PRIMARY_ADMIN_EMAIL,
+      subject: "Hurricane Hearts request cancelled",
+      text: adminText,
+      type: "request-cancelled-admin",
+      requestId: request.id
     })
   ]);
 }

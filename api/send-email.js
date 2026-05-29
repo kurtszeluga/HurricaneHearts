@@ -219,6 +219,12 @@ async function getUserProfile(db, uid) {
   return snap.exists ? { id: snap.id, ...snap.data() } : null;
 }
 
+async function getRequest(db, requestId) {
+  const snap = await db.doc(`requests/${requestId}`).get();
+
+  return snap.exists ? { id: snap.id, ...snap.data() } : null;
+}
+
 function isAdminProfile(profile, decodedToken) {
   return (
     profile?.role === "admin" ||
@@ -228,16 +234,16 @@ function isAdminProfile(profile, decodedToken) {
 }
 
 async function authorizeEmail({ db, decodedToken, email }) {
-  const accessRequestUid = email.accessRequestUid;
-
-  if (!accessRequestUid) {
-    throw new Error("Email is missing an access request user id.");
-  }
-
   if (
     email.type === "access-request-welcome" ||
     email.type === "admin-access-request"
   ) {
+    const accessRequestUid = email.accessRequestUid;
+
+    if (!accessRequestUid) {
+      throw new Error("Email is missing an access request user id.");
+    }
+
     if (decodedToken.uid !== accessRequestUid) {
       throw new Error("Registration emails can only be sent by that user.");
     }
@@ -273,6 +279,12 @@ async function authorizeEmail({ db, decodedToken, email }) {
   }
 
   if (email.type === "account-approved") {
+    const accessRequestUid = email.accessRequestUid;
+
+    if (!accessRequestUid) {
+      throw new Error("Email is missing an access request user id.");
+    }
+
     const adminProfile = await getUserProfile(db, decodedToken.uid);
 
     if (!isAdminProfile(adminProfile, decodedToken)) {
@@ -293,6 +305,82 @@ async function authorizeEmail({ db, decodedToken, email }) {
     }
 
     return email;
+  }
+
+  if (
+    email.type === "request-claimed-requestor" ||
+    email.type === "request-claimed-claimant"
+  ) {
+    const request = await getRequest(db, email.requestId);
+
+    if (!request) {
+      throw new Error("Request was not found.");
+    }
+
+    const claim = (request.claimCommitments || []).find(
+      (item) => item.uid === email.claimUid
+    );
+
+    if (!claim) {
+      throw new Error("Request claim was not found.");
+    }
+
+    const adminProfile = await getUserProfile(db, decodedToken.uid);
+    const isAdmin = isAdminProfile(adminProfile, decodedToken);
+
+    if (
+      !isAdmin &&
+      decodedToken.uid !== claim.uid &&
+      decodedToken.uid !== claim.claimedByUid
+    ) {
+      throw new Error("Only the claimant or an admin can send claim emails.");
+    }
+
+    if (email.type === "request-claimed-requestor") {
+      return {
+        ...email,
+        to: [request.residentEmail]
+      };
+    }
+
+    return {
+      ...email,
+      to: [claim.email]
+    };
+  }
+
+  if (
+    email.type === "request-cancelled-requestor" ||
+    email.type === "request-cancelled-admin"
+  ) {
+    const request = await getRequest(db, email.requestId);
+
+    if (!request) {
+      throw new Error("Request was not found.");
+    }
+
+    const adminProfile = await getUserProfile(db, decodedToken.uid);
+    const isAdmin = isAdminProfile(adminProfile, decodedToken);
+
+    if (!isAdmin && decodedToken.uid !== request.residentUid) {
+      throw new Error("Only the requestor or an admin can send cancellation emails.");
+    }
+
+    if (request.status !== "Cancelled") {
+      throw new Error("Cancellation emails can only be sent for cancelled requests.");
+    }
+
+    if (email.type === "request-cancelled-requestor") {
+      return {
+        ...email,
+        to: [request.residentEmail]
+      };
+    }
+
+    return {
+      ...email,
+      to: await getAdminRecipients(db)
+    };
   }
 
   throw new Error(`Unsupported email type: ${email.type || "unknown"}`);

@@ -3,6 +3,10 @@ import { createPortal } from "react-dom";
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
+import {
+  queueRequestCancelledEmails,
+  queueRequestClaimedEmails
+} from "../utils/emailNotifications";
 
 const urgencyColors = {
   Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
@@ -340,6 +344,20 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
       eventId: request.eventId || ""
     });
 
+    await queueRequestClaimedEmails(db, {
+      request: {
+        ...fresh,
+        id: request.id,
+        claimCommitments: nextClaims,
+        peopleCommitted: nextCommitted,
+        peopleRemaining: nextRemaining,
+        status: nextStatus
+      },
+      claim: newClaim
+    }).catch((error) => {
+      console.error("Request claimed email error:", error);
+    });
+
     setShowClaimForm(false);
     setClaimPeople("1");
     setClaimComment("");
@@ -416,6 +434,14 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
         eventId: request.eventId || ""
       });
     }
+
+    await queueRequestCancelledEmails(db, {
+      request,
+      cancelledBy: user,
+      reason: reason.trim()
+    }).catch((error) => {
+      console.error("Request cancelled email error:", error);
+    });
   };
 
   return (
