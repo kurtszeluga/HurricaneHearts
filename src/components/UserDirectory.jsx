@@ -302,9 +302,7 @@ export default function UserDirectory({ users = [] }) {
                   onClick={() => changeSort("name")}
                   className="font-bold hover:text-[#b42318]"
                 >
-                  <HeaderTooltip tooltip="Resident name - click to sort residents alphabetically.">
-                    Name{sortLabel("name")}
-                  </HeaderTooltip>
+                  Name{sortLabel("name")}
                 </button>
               </th>
               <th className="px-2 py-2 min-w-[105px]">
@@ -313,9 +311,7 @@ export default function UserDirectory({ users = [] }) {
                   onClick={() => changeSort("phone")}
                   className="font-bold hover:text-[#b42318]"
                 >
-                  <HeaderTooltip tooltip="Resident phone number - click to sort by phone number.">
-                    Phone{sortLabel("phone")}
-                  </HeaderTooltip>
+                  Phone{sortLabel("phone")}
                 </button>
               </th>
               {requestCategories.map((category) => (
@@ -335,9 +331,7 @@ export default function UserDirectory({ users = [] }) {
                 </th>
               ))}
               <th className="px-2 py-2 min-w-[70px]">
-                <HeaderTooltip tooltip="Details - open the resident profile with contact information and helper categories.">
-                  Details
-                </HeaderTooltip>
+                Details
               </th>
             </tr>
           </thead>
