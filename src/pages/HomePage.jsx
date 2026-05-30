@@ -90,15 +90,60 @@ export default function HomePage({
     </div>
   );
 
-  const summaryButtonClass = "px-2.5 py-1.5 rounded-md text-[11px] sm:text-xs font-semibold whitespace-nowrap border";
+  const summaryButtonClass = "text-left rounded-lg border px-3 py-3 font-semibold transition shadow-sm";
+  const summaryItems = [
+    {
+      label: "Open",
+      value: openRequests.length,
+      filter: { type: "status", value: "Open" },
+      className: "bg-[#eff6ff] hover:bg-[#dbeafe] border-[#bfdbfe] text-[#1d4ed8]"
+    },
+    {
+      label: "Assigned",
+      value: assignedRequests.length,
+      filter: { type: "status", value: "Assigned" },
+      className: "bg-[#fffbeb] hover:bg-[#fef3c7] border-[#fde68a] text-[#92400e]"
+    },
+    {
+      label: "Partial",
+      value: partiallyClaimedRequests.length,
+      filter: { type: "special", value: "Partially Claimed" },
+      className: "bg-[#fff7ed] hover:bg-[#ffedd5] border-[#fed7aa] text-[#9a3412]"
+    },
+    {
+      label: "Completed",
+      value: completedRequests.length,
+      filter: { type: "status", value: "Completed" },
+      className: "bg-[#ecfdf3] hover:bg-[#dcfae6] border-[#abefc6] text-[#067647]"
+    },
+    {
+      label: "Cancelled",
+      value: cancelledRequests.length,
+      filter: { type: "status", value: "Cancelled" },
+      className: "bg-[#f8fafc] hover:bg-[#eef2f6] border-[#d8e0ea] text-[#475467]"
+    },
+    {
+      label: "My Requests",
+      value: myRequests.length,
+      filter: { type: "mine", value: "My Requests" },
+      className: "bg-white hover:bg-[#f8fafc] border-[#d8e0ea] text-[#1f3a5f]"
+    },
+    {
+      label: "My Claims",
+      value: myClaims.length,
+      filter: { type: "mine", value: "My Claims" },
+      className: "bg-white hover:bg-[#f8fafc] border-[#d8e0ea] text-[#1f3a5f]"
+    }
+  ];
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 mb-3 text-center">
+    <div className="space-y-4">
+      <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#172033]">Request Summary</h2>
-            <p className="text-xs text-[#667085] leading-snug">
+            <p className="text-[11px] font-bold uppercase text-[#b42318]">Current Activity</p>
+            <h2 className="text-2xl font-bold text-[#172033] mt-1">Request Summary</h2>
+            <p className="text-sm text-[#667085] leading-snug mt-1">
               {activeEvent
                 ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
                 : "No event is active. Request assistance is currently disabled."}
@@ -111,47 +156,31 @@ export default function HomePage({
             disabled={!activeEvent}
             className={
               activeEvent
-                ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm whitespace-nowrap"
-                : "bg-[#e2e8f0] text-[#98a2b3] px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm cursor-not-allowed whitespace-nowrap"
+                ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-3 rounded-md font-semibold text-sm whitespace-nowrap"
+                : "bg-[#e2e8f0] text-[#98a2b3] px-4 py-3 rounded-md font-semibold text-sm cursor-not-allowed whitespace-nowrap"
             }
           >
             Request Assistance
           </button>
         </div>
 
-        <div className="flex flex-wrap items-stretch justify-center gap-1.5">
-          <button onClick={() => onGoToRequests({ type: "status", value: "Open" })} className={`bg-[#eff6ff] hover:bg-[#dbeafe] border-[#bfdbfe] text-[#1d4ed8] ${summaryButtonClass}`}>
-            Open: {openRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "status", value: "Assigned" })} className={`bg-[#fffbeb] hover:bg-[#fef3c7] border-[#fde68a] text-[#92400e] ${summaryButtonClass}`}>
-            Assigned: {assignedRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "special", value: "Partially Claimed" })} className={`bg-[#fff7ed] hover:bg-[#ffedd5] border-[#fed7aa] text-[#9a3412] ${summaryButtonClass}`}>
-            Partial: {partiallyClaimedRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "status", value: "Completed" })} className={`bg-[#ecfdf3] hover:bg-[#dcfae6] border-[#abefc6] text-[#067647] ${summaryButtonClass}`}>
-            Completed: {completedRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "status", value: "Cancelled" })} className={`bg-[#f2f4f7] hover:bg-[#d8e0ea] border-[#c7d0dc] text-[#475467] ${summaryButtonClass}`}>
-            Cancelled: {cancelledRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })} className={`bg-[#f1f5f9] hover:bg-[#e2e8f0] border-[#c7d0dc] text-[#1f3a5f] ${summaryButtonClass}`}>
-            My Requests: {myRequests.length}
-          </button>
-
-          <button onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })} className={`bg-[#f1f5f9] hover:bg-[#e2e8f0] border-[#c7d0dc] text-[#1f3a5f] ${summaryButtonClass}`}>
-            My Claims: {myClaims.length}
-          </button>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
+          {summaryItems.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => onGoToRequests(item.filter)}
+              className={`${item.className} ${summaryButtonClass}`}
+            >
+              <span className="block text-2xl font-bold leading-none">{item.value}</span>
+              <span className="block text-[11px] uppercase mt-1">{item.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-[#fff7ed] border-b border-[#fed7aa] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+      <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#fff7ed] border-b border-[#fed7aa] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#172033]">New Open Requests</h2>
             <p className="text-xs text-[#667085]">
@@ -162,7 +191,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "status", value: "Open" })}
-            className="bg-white hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-3 py-2 rounded-lg text-xs font-semibold"
+            className="bg-white hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-3 py-2 rounded-md text-xs font-semibold"
           >
             View Open Requests
           </button>
@@ -219,8 +248,8 @@ export default function HomePage({
         )}
       </div>
 
-      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+      <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#172033]">My Claims</h2>
             <p className="text-xs text-[#667085]">
@@ -231,7 +260,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
-            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-xs font-semibold"
+            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold"
           >
             Manage My Claims
           </button>
@@ -303,8 +332,8 @@ export default function HomePage({
         )}
       </div>
 
-      <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-center">
+      <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
+        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold text-[#172033]">My Requests</h2>
             <p className="text-xs text-[#667085]">
@@ -315,7 +344,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
-            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-xs font-semibold"
+            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold"
           >
             Manage My Requests
           </button>

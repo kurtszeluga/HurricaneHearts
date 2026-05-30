@@ -263,12 +263,12 @@ export default function Dashboard({
   };
 
   return (
-    <div className="min-h-screen bg-[#e8edf3]">
+    <div className="min-h-screen bg-[#f5f7fa]">
       <Navbar user={user} activeEvent={activeEvent} onEditProfile={openProfilePage} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 py-3 sm:py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {showFirstLoginSplash && (
-          <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-3 text-center shadow-sm">
+          <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-4 text-center shadow-sm">
             <h2 className="text-lg font-bold">
               Welcome to Hurricane Hearts
             </h2>
@@ -283,18 +283,21 @@ export default function Dashboard({
             <button
               type="button"
               onClick={() => setShowFirstLoginSplash(false)}
-              className="mt-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+              className="mt-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white px-4 py-2 rounded-md text-sm font-semibold"
             >
               Continue
             </button>
           </div>
         )}
 
-        <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm px-3 py-2 mb-3">
-          <div className="flex items-center gap-3">
-            <h2 className="shrink-0 text-base sm:text-lg font-bold text-[#172033] leading-tight underline underline-offset-4 decoration-[#b42318]">
-              {pageLabels[activePage]}
-            </h2>
+        <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm px-3 py-3 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="shrink-0">
+              <p className="text-[11px] font-bold uppercase text-[#b42318]">Member Area</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#172033] leading-tight">
+                {pageLabels[activePage]}
+              </h2>
+            </div>
 
             <nav className="hidden md:flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto">
               {visiblePages.map((page) => (
@@ -304,8 +307,8 @@ export default function Dashboard({
                   onClick={() => goToPage(page)}
                   className={
                     activePage === page
-                      ? "shrink-0 bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-3 py-1.5 rounded-md font-semibold text-xs underline underline-offset-4"
-                      : "shrink-0 hover:bg-[#f1f5f9] text-[#475467] border border-transparent px-3 py-1.5 rounded-md font-semibold text-xs underline underline-offset-4"
+                      ? "shrink-0 bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-3 py-2 rounded-md font-semibold text-xs"
+                      : "shrink-0 hover:bg-[#f8fafc] text-[#475467] border border-transparent px-3 py-2 rounded-md font-semibold text-xs"
                   }
                 >
                   <span className="mr-1">{pageIcons[page]}</span>
@@ -322,7 +325,7 @@ export default function Dashboard({
                 id="mobile-page-menu"
                 value={activePage}
                 onChange={(event) => goToPage(event.target.value)}
-                className="w-full bg-[#f8fafc] border border-[#c7d0dc] rounded-md px-3 py-1.5 text-sm font-semibold text-[#172033] focus:outline-none focus:ring-2 focus:ring-[#b42318]"
+                className="w-full bg-[#f8fafc] border border-[#c7d0dc] rounded-md px-3 py-2 text-sm font-semibold text-[#172033] focus:outline-none focus:ring-2 focus:ring-[#b42318]"
               >
                 {navigationPages.map((page) => (
                   <option key={page} value={page}>
@@ -339,7 +342,7 @@ export default function Dashboard({
         </main>
       </div>
 
-      <footer className="text-center text-xs text-[#667085] py-4">
+      <footer className="border-t border-[#d8e0ea] bg-white text-center text-xs text-[#667085] py-4">
         © 2026 Hurricane Hearts — Arlington Ridge Community v.1.0
       </footer>
 
