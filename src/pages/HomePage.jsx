@@ -90,7 +90,7 @@ export default function HomePage({
     </div>
   );
 
-  const summaryButtonClass = "text-left rounded-lg border px-3 py-3 font-semibold transition shadow-sm";
+  const summaryButtonClass = "text-center rounded-md border px-2 py-2 font-semibold transition shadow-sm";
   const summaryItems = [
     {
       label: "Open",
@@ -164,7 +164,7 @@ export default function HomePage({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
           {summaryItems.map((item) => (
             <button
               key={item.label}
@@ -172,8 +172,8 @@ export default function HomePage({
               onClick={() => onGoToRequests(item.filter)}
               className={`${item.className} ${summaryButtonClass}`}
             >
-              <span className="block text-2xl font-bold leading-none">{item.value}</span>
-              <span className="block text-[11px] uppercase mt-1">{item.label}</span>
+              <span className="block text-xl font-bold leading-none">{item.value}</span>
+              <span className="block text-[10px] uppercase mt-1 leading-tight">{item.label}</span>
             </button>
           ))}
         </div>
