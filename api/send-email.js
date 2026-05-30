@@ -6,6 +6,8 @@ const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
 const RESEND_SEND_URL = "https://api.resend.com/emails";
 const DEFAULT_FROM_EMAIL =
   "Hurricane Hearts <notifications@hurricanehearts.org>";
+const NO_REPLY_NOTICE_TEXT = "NOTE: Do NOT reply to this message! This email account is not monitored.";
+const NO_REPLY_NOTICE_HTML = "<p><strong>NOTE:</strong> Do NOT reply to this message! This email account is not monitored.</p>";
 
 function getAllowedOrigin() {
   return process.env.EMAIL_API_ALLOWED_ORIGIN || "*";
@@ -126,15 +128,28 @@ function validateEmail(email) {
   };
 }
 
+function appendNoReplyNotice(message) {
+  return {
+    ...message,
+    text: message.text
+      ? `${message.text}\n\n${NO_REPLY_NOTICE_TEXT}`
+      : message.text,
+    html: message.html
+      ? `${message.html}${NO_REPLY_NOTICE_HTML}`
+      : message.html
+  };
+}
+
 function buildResendPayload(email) {
   const valid = validateEmail(email);
+  const message = appendNoReplyNotice(valid.message);
 
   return {
     from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
     to: valid.to,
     subject: valid.message.subject,
-    text: valid.message.text,
-    html: valid.message.html
+    text: message.text,
+    html: message.html
   };
 }
 

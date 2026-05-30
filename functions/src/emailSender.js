@@ -1,4 +1,6 @@
 const RESEND_SEND_URL = "https://api.resend.com/emails";
+const NO_REPLY_NOTICE_TEXT = "NOTE: Do NOT reply to this message! This email account is not monitored.";
+const NO_REPLY_NOTICE_HTML = "<p><strong>NOTE:</strong> Do NOT reply to this message! This email account is not monitored.</p>";
 
 function normalizeRecipients(value) {
   if (Array.isArray(value)) {
@@ -41,15 +43,28 @@ function validateQueuedEmail(email) {
   };
 }
 
+function appendNoReplyNotice(message) {
+  return {
+    ...message,
+    text: message.text
+      ? `${message.text}\n\n${NO_REPLY_NOTICE_TEXT}`
+      : message.text,
+    html: message.html
+      ? `${message.html}${NO_REPLY_NOTICE_HTML}`
+      : message.html
+  };
+}
+
 export function buildResendPayload(email, from) {
   const valid = validateQueuedEmail(email);
+  const message = appendNoReplyNotice(valid);
 
   return {
     from,
     to: valid.to,
     subject: valid.subject,
-    text: valid.text,
-    html: valid.html
+    text: message.text,
+    html: message.html
   };
 }
 
