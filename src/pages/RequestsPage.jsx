@@ -111,8 +111,8 @@ export default function RequestsPage({
                   onClick={() => setRequestFilter(filter)}
                   className={
                     isSameFilter(requestFilter, filter)
-                      ? "bg-[#b42318] text-white px-3 py-1.5 rounded-md text-xs font-semibold"
-                      : "bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-1.5 rounded-md text-xs font-semibold"
+                      ? "min-w-[68px] bg-[#b42318] text-white px-2 py-1 rounded-md text-[11px] leading-tight text-center font-semibold"
+                      : "min-w-[68px] bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-md text-[11px] leading-tight text-center font-semibold"
                   }
                 >
                   {filter.label}
