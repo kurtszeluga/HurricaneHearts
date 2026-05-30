@@ -151,8 +151,8 @@ Deactivate '${activeEvent.eventName}' anyway?`;
 
   return (
     <div className="bg-[#ecfdf3] text-[#064e3b] border border-[#abefc6] rounded-lg shadow-sm p-3 mb-4">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
-        <div className="flex items-center gap-3 pl-8">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-6">
+        <div className="flex items-center justify-center md:justify-start gap-3 md:pl-8 order-3 md:order-1">
           {activeEvent && (
             <button
               type="button"
@@ -164,39 +164,39 @@ Deactivate '${activeEvent.eventName}' anyway?`;
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-0 min-w-0">
+        <div className="flex flex-col items-center gap-0 min-w-0 order-1 md:order-2">
           <h2 className="text-sm font-bold leading-tight">Event Control</h2>
           <p className="text-[11px] opacity-90 leading-tight mt-0">Manage the current event</p>
         </div>
 
         {activeEvent && (
-          <div className="flex flex-col items-center min-w-0">
+          <div className="flex flex-col items-center min-w-0 order-2 md:order-3">
             <div className="text-sm font-semibold truncate text-center">{activeEvent.eventName}</div>
             <div className="text-[11px] opacity-90 truncate text-center">{activeEvent.eventDate}</div>
           </div>
         )}
 
         {!activeEvent && (
-          <div className="flex items-center justify-end gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_auto] md:flex md:items-center md:justify-end gap-2 md:gap-3 min-w-0 order-2 md:order-3">
             <>
               <input
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="Event name"
-                className="px-2 py-1 rounded-md text-sm w-40 bg-white border border-[#abefc6] text-[#172033]"
+                className="px-2 py-2 md:py-1 rounded-md text-sm w-full md:w-40 min-w-0 bg-white border border-[#abefc6] text-[#172033]"
               />
 
               <input
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
                 type="date"
-                className="px-2 py-1 rounded-md text-sm w-36 bg-white border border-[#abefc6] text-[#172033]"
+                className="px-2 py-2 md:py-1 rounded-md text-sm w-full sm:w-36 bg-white border border-[#abefc6] text-[#172033]"
               />
 
               <button
                 type="button"
                 onClick={activateEvent}
-                className="bg-[#16803c] hover:bg-[#126b32] text-white px-3 py-1 rounded-md font-semibold text-sm"
+                className="bg-[#16803c] hover:bg-[#126b32] text-white px-3 py-2 md:py-1 rounded-md font-semibold text-sm whitespace-nowrap"
               >
                 Activate
               </button>
