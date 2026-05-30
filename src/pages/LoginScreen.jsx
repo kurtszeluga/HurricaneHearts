@@ -378,9 +378,6 @@ export default function LoginScreen({ message }) {
             <a className="hover:text-[#b42318]" href="#mission">Mission</a>
             <a className="hover:text-[#b42318]" href="#how-it-works">How It Works</a>
             <a className="hover:text-[#b42318]" href="#updates">Updates</a>
-            <a className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-3 py-2 rounded-md" href="#access">
-              Member Access
-            </a>
           </nav>
         </div>
       </header>
@@ -409,7 +406,7 @@ export default function LoginScreen({ message }) {
                   href="#access"
                   className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-5 py-3 rounded-md font-bold"
                 >
-                  Sign In
+                  Login
                 </a>
                 <button
                   type="button"
