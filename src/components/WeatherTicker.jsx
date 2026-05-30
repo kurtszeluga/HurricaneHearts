@@ -12,6 +12,32 @@ function severityClass(severity) {
   return "bg-[#eff6ff] text-[#1e3a8a] border-[#bfdbfe]";
 }
 
+function renderTickerRun(alerts, isDuplicate = false) {
+  return alerts.map((alert, index) => {
+    const text = `${alert.event} — ${alert.headline}`;
+    const content = alert.url ? (
+      <a
+        className="nws-marquee-link"
+        href={alert.url}
+        target="_blank"
+        rel="noreferrer"
+        tabIndex={isDuplicate ? -1 : undefined}
+      >
+        {text}
+      </a>
+    ) : (
+      <span>{text}</span>
+    );
+
+    return (
+      <span className="nws-marquee-item" key={`${isDuplicate ? "duplicate" : "primary"}-${alert.id}`}>
+        {index > 0 ? <span className="nws-marquee-separator" aria-hidden="true">•</span> : null}
+        {content}
+      </span>
+    );
+  });
+}
+
 export default function WeatherTicker({ enabled = true }) {
   const { alerts, loading, error, lastFetchedAt } = useNwsAlerts(enabled);
 
@@ -50,17 +76,11 @@ export default function WeatherTicker({ enabled = true }) {
     );
   }
 
-  const tickerText = alerts
-    .map((alert) => `${alert.event} — ${alert.headline}`)
-    .join("     •     ");
-
   const highestSeverity = alerts.some((alert) => alert.severity === "Extreme" || alert.severity === "Severe")
     ? "Severe"
     : alerts.some((alert) => alert.severity === "Moderate")
       ? "Moderate"
       : "Minor";
-
-  const repeated = `${tickerText}     •     ${tickerText}`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
@@ -69,10 +89,9 @@ export default function WeatherTicker({ enabled = true }) {
           <span className="shrink-0 font-bold">NWS ALERTS</span>
 
           <div className="overflow-hidden flex-1">
-            <div className="whitespace-nowrap" style={{ display: 'inline-block', minWidth: '100%' }}>
-              <div style={{ display: 'inline-block', animation: 'marquee 35s linear infinite' }}>
-                {repeated}
-              </div>
+            <div className="nws-marquee-track">
+              <span className="nws-marquee-run">{renderTickerRun(alerts)}</span>
+              <span className="nws-marquee-run" aria-hidden="true">{renderTickerRun(alerts, true)}</span>
             </div>
           </div>
 

@@ -132,12 +132,46 @@ code {
 }
 
 /* Marquee animation used by the NWS Weather Ticker */
+.nws-marquee-track {
+  display: inline-flex;
+  min-width: max-content;
+  white-space: nowrap;
+  animation: marquee 35s linear infinite;
+}
+
+.nws-marquee-run {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-right: 2rem;
+}
+
+.nws-marquee-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.nws-marquee-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nws-marquee-link:hover,
+.nws-marquee-link:focus-visible {
+  text-decoration: underline;
+}
+
+.nws-marquee-separator {
+  padding: 0 1rem;
+}
+
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
 
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }

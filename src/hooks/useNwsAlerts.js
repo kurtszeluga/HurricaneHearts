@@ -4,6 +4,38 @@ const DEFAULT_LAT = 28.74;
 const DEFAULT_LON = -81.88;
 const REFRESH_MS = 10 * 60 * 1000;
 
+function firstParameterValue(parameters, key) {
+  const value = parameters?.[key];
+
+  if (Array.isArray(value)) {
+    return value[0] || "";
+  }
+
+  return typeof value === "string" ? value : "";
+}
+
+function getStatementUrl(feature, properties) {
+  const apiUrl = properties["@id"] || feature.id || "";
+  const awipsIdentifier = firstParameterValue(properties.parameters, "AWIPSidentifier");
+
+  if (/^[A-Z0-9]{6}$/.test(awipsIdentifier)) {
+    const product = awipsIdentifier.slice(0, 3);
+    const issuedBy = awipsIdentifier.slice(3);
+    const searchParams = new URLSearchParams({
+      site: "NWS",
+      issuedby: issuedBy,
+      product,
+      format: "CI",
+      version: "1",
+      glossary: "0"
+    });
+
+    return `https://forecast.weather.gov/product.php?${searchParams.toString()}`;
+  }
+
+  return apiUrl;
+}
+
 function simplifyAlert(feature) {
   const properties = feature.properties || {};
 
@@ -18,7 +50,8 @@ function simplifyAlert(feature) {
     expires: properties.expires || "",
     description: properties.description || "",
     instruction: properties.instruction || "",
-    url: properties["@id"] || ""
+    apiUrl: properties["@id"] || feature.id || "",
+    url: getStatementUrl(feature, properties)
   };
 }
 
