@@ -292,7 +292,7 @@ export default function Dashboard({
 
         <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm px-3 py-3 mb-4">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div className="shrink-0">
+            <div className="shrink-0 text-center md:text-left">
               <p className="text-[11px] font-bold uppercase text-[#b42318]">Member Area</p>
               <h2 className="text-xl sm:text-2xl font-bold text-[#172033] leading-tight">
                 {pageLabels[activePage]}

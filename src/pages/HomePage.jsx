@@ -139,8 +139,8 @@ export default function HomePage({
   return (
     <div className="space-y-4">
       <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm p-4 sm:p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-          <div>
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center gap-4 mb-4">
+          <div className="text-center lg:col-start-2">
             <p className="text-[11px] font-bold uppercase text-[#b42318]">Current Activity</p>
             <h2 className="text-2xl font-bold text-[#172033] mt-1">Request Summary</h2>
             <p className="text-sm text-[#667085] leading-snug mt-1">
@@ -156,8 +156,8 @@ export default function HomePage({
             disabled={!activeEvent}
             className={
               activeEvent
-                ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-3 rounded-md font-semibold text-sm whitespace-nowrap"
-                : "bg-[#e2e8f0] text-[#98a2b3] px-4 py-3 rounded-md font-semibold text-sm cursor-not-allowed whitespace-nowrap"
+                ? "bg-[#b42318] hover:bg-[#9f1f16] text-white px-4 py-3 rounded-md font-semibold text-sm whitespace-nowrap lg:justify-self-end"
+                : "bg-[#e2e8f0] text-[#98a2b3] px-4 py-3 rounded-md font-semibold text-sm cursor-not-allowed whitespace-nowrap lg:justify-self-end"
             }
           >
             Request Assistance
@@ -180,8 +180,8 @@ export default function HomePage({
       </div>
 
       <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-[#fff7ed] border-b border-[#fed7aa] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
+        <div className="px-4 py-3 bg-[#fff7ed] border-b border-[#fed7aa] flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center gap-3">
+          <div className="text-center sm:col-start-2">
             <h2 className="text-lg font-bold text-[#172033]">New Open Requests</h2>
             <p className="text-xs text-[#667085]">
               Recent open requests from neighbors that may need help.
@@ -191,7 +191,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "status", value: "Open" })}
-            className="bg-white hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-3 py-2 rounded-md text-xs font-semibold"
+            className="bg-white hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-3 py-2 rounded-md text-xs font-semibold sm:justify-self-end"
           >
             View Open Requests
           </button>
@@ -249,8 +249,8 @@ export default function HomePage({
       </div>
 
       <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
+        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center gap-3">
+          <div className="text-center sm:col-start-2">
             <h2 className="text-lg font-bold text-[#172033]">My Claims</h2>
             <p className="text-xs text-[#667085]">
               Requests you have claimed or are helping with.
@@ -260,7 +260,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
-            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold"
+            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold sm:justify-self-end"
           >
             Manage My Claims
           </button>
@@ -333,8 +333,8 @@ export default function HomePage({
       </div>
 
       <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
-        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
+        <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center gap-3">
+          <div className="text-center sm:col-start-2">
             <h2 className="text-lg font-bold text-[#172033]">My Requests</h2>
             <p className="text-xs text-[#667085]">
               Requests you submitted or that were submitted on your behalf.
@@ -344,7 +344,7 @@ export default function HomePage({
           <button
             type="button"
             onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
-            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold"
+            className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold sm:justify-self-end"
           >
             Manage My Requests
           </button>
