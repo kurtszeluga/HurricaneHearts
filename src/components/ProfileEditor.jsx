@@ -18,11 +18,13 @@ export default function ProfileEditor({
   title = "Edit Profile",
   user,
   adminMode = false,
+  canManageAdminRole = true,
   onSave,
   onCancel
 }) {
   const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
   const isPrimaryOwner = user.email === PRIMARY_OWNER_EMAIL;
+  const canEditRole = canManageAdminRole || isPrimaryOwner;
 
   const [form, setForm] = useState({
     ...user,
@@ -143,10 +145,10 @@ export default function ProfileEditor({
             Role
             <select
               value={form.role || "resident"}
-              disabled={isPrimaryOwner}
+              disabled={isPrimaryOwner || !canEditRole}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
               className={
-                isPrimaryOwner
+                isPrimaryOwner || !canEditRole
                   ? "border border-[#c7d0dc] rounded-lg px-3 py-2 bg-[#e2e8f0] text-[#667085]"
                   : "border border-[#c7d0dc] rounded-lg px-3 py-2 bg-white"
               }
@@ -158,6 +160,11 @@ export default function ProfileEditor({
             {isPrimaryOwner && (
               <span className="text-xs text-[#667085]">
                 Primary admin must remain approved, active, and Admin.
+              </span>
+            )}
+            {!isPrimaryOwner && !canEditRole && (
+              <span className="text-xs text-[#667085]">
+                Admin role changes are restricted to the primary owner.
               </span>
             )}
           </label>

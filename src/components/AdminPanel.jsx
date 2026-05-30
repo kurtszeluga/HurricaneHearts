@@ -36,6 +36,7 @@ function getUserRole(u) {
 }
 
 export default function AdminPanel({ user, users }) {
+  const isPrimaryOwnerAdmin = user.email === PRIMARY_OWNER_EMAIL;
   const [editingUser, setEditingUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [search, setSearch] = useState("");
@@ -190,6 +191,11 @@ export default function AdminPanel({ user, users }) {
   };
 
   const updateUserRole = async (targetUser, role) => {
+    if (!isPrimaryOwnerAdmin) {
+      alert("Only the primary owner can manage admin access.");
+      return;
+    }
+
     if (targetUser.email === PRIMARY_OWNER_EMAIL && role !== "admin") {
       alert("The primary owner account must remain an admin.");
       return;
@@ -232,6 +238,11 @@ export default function AdminPanel({ user, users }) {
       updatedUser.active = true;
     }
 
+    if (!isPrimaryOwnerAdmin && updatedUser.role !== getUserRole(editingUser || updatedUser)) {
+      alert("Only the primary owner can manage admin access.");
+      return;
+    }
+
     if (updatedUser.id === user.uid && updatedUser.role !== "admin") {
       alert("You cannot remove your own admin access from inside the app.");
       return;
@@ -251,7 +262,9 @@ export default function AdminPanel({ user, users }) {
       role:
         updatedUser.email === PRIMARY_OWNER_EMAIL
           ? "admin"
-          : updatedUser.role || "resident",
+          : isPrimaryOwnerAdmin
+            ? updatedUser.role || "resident"
+            : getUserRole(editingUser || updatedUser),
       approved:
         updatedUser.email === PRIMARY_OWNER_EMAIL
           ? true
@@ -281,6 +294,16 @@ export default function AdminPanel({ user, users }) {
   };
 
   const addManualUser = async (newUser) => {
+    if (!isPrimaryOwnerAdmin && newUser.email === PRIMARY_OWNER_EMAIL) {
+      alert("Only the primary owner can create or manage the primary owner account.");
+      return;
+    }
+
+    if (!isPrimaryOwnerAdmin && newUser.role === "admin") {
+      alert("Only the primary owner can create admin accounts.");
+      return;
+    }
+
     const name = newUser.name || newUser.email || "this user";
 
     const confirmed = window.confirm(
@@ -298,7 +321,9 @@ export default function AdminPanel({ user, users }) {
       role:
         newUser.email === PRIMARY_OWNER_EMAIL
           ? "admin"
-          : newUser.role || "resident",
+          : isPrimaryOwnerAdmin
+            ? newUser.role || "resident"
+            : "resident",
       approved:
         newUser.email === PRIMARY_OWNER_EMAIL
           ? true
@@ -536,6 +561,7 @@ export default function AdminPanel({ user, users }) {
             active: true
           }}
           adminMode
+          canManageAdminRole={isPrimaryOwnerAdmin}
           onCancel={() => setShowAddUser(false)}
           onSave={addManualUser}
         />
@@ -546,6 +572,7 @@ export default function AdminPanel({ user, users }) {
           title="Edit User"
           user={editingUser}
           adminMode
+          canManageAdminRole={isPrimaryOwnerAdmin}
           onCancel={() => setEditingUser(null)}
           onSave={saveEditedUser}
         />
@@ -604,9 +631,9 @@ export default function AdminPanel({ user, users }) {
                 <button
                   type="button"
                   onClick={() => updateUserRole(u, role === "admin" ? "resident" : "admin")}
-                  disabled={isPrimaryOwner || u.id === user.uid}
+                  disabled={isPrimaryOwner || u.id === user.uid || !isPrimaryOwnerAdmin}
                   className={
-                    isPrimaryOwner || u.id === user.uid
+                    isPrimaryOwner || u.id === user.uid || !isPrimaryOwnerAdmin
                       ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
                       : role === "admin"
                         ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1f3a5f] border border-[#bfdbfe] px-2 py-1 rounded-lg text-[10px] font-semibold"
@@ -722,9 +749,9 @@ export default function AdminPanel({ user, users }) {
                           role === "admin" ? "resident" : "admin"
                         )
                       }
-                      disabled={isPrimaryOwner || u.id === user.uid}
+                      disabled={isPrimaryOwner || u.id === user.uid || !isPrimaryOwnerAdmin}
                       className={
-                        isPrimaryOwner || u.id === user.uid
+                        isPrimaryOwner || u.id === user.uid || !isPrimaryOwnerAdmin
                           ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
                           : role === "admin"
                             ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1f3a5f] border border-[#bfdbfe] px-2 py-1 rounded-lg font-semibold text-[10px]"

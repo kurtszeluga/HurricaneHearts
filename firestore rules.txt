@@ -28,6 +28,11 @@ service cloud.firestore {
         && userDoc().data.role == "admin";
     }
 
+    function isPrimaryOwnerAdmin() {
+      return isAdmin()
+        && userDoc().data.email == "hurricanehearts.admin@gmail.com";
+    }
+
     function isOwner(userId) {
       return signedIn() && request.auth.uid == userId;
     }
@@ -42,7 +47,13 @@ service cloud.firestore {
         && request.resource.data.approved == false
         && request.resource.data.active == true;
 
-      allow update: if isAdmin()
+      allow update: if (
+          isAdmin()
+          && (
+            isPrimaryOwnerAdmin()
+            || !request.resource.data.diff(resource.data).changedKeys().hasAny(["role"])
+          )
+        )
         || (
           isActiveApprovedUser()
           && isOwner(userId)
