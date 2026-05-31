@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { queueEventActivatedBlastEmail } from "../utils/emailNotifications";
+import { formatDateOnly } from "../utils/formatDate";
 
 function todayString() {
   return new Date().toISOString().slice(0, 10);
@@ -35,7 +36,7 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
     }
 
     const confirmed = window.confirm(
-      `Activate event '${eventName.trim()}' dated ${eventDate}?`
+      `Activate event '${eventName.trim()}' dated ${formatDateOnly(eventDate)}?`
     );
 
     if (!confirmed) return;
@@ -172,7 +173,7 @@ Deactivate '${activeEvent.eventName}' anyway?`;
         {activeEvent && (
           <div className="flex flex-col items-center min-w-0 order-2 md:order-3">
             <div className="text-sm font-semibold truncate text-center">{activeEvent.eventName}</div>
-            <div className="text-[11px] opacity-90 truncate text-center">{activeEvent.eventDate}</div>
+            <div className="text-[11px] opacity-90 truncate text-center">{formatDateOnly(activeEvent.eventDate)}</div>
           </div>
         )}
 

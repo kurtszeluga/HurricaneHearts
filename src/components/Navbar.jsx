@@ -1,20 +1,7 @@
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
+import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import WeatherTicker from "./WeatherTicker";
-
-function formatEventDateTime(value) {
-  if (!value) return "";
-
-  if (value.toDate) {
-    return value.toDate().toLocaleString();
-  }
-
-  if (typeof value === "string") {
-    return new Date(value).toLocaleString();
-  }
-
-  return "";
-}
 
 export default function Navbar({ user, activeEvent, onEditProfile }) {
   return (
@@ -69,8 +56,8 @@ export default function Navbar({ user, activeEvent, onEditProfile }) {
         {activeEvent ? (
           <div className="bg-[#fff7ed] border border-[#fed7aa] text-[#7c2d12] rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold grid gap-2 grid-cols-1 md:grid-cols-[1.2fr_1fr_1.2fr_auto] md:items-center">
             <span>ACTIVE EVENT: {activeEvent.eventName}</span>
-            <span>Event Date: {activeEvent.eventDate || "Not provided"}</span>
-            <span>Activated: {formatEventDateTime(activeEvent.activatedAt) || "Not recorded"}</span>
+            <span>Event Date: {formatDateOnly(activeEvent.eventDate) || "Not provided"}</span>
+            <span>Activated: {formatDateTime(activeEvent.activatedAt) || "Not recorded"}</span>
             <span className="text-[#16803c]">Status: Active</span>
           </div>
         ) : (

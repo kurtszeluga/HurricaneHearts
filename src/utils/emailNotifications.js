@@ -1,4 +1,5 @@
 import { auth } from "../firebase/config";
+import { formatDateOnly } from "./formatDate";
 
 export const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
 const DEFAULT_EMAIL_API_PATH = "/api/send-email";
@@ -240,7 +241,7 @@ export async function queueEventActivatedBlastEmail(db, { eventId, eventName, ev
   const text = `A Hurricane Hearts event has been activated.
 
 Event: ${eventName}
-Date: ${eventDate}
+Date: ${formatDateOnly(eventDate)}
 
 Hurricane Hearts is now open for requests related to this event. Please sign in if you need assistance or would like to monitor requests from neighbors.`;
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import {
   queueRequestCancelledEmails,
@@ -17,13 +18,6 @@ const urgencyColors = {
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
-}
-
-function formatDate(value) {
-  if (!value) return "Not recorded";
-  if (value.toDate) return value.toDate().toLocaleString();
-  if (typeof value === "string") return new Date(value).toLocaleString();
-  return "Not recorded";
 }
 
 function getClaimedBy(request) {
@@ -118,7 +112,7 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
             <div className="border rounded-2xl p-3">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Event</div>
               <div>{request.eventName || "Not provided"}</div>
-              <div className="text-gray-500">{request.eventDate || "No event date"}</div>
+              <div className="text-gray-500">{formatDateOnly(request.eventDate) || "No event date"}</div>
             </div>
 
             <div className="border rounded-2xl p-3">
@@ -192,7 +186,7 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
                     {claim.phone && <div>Phone: {formatPhoneNumber(claim.phone)}</div>}
                     {claim.email && <div>Email: {claim.email}</div>}
                     {claim.comment && <div>Comment: {claim.comment}</div>}
-                    {claim.claimedAt && <div className="text-xs mt-1">Claimed: {formatDate(claim.claimedAt)}</div>}
+                    {claim.claimedAt && <div className="text-xs mt-1">Claimed: {formatDateTime(claim.claimedAt) || "Not recorded"}</div>}
                   </div>
                 ))}
               </div>

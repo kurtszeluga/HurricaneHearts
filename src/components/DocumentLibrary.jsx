@@ -8,6 +8,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatDateOnly } from "../utils/formatDate";
 
 const documentCategories = [
   "All",
@@ -255,7 +256,7 @@ export default function DocumentLibrary({ user, documents = [], activeEvent = nu
           {form.eventSpecific && (
             <div className="bg-[#eff6ff] text-[#1e3a8a] border border-[#bfdbfe] rounded-lg p-4 mt-3 text-sm font-semibold">
               {activeEvent
-                ? `Linked to event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
+                ? `Linked to event: ${activeEvent.eventName} — ${formatDateOnly(activeEvent.eventDate)}`
                 : "No active event is available. Activate an event first or uncheck this option."}
             </div>
           )}

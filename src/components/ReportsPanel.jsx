@@ -1,4 +1,5 @@
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
+import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 
 function convertToCsv(rows) {
   if (!rows.length) return "";
@@ -43,20 +44,6 @@ function downloadCsv(filename, rows) {
   URL.revokeObjectURL(url);
 }
 
-function formatDate(value) {
-  if (!value) return "";
-
-  if (value.toDate) {
-    return value.toDate().toLocaleString();
-  }
-
-  if (typeof value === "string") {
-    return new Date(value).toLocaleString();
-  }
-
-  return "";
-}
-
 function slugify(value) {
   return String(value || "all-events")
     .toLowerCase()
@@ -84,7 +71,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
           eventId,
           label:
             request.eventName ||
-            request.eventDate ||
+            formatDateOnly(request.eventDate) ||
             eventId ||
             "No event assigned"
         }
@@ -174,7 +161,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       AssignedHelper: r.assignedHelper || "",
       CompletionComment: r.completionComment || "",
       CancellationReason: r.cancellationReason || "",
-      CreatedAt: formatDate(r.createdAt)
+      CreatedAt: formatDateTime(r.createdAt)
     }));
 
     downloadCsv(`hurricane-hearts-requests-${slugify(selectedEvent.label)}.csv`, rows);
@@ -200,7 +187,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       Details: h.details || "",
       ByName: h.byName || "",
       ByEmail: h.byEmail || "",
-      CreatedAt: formatDate(h.createdAt)
+      CreatedAt: formatDateTime(h.createdAt)
     }));
 
     downloadCsv(`hurricane-hearts-request-history-${slugify(selectedEvent.label)}.csv`, rows);

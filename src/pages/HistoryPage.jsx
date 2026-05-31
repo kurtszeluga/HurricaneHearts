@@ -1,26 +1,10 @@
 import { useMemo, useState } from "react";
 import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatDateOnly, formatDateTime as formatDateTimeValue } from "../utils/formatDate";
 
 function formatDateTime(value) {
-  if (!value) return "Not recorded";
-
-  const rawDate =
-    typeof value?.toDate === "function"
-      ? value.toDate()
-      : typeof value?.seconds === "number"
-        ? new Date(value.seconds * 1000)
-        : new Date(value);
-
-  if (!rawDate || Number.isNaN(rawDate.getTime())) return "Not recorded";
-
-  return rawDate.toLocaleString([], {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  return formatDateTimeValue(value) || "Not recorded";
 }
 
 function firstValue(...values) {
@@ -376,7 +360,7 @@ export default function HistoryPage({
                     <td className="px-3 py-2 font-semibold text-[#172033]">
                       <div>{event.eventName}</div>
                       {event.eventDate && (
-                        <div className="text-xs font-normal text-[#667085]">Event Date: {event.eventDate}</div>
+                        <div className="text-xs font-normal text-[#667085]">Event Date: {formatDateOnly(event.eventDate)}</div>
                       )}
                       {event.reopenedAt && (
                         <div className="text-[11px] font-normal text-[#067647] mt-1">

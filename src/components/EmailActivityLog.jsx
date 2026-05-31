@@ -7,20 +7,7 @@ import {
   query
 } from "firebase/firestore";
 import { db } from "../firebase/config";
-
-function formatDate(value) {
-  if (!value) return "";
-
-  if (value.toDate) {
-    return value.toDate().toLocaleString();
-  }
-
-  if (typeof value === "string") {
-    return new Date(value).toLocaleString();
-  }
-
-  return "";
-}
+import { formatDateTime } from "../utils/formatDate";
 
 function formatRecipients(value) {
   if (Array.isArray(value)) {
@@ -176,7 +163,7 @@ export default function EmailActivityLog() {
               </div>
 
               <div className="mt-3 text-[#667085] sm:mt-0">
-                {formatDate(email.createdAt)}
+                {formatDateTime(email.createdAt)}
               </div>
 
               {email.errorMessage && (

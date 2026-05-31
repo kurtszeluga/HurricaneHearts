@@ -1,3 +1,5 @@
+import { formatDateOnly } from "../utils/formatDate";
+
 export default function HomePage({
   user,
   activeEvent,
@@ -145,7 +147,7 @@ export default function HomePage({
             <h2 className="text-2xl font-bold text-[#172033] mt-1">Request Summary</h2>
             <p className="text-sm text-[#667085] leading-snug mt-1">
               {activeEvent
-                ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
+                ? `Active Event: ${activeEvent.eventName} — ${formatDateOnly(activeEvent.eventDate)}`
                 : "No event is active. Request assistance is currently disabled."}
             </p>
           </div>

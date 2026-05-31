@@ -1,20 +1,7 @@
 import { doc, updateDoc, writeBatch } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import { db } from "../firebase/config";
-
-function formatDate(value) {
-  if (!value) return "";
-
-  if (value.toDate) {
-    return value.toDate().toLocaleString();
-  }
-
-  if (typeof value === "string") {
-    return new Date(value).toLocaleString();
-  }
-
-  return "";
-}
+import { formatDateTime } from "../utils/formatDate";
 
 export default function NotificationCenter({ notifications = [] }) {
   const [open, setOpen] = useState(false);
@@ -90,7 +77,7 @@ export default function NotificationCenter({ notifications = [] }) {
                     <div className="font-bold text-[#172033]">{notification.title}</div>
                     <div className="text-sm text-[#475467] mt-1">{notification.message}</div>
                     <div className="text-xs text-[#667085] mt-2">
-                      {formatDate(notification.createdAt)}
+                      {formatDateTime(notification.createdAt)}
                     </div>
                   </div>
 

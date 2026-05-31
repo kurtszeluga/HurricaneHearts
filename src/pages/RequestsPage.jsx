@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import RequestCard from "../components/RequestCard";
+import { formatDateOnly } from "../utils/formatDate";
 
 const requestFilters = [
   { label: "All", type: "status", value: "All" },
@@ -97,7 +98,7 @@ export default function RequestsPage({
             </div>
             <p className="text-sm text-[#667085]">
               {activeEvent
-                ? `Active Event: ${activeEvent.eventName} — ${activeEvent.eventDate}`
+                ? `Active Event: ${activeEvent.eventName} — ${formatDateOnly(activeEvent.eventDate)}`
                 : "No event is active. Requests are currently disabled."}
             </p>
           </div>

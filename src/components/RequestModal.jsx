@@ -7,6 +7,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatDateOnly } from "../utils/formatDate";
 
 const requestCategories = [
   "Wellness Check",
@@ -223,7 +224,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
         {!isEditing && activeEvent && (
           <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-5 text-sm font-semibold">
-            Active Event: {activeEvent.eventName} — {activeEvent.eventDate}
+            Active Event: {activeEvent.eventName} — {formatDateOnly(activeEvent.eventDate)}
           </div>
         )}
 
