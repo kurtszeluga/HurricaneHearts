@@ -59,6 +59,7 @@ export default function ProfileEditor({
 
     await onSave({
       ...form,
+      email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
       phone: normalizePhoneNumber(form.phone),
       role: isPrimaryOwner ? "admin" : form.role,
       approved: isPrimaryOwner ? true : form.approved,
@@ -84,7 +85,12 @@ export default function ProfileEditor({
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           placeholder="Email"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+          disabled={isPrimaryOwner}
+          className={
+            isPrimaryOwner
+              ? "border border-[#c7d0dc] rounded-lg p-3.5 bg-[#e2e8f0] text-[#667085]"
+              : "border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+          }
         />
 
         <input
