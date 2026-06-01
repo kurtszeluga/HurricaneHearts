@@ -57,6 +57,9 @@ export default function LoginScreen({ message }) {
   const [submitting, setSubmitting] =
     useState(false);
 
+  const [showPassword, setShowPassword] =
+    useState(false);
+
   const [form, setForm] =
     useState(emptyForm);
 
@@ -534,10 +537,20 @@ export default function LoginScreen({ message }) {
                   value={form.password}
                   onChange={(e) => updateForm("password", e.target.value)}
                   placeholder="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   disabled={submitting}
                   className="border border-[#c7d0dc] rounded-md p-3"
                 />
+
+                <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#475467]">
+                  <input
+                    type="checkbox"
+                    checked={showPassword}
+                    disabled={submitting}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                  />
+                  Show password
+                </label>
 
                 <button
                   type="button"
