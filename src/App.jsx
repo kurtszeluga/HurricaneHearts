@@ -17,7 +17,7 @@ export default function App() {
   const requests = useRequests(!!user, activeEvent?.eventId || null);
   const documents = useDocuments(!!user);
   const eventHistory = useEventHistory(!!user);
-  const users = useUsers(!!user);
+  const { users, loading: usersLoading } = useUsers(!!user);
   const requestHistory = useRequestHistory(!!user);
   const notifications = useNotifications(user);
 
@@ -46,6 +46,7 @@ export default function App() {
         activeEvent={activeEvent}
         requests={requests}
         users={users}
+        usersLoading={usersLoading}
         documents={documents}
         requestHistory={requestHistory}
         eventHistory={eventHistory}

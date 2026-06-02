@@ -51,7 +51,7 @@ function HeaderTooltip({ tooltip, children }) {
   );
 }
 
-export default function AdminPanel({ user, users }) {
+export default function AdminPanel({ user, users, usersLoading = false }) {
   const isPrimaryOwnerAdmin = user.email === PRIMARY_OWNER_EMAIL;
   const [editingUser, setEditingUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
@@ -623,7 +623,9 @@ export default function AdminPanel({ user, users }) {
 
       <div className="flex justify-between items-center mb-3 text-xs text-[#667085]">
         <div>
-          Showing {filteredUsers.length} of {users.length} users
+          {usersLoading
+            ? "Loading data..."
+            : `Showing ${filteredUsers.length} of ${users.length} users`}
           {activeSummaryFilter !== "All" && (
             <span className="ml-2 font-semibold text-[#b42318]">
               Filter: {activeSummaryFilter}
@@ -674,12 +676,19 @@ export default function AdminPanel({ user, users }) {
         />
       )}
 
-      <div className="space-y-4 md:hidden">
-        {filteredUsers.map((u) => {
-          const approved = u.approved !== false;
-          const active = u.active !== false;
-          const role = getUserRole(u);
-          const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+      {usersLoading ? (
+        <div className="flex items-center justify-center gap-3 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] px-4 py-10 text-sm font-semibold text-[#475467]">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#c7d0dc] border-t-[#b42318]" />
+          Loading data...
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4 md:hidden">
+            {filteredUsers.map((u) => {
+              const approved = u.approved !== false;
+              const active = u.active !== false;
+              const role = getUserRole(u);
+              const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
 
           return (
             <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4">
@@ -971,6 +980,8 @@ export default function AdminPanel({ user, users }) {
         <div className="text-center text-[#667085] py-8 text-sm">
           No users match the selected filters.
         </div>
+      )}
+        </>
       )}
     </div>
   );

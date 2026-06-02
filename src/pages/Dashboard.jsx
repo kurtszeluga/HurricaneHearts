@@ -56,6 +56,7 @@ export default function Dashboard({
   activeEvent,
   requests,
   users,
+  usersLoading = false,
   documents = [],
   requestHistory = [],
   eventHistory = [],
@@ -249,7 +250,14 @@ export default function Dashboard({
     }
 
     if (activePage === "Admin" && user.role === "admin") {
-      return <AdminPage user={user} users={users} activeEvent={activeEvent} />;
+      return (
+        <AdminPage
+          user={user}
+          users={users}
+          usersLoading={usersLoading}
+          activeEvent={activeEvent}
+        />
+      );
     }
 
     if (activePage === "Reports" && user.role === "admin") {
