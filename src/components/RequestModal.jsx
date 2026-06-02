@@ -11,6 +11,7 @@ import { formatDateOnly } from "../utils/formatDate";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
 const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const DONATE_A_DISH_CATEGORY = "Donate a Dish";
 
 async function addRequestHistory({ requestId, action, user, details = "", eventId = "" }) {
   await addDoc(collection(db, "requestHistory"), {
@@ -47,6 +48,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const [form, setForm] = useState({
     categories: [],
+    hasFoodAllergies: false,
+    foodAllergies: "",
     need: "",
     urgency: "Medium",
     peopleNeeded: "Unknown",
@@ -63,13 +66,23 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         categories: editingRequest.categories || [],
+        hasFoodAllergies: editingRequest.hasFoodAllergies || false,
+        foodAllergies: editingRequest.foodAllergies || "",
         need: editingRequest.need || "",
         urgency: editingRequest.urgency || "Medium",
         peopleNeeded: editingRequest.peopleNeeded?.toString() || "Unknown",
         requestorUid: editingRequest.residentUid || user.uid
       });
     } else {
-      setForm({ categories: [], need: "", urgency: "Medium", peopleNeeded: "Unknown", requestorUid: user.uid });
+      setForm({
+        categories: [],
+        hasFoodAllergies: false,
+        foodAllergies: "",
+        need: "",
+        urgency: "Medium",
+        peopleNeeded: "Unknown",
+        requestorUid: user.uid
+      });
     }
   }, [open, editingRequest, user.uid]);
 
@@ -78,12 +91,16 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
   const toggleCategory = (category) => {
     setForm((current) => {
       const selected = current.categories.includes(category);
+      const nextCategories = selected
+        ? current.categories.filter((item) => item !== category)
+        : [...current.categories, category];
+      const includesDonateDish = nextCategories.includes(DONATE_A_DISH_CATEGORY);
 
       return {
         ...current,
-        categories: selected
-          ? current.categories.filter((item) => item !== category)
-          : [...current.categories, category]
+        categories: nextCategories,
+        hasFoodAllergies: includesDonateDish ? current.hasFoodAllergies : false,
+        foodAllergies: includesDonateDish ? current.foodAllergies : ""
       };
     });
   };
@@ -91,6 +108,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
   const normalizedPeopleNeeded = form.peopleNeeded === "Unknown"
     ? "Unknown"
     : Number(form.peopleNeeded);
+  const includesDonateDish = form.categories.includes(DONATE_A_DISH_CATEGORY);
+  const cleanFoodAllergies = includesDonateDish && form.hasFoodAllergies
+    ? form.foodAllergies.trim()
+    : "";
 
   const selectedRequestor = isAdmin
     ? eligibleResidents.find((resident) => resident.uid === form.requestorUid || resident.id === form.requestorUid) || user
@@ -117,6 +138,11 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       return;
     }
 
+    if (includesDonateDish && form.hasFoodAllergies && !cleanFoodAllergies) {
+      alert("Please enter the food allergy information.");
+      return;
+    }
+
     if (isEditing) {
       const existingPeopleCommitted = editingRequest.peopleCommitted || 0;
       const nextStatus =
@@ -128,6 +154,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
       await updateDoc(doc(db, "requests", editingRequest.id), {
         categories: form.categories,
+        hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
+        foodAllergies: cleanFoodAllergies,
         need: form.need,
         urgency: form.urgency,
         peopleNeeded: normalizedPeopleNeeded,
@@ -165,6 +193,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         eventName: activeEvent.eventName,
         eventDate: activeEvent.eventDate,
         categories: form.categories,
+        hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
+        foodAllergies: cleanFoodAllergies,
         need: form.need,
         urgency: form.urgency,
         peopleNeeded: normalizedPeopleNeeded,
@@ -199,7 +229,14 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       });
     }
 
-    setForm({ categories: [], need: "", urgency: "Medium", peopleNeeded: "Unknown" });
+    setForm({
+      categories: [],
+      hasFoodAllergies: false,
+      foodAllergies: "",
+      need: "",
+      urgency: "Medium",
+      peopleNeeded: "Unknown"
+    });
     onClose();
   };
 
@@ -278,6 +315,38 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
               </div>
             ))}
           </div>
+
+          {includesDonateDish && (
+            <div className="mt-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-4">
+              <div className="font-semibold text-[#172033] mb-3">
+                Food Allergies
+              </div>
+
+              <label className="flex items-center gap-2 text-sm font-semibold text-[#475467]">
+                <input
+                  type="checkbox"
+                  checked={form.hasFoodAllergies}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      hasFoodAllergies: e.target.checked,
+                      foodAllergies: e.target.checked ? form.foodAllergies : ""
+                    })
+                  }
+                />
+                Yes, there are food allergies or dietary restrictions.
+              </label>
+
+              {form.hasFoodAllergies && (
+                <input
+                  value={form.foodAllergies}
+                  onChange={(e) => setForm({ ...form, foodAllergies: e.target.value })}
+                  placeholder="Example: peanut allergy, gluten-free, no shellfish"
+                  className="mt-3 w-full rounded-lg border border-[#fed7aa] bg-white p-3 text-sm"
+                />
+              )}
+            </div>
+          )}
         </div>
 
         <textarea

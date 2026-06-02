@@ -139,6 +139,12 @@ export async function queueRequestClaimedEmails(_db, { request, claim }) {
   const claimantName = claim.name || claim.email || "A resident";
   const requestLabel = request.need || "your request";
   const peopleProvided = claim.peopleProvided || 1;
+  const isDonateDishRequest = (request.categories || []).includes("Donate a Dish");
+  const foodAllergyLine = isDonateDishRequest
+    ? request.hasFoodAllergies
+      ? `Food allergies: ${request.foodAllergies || "Food allergies were indicated, but details were not provided."}`
+      : "Food allergies: No food allergies indicated."
+    : "";
   const commentLine = claim.comment
     ? `Claim comment: ${claim.comment}`
     : "No claim comment was provided.";
@@ -149,7 +155,7 @@ ${claimantName} has claimed your Hurricane Hearts request.
 
 Request: ${requestLabel}
 People committed: ${peopleProvided}
-${commentLine}
+${foodAllergyLine ? `${foodAllergyLine}\n` : ""}${commentLine}
 
 You can sign in to Hurricane Hearts to monitor the request.`;
 
@@ -160,7 +166,7 @@ Thank you for claiming a Hurricane Hearts request.
 Requestor: ${request.residentName || "Resident"}
 Request: ${requestLabel}
 People committed: ${peopleProvided}
-${commentLine}
+${foodAllergyLine ? `${foodAllergyLine}\n` : ""}${commentLine}
 
 You can sign in to Hurricane Hearts to monitor or update the request.`;
 

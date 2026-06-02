@@ -16,6 +16,8 @@ const urgencyColors = {
   Critical: "bg-[#fff1f0] text-[#b42318] border border-[#fecdca]"
 };
 
+const DONATE_A_DISH_CATEGORY = "Donate a Dish";
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -175,6 +177,17 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
             <div className="whitespace-pre-wrap">{request.need || "No details provided"}</div>
           </div>
 
+          {(request.categories || []).includes(DONATE_A_DISH_CATEGORY) && (
+            <div className="border rounded-2xl p-3 mb-5 text-sm">
+              <div className="text-xs font-bold text-gray-500 uppercase mb-2">Food Allergies</div>
+              <div className="whitespace-pre-wrap">
+                {request.hasFoodAllergies
+                  ? request.foodAllergies || "Food allergies were indicated, but details were not provided."
+                  : "No food allergies indicated."}
+              </div>
+            </div>
+          )}
+
           {(request.claimCommitments || []).length > 0 && (
             <div className="border rounded-2xl p-3 mb-5 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Claims</div>
@@ -235,6 +248,10 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
   const peopleRemaining = getPeopleRemaining(request);
   const claimedBy = getClaimedBy(request);
   const canClaim = !isOwner && request.status === "Open" && !isClaimedByCurrentUser;
+  const isDonateDishRequest = (request.categories || []).includes(DONATE_A_DISH_CATEGORY);
+  const allergyText = request.hasFoodAllergies
+    ? request.foodAllergies || "Food allergies were indicated, but details were not provided."
+    : "";
 
   const claimRequest = async () => {
     if (!isAdmin && request.residentUid === user.uid) {
@@ -560,6 +577,23 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
               <p className="text-sm text-[#667085] mb-4">
                 Select the number of people you can provide and add a short comment.
               </p>
+
+              {isDonateDishRequest && (
+                <div
+                  className={
+                    request.hasFoodAllergies
+                      ? "mb-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3 text-sm text-[#9a3412]"
+                      : "mb-4 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-3 text-sm text-[#475467]"
+                  }
+                >
+                  <div className="font-bold">Food Allergies</div>
+                  <div className="mt-1 whitespace-pre-wrap">
+                    {request.hasFoodAllergies
+                      ? allergyText
+                      : "No food allergies indicated."}
+                  </div>
+                </div>
+              )}
 
               {isAdmin && (
                 <>
