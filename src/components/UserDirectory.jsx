@@ -1,18 +1,15 @@
 import { useMemo, useState } from "react";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
+import {
+  categoryAbbreviations,
+  categoryDescriptions,
+  requestCategoryGroups,
+  requestCategories
+} from "../utils/requestCategories";
 
-const requestCategories = [
-  "Wellness Check",
-  "Transportation",
-  "Food-Water",
-  "Adopt A Buddy",
-  "Storm Prep",
-  "Storm Cleanup",
-  "Power-Generator Help",
-  "Pet Assistance",
-  "Borrow Supplies",
-  "Other"
-];
+const afterStormCategories = new Set(
+  requestCategoryGroups.find((group) => group.label === "After the Storm")?.categories || []
+);
 
 function PrintableUserDetails({ user, onClose }) {
   const printProfile = () => {
@@ -121,30 +118,6 @@ function HeaderTooltip({ label, tooltip, children }) {
 }
 
 export default function UserDirectory({ users = [] }) {
-  const categoryAbbreviations = {
-    "Wellness Check": "Well",
-    Transportation: "Trans",
-    "Food-Water": "Food",
-    "Adopt A Buddy": "Buddy",
-    "Storm Prep": "Prep",
-    "Storm Cleanup": "Clean",
-    "Power-Generator Help": "Power",
-    "Pet Assistance": "Pets",
-    "Borrow Supplies": "Borrow",
-    Other: "Other"
-  };
-  const categoryDescriptions = {
-    "Wellness Check": "Wellness Check - willing to check on residents by phone or in person.",
-    Transportation: "Transportation - willing to help residents get to appointments, stores, shelters, or other needed locations.",
-    "Food-Water": "Food and Water - willing to help deliver or share food, water, ice, or basic supplies.",
-    "Adopt A Buddy": "Adopt A Buddy - willing to be paired with a neighbor for ongoing check-ins and support.",
-    "Storm Prep": "Storm Preparation - willing to help before a storm with shutters, outdoor items, supplies, or readiness tasks.",
-    "Storm Cleanup": "Storm Cleanup - willing to help after a storm with debris, yard cleanup, or light recovery tasks.",
-    "Power-Generator Help": "Power and Generator Help - willing to help with power needs, generator setup, charging, or related support.",
-    "Pet Assistance": "Pet Assistance - willing to help with pets, pet supplies, walking, feeding, or temporary support.",
-    "Borrow Supplies": "Borrow Supplies - willing to lend tools, equipment, batteries, chargers, or other useful supplies.",
-    Other: "Other - willing to help with needs that do not fit another listed category."
-  };
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
@@ -166,6 +139,15 @@ export default function UserDirectory({ users = [] }) {
     if (sortConfig.key !== key) return "";
     return sortConfig.direction === "asc" ? " ▲" : " ▼";
   };
+
+  const sortButtonClass = (key, extraClasses = "", inactiveColorClass = "") =>
+    [
+      "font-bold hover:text-[#b42318]",
+      sortConfig.key === key ? "text-[#b42318]" : inactiveColorClass,
+      extraClasses
+    ]
+      .filter(Boolean)
+      .join(" ");
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -193,6 +175,10 @@ export default function UserDirectory({ users = [] }) {
 
           if (sortConfig.key === "phone") {
             return user.phone || "";
+          }
+
+          if (sortConfig.key === "teamMember") {
+            return user.teamMember ? "1" : "0";
           }
 
           return (user.serviceCategories || []).includes(sortConfig.key)
@@ -300,7 +286,7 @@ export default function UserDirectory({ users = [] }) {
                 <button
                   type="button"
                   onClick={() => changeSort("name")}
-                  className="font-bold hover:text-[#b42318]"
+                  className={sortButtonClass("name")}
                 >
                   Name{sortLabel("name")}
                 </button>
@@ -309,27 +295,53 @@ export default function UserDirectory({ users = [] }) {
                 <button
                   type="button"
                   onClick={() => changeSort("phone")}
-                  className="font-bold hover:text-[#b42318]"
+                  className={sortButtonClass("phone")}
                 >
                   Phone{sortLabel("phone")}
                 </button>
               </th>
-              {requestCategories.map((category) => (
-                <th
-                  key={category}
-                  className="px-1 py-2 text-center min-w-[54px]"
+              <th className="px-1 py-2 text-center min-w-[72px]">
+                <button
+                  type="button"
+                  onClick={() => changeSort("teamMember")}
+                  className={sortButtonClass(
+                    "teamMember",
+                    "mx-auto flex min-h-8 max-w-[72px] items-center justify-center text-center leading-tight whitespace-normal normal-case"
+                  )}
                 >
-                  <button
-                    type="button"
-                    onClick={() => changeSort(category)}
-                    className="font-bold hover:text-[#b42318] leading-tight"
+                  <HeaderTooltip tooltip="Hurricane Hearts Team Member">
+                    HH Team{sortLabel("teamMember")}
+                  </HeaderTooltip>
+                </button>
+              </th>
+              {requestCategories.map((category) => {
+                const isAfterStormCategory = afterStormCategories.has(category);
+
+                return (
+                  <th
+                    key={category}
+                    className={
+                      isAfterStormCategory
+                        ? "px-1 py-2 text-center min-w-[86px] bg-[#fffbeb]"
+                        : "px-1 py-2 text-center min-w-[86px]"
+                    }
                   >
-                    <HeaderTooltip tooltip={categoryDescriptions[category] || category}>
-                      {categoryAbbreviations[category] || category}{sortLabel(category)}
-                    </HeaderTooltip>
-                  </button>
-                </th>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => changeSort(category)}
+                      className={sortButtonClass(
+                        category,
+                        "mx-auto flex min-h-8 max-w-[92px] items-center justify-center text-center leading-tight whitespace-normal normal-case",
+                        isAfterStormCategory ? "text-[#3f6212]" : ""
+                      )}
+                    >
+                      <HeaderTooltip tooltip={categoryDescriptions[category] || category}>
+                        {categoryAbbreviations[category] || category}{sortLabel(category)}
+                      </HeaderTooltip>
+                    </button>
+                  </th>
+                );
+              })}
               <th className="px-2 py-2 min-w-[70px]">
                 Details
               </th>
@@ -345,11 +357,31 @@ export default function UserDirectory({ users = [] }) {
 
                 <td className="px-2 py-2 min-w-[105px] whitespace-nowrap">{formatPhoneNumber(u.phone) || "Not provided"}</td>
 
+                <td className="px-1 py-2 text-center">
+                  <span
+                    className={
+                      u.teamMember
+                        ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#eff6ff] text-[#1d4ed8] font-bold text-xs"
+                        : "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#e2e8f0] text-[#98a2b3] text-xs"
+                    }
+                  >
+                    {u.teamMember ? "✓" : ""}
+                  </span>
+                </td>
+
                 {requestCategories.map((category) => {
                   const selected = (u.serviceCategories || []).includes(category);
+                  const isAfterStormCategory = afterStormCategories.has(category);
 
                   return (
-                    <td key={category} className="px-1 py-2 text-center">
+                    <td
+                      key={category}
+                      className={
+                        isAfterStormCategory
+                          ? "px-1 py-2 text-center bg-[#fff7ed]"
+                          : "px-1 py-2 text-center"
+                      }
+                    >
                       <span
                         className={
                           selected

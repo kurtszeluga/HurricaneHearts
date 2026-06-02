@@ -63,17 +63,25 @@ service cloud.firestore {
           && keepsPrimaryOwnerEmail()
           && (
             isPrimaryOwnerAdmin()
-            || !request.resource.data.diff(resource.data).changedKeys().hasAny(["role"])
+            || !request.resource.data.diff(resource.data).changedKeys().hasAny([
+              "role",
+              "teamMember"
+            ])
           )
         )
         || (
           isActiveApprovedUser()
           && isOwner(userId)
           && keepsPrimaryOwnerEmail()
+          && (
+            !request.resource.data.diff(resource.data).changedKeys().hasAny(["managedCategories"])
+            || resource.data.teamMember == true
+          )
           && !request.resource.data.diff(resource.data).changedKeys().hasAny([
             "role",
             "approved",
             "active",
+            "teamMember",
             "manuallyCreated"
           ])
         );

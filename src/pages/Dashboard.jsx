@@ -110,6 +110,9 @@ export default function Dashboard({
       const serviceCategories = Array.isArray(updatedUser.serviceCategories)
         ? updatedUser.serviceCategories
         : [];
+      const managedCategories = Array.isArray(updatedUser.managedCategories)
+        ? updatedUser.managedCategories
+        : [];
 
       const updatedProfile = {
         name: updatedUser.name,
@@ -117,6 +120,7 @@ export default function Dashboard({
         address: updatedUser.address,
         phone: normalizePhoneNumber(updatedUser.phone),
         serviceCategories,
+        managedCategories: user.teamMember ? managedCategories : user.managedCategories || [],
         profileComplete: true,
         firstLoginProfileRequired: false,
         firstLoginProfileCompletedAt:

@@ -8,19 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { formatDateOnly } from "../utils/formatDate";
-
-const requestCategories = [
-  "Wellness Check",
-  "Transportation",
-  "Food-Water",
-  "Adopt A Buddy",
-  "Storm Prep",
-  "Storm Cleanup",
-  "Power-Generator Help",
-  "Pet Assistance",
-  "Borrow Supplies",
-  "Other"
-];
+import { requestCategoryGroups } from "../utils/requestCategories";
 
 const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
@@ -257,40 +245,38 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
             Select all categories that apply.
           </p>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "10px"
-            }}
-          >
-            {requestCategories.map((category) => {
-              const selected = form.categories.includes(category);
+          <div className="space-y-4">
+            {requestCategoryGroups.map((group) => (
+              <div key={group.label}>
+                <div className="text-sm font-bold uppercase text-[#667085] mb-2">
+                  {group.label}
+                </div>
 
-              return (
-                <label
-                  key={category}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: selected ? "1px solid #fecdca" : "1px solid #c7d0dc",
-                    background: selected ? "#fff1f0" : "#ffffff",
-                    fontWeight: selected ? "700" : "400",
-                    cursor: "pointer"
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => toggleCategory(category)}
-                  />
-                  <span>{category}</span>
-                </label>
-              );
-            })}
+                <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+                  {group.categories.map((category) => {
+                    const selected = form.categories.includes(category);
+
+                    return (
+                      <label
+                        key={category}
+                        className={
+                          selected
+                            ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-bold cursor-pointer"
+                            : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white cursor-pointer"
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleCategory(category)}
+                        />
+                        <span>{category}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

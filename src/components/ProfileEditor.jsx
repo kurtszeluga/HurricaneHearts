@@ -1,18 +1,6 @@
 import { useState } from "react";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
-
-const requestCategories = [
-  "Wellness Check",
-  "Transportation",
-  "Food-Water",
-  "Adopt A Buddy",
-  "Storm Prep",
-  "Storm Cleanup",
-  "Power-Generator Help",
-  "Pet Assistance",
-  "Borrow Supplies",
-  "Other"
-];
+import { requestCategoryGroups } from "../utils/requestCategories";
 
 export default function ProfileEditor({
   title = "Edit Profile",
@@ -20,11 +8,14 @@ export default function ProfileEditor({
   adminMode = false,
   canManageAdminRole = true,
   onSave,
+  onDelete,
   onCancel
 }) {
   const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
   const isPrimaryOwner = user.email === PRIMARY_OWNER_EMAIL;
   const canEditRole = canManageAdminRole || isPrimaryOwner;
+  const canManageTeamMember = adminMode && canManageAdminRole;
+  const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
 
   const [form, setForm] = useState({
     ...user,
@@ -35,8 +26,11 @@ export default function ProfileEditor({
     role: isPrimaryOwner ? "admin" : user.role || "resident",
     approved: isPrimaryOwner ? true : user.approved ?? true,
     active: isPrimaryOwner ? true : user.active ?? true,
-    serviceCategories: user.serviceCategories || []
+    serviceCategories: user.serviceCategories || [],
+    teamMember: user.teamMember || false,
+    managedCategories: user.managedCategories || []
   });
+  const [deleteReason, setDeleteReason] = useState("");
 
   const toggleServiceCategory = (category) => {
     setForm((current) => {
@@ -47,6 +41,19 @@ export default function ProfileEditor({
         serviceCategories: selected
           ? current.serviceCategories.filter((item) => item !== category)
           : [...current.serviceCategories, category]
+      };
+    });
+  };
+
+  const toggleManagedCategory = (category) => {
+    setForm((current) => {
+      const selected = current.managedCategories.includes(category);
+
+      return {
+        ...current,
+        managedCategories: selected
+          ? current.managedCategories.filter((item) => item !== category)
+          : [...current.managedCategories, category]
       };
     });
   };
@@ -63,7 +70,34 @@ export default function ProfileEditor({
       phone: normalizePhoneNumber(form.phone),
       role: isPrimaryOwner ? "admin" : form.role,
       approved: isPrimaryOwner ? true : form.approved,
-      active: isPrimaryOwner ? true : form.active
+      active: isPrimaryOwner ? true : form.active,
+      teamMember: canManageTeamMember ? form.teamMember : user.teamMember || false,
+      managedCategories:
+        canManageTeamMember || user.teamMember
+          ? form.managedCategories || []
+          : user.managedCategories || []
+    });
+  };
+
+  const requestDelete = async () => {
+    const cleanReason = deleteReason.trim();
+
+    if (cleanReason.length < 4) {
+      alert("Please enter a short reason before deleting this account.");
+      return;
+    }
+
+    const name = form.name || form.email || "this user";
+    const confirmed = window.confirm(
+      `Delete ${name}'s user account?\n\nReason: ${cleanReason}\n\nThis removes both the app profile and Firebase Authentication login when one exists.`
+    );
+
+    if (!confirmed) return;
+
+    await onDelete({
+      ...user,
+      ...form,
+      deleteReason: cleanReason
     });
   };
 
@@ -114,36 +148,113 @@ export default function ProfileEditor({
           Check any request categories this user is willing to support.
         </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "10px"
-          }}
-        >
-          {requestCategories.map((category) => {
-            const selected = form.serviceCategories.includes(category);
+        <div className="space-y-4">
+          {requestCategoryGroups.map((group) => (
+            <div key={group.label}>
+              <div className="text-xs font-bold uppercase text-[#667085] mb-2">
+                {group.label}
+              </div>
 
-            return (
-              <label
-                key={category}
-                className={
-                  selected
-                    ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold cursor-pointer"
-                    : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white cursor-pointer"
-                }
-              >
-                <input
-                  type="checkbox"
-                  checked={selected}
-                  onChange={() => toggleServiceCategory(category)}
-                />
-                {category}
-              </label>
-            );
-          })}
+              <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+                {group.categories.map((category) => {
+                  const selected = form.serviceCategories.includes(category);
+
+                  return (
+                    <label
+                      key={category}
+                      className={
+                        selected
+                          ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold cursor-pointer"
+                          : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white cursor-pointer"
+                      }
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleServiceCategory(category)}
+                      />
+                      {category}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {(adminMode || form.teamMember) && (
+        <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded-lg p-5 mt-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="font-bold text-[#172033] mb-1">
+                Hurricane Hearts Team Member
+              </div>
+              <p className="text-sm text-[#475467]">
+                Mark which request categories this person coordinates or manages.
+              </p>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm font-semibold text-[#172033]">
+              <input
+                type="checkbox"
+                checked={form.teamMember}
+                disabled={!canManageTeamMember}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    teamMember: e.target.checked,
+                    managedCategories: e.target.checked ? form.managedCategories : []
+                  })
+                }
+              />
+              Team Member
+            </label>
+          </div>
+
+          {!canManageTeamMember && !form.teamMember && (
+            <p className="text-xs text-[#667085] mt-3">
+              Team member designation is restricted to the primary owner.
+            </p>
+          )}
+
+          {form.teamMember && (
+            <div className="space-y-4 mt-4">
+              {requestCategoryGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="text-xs font-bold uppercase text-[#667085] mb-2">
+                    {group.label}
+                  </div>
+
+                  <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+                    {group.categories.map((category) => {
+                      const selected = form.managedCategories.includes(category);
+
+                      return (
+                        <label
+                          key={category}
+                          className={
+                            selected
+                              ? "border border-[#bfdbfe] bg-white rounded-lg p-3 flex items-center gap-2 font-semibold cursor-pointer"
+                              : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white cursor-pointer"
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleManagedCategory(category)}
+                          />
+                          {category}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {adminMode && (
         <div className="flex flex-wrap gap-4 mt-4">
@@ -194,6 +305,34 @@ export default function ProfileEditor({
             />
             Active
           </label>
+        </div>
+      )}
+
+      {canDeleteUser && (
+        <div className="mt-5 rounded-lg border border-[#fecdca] bg-[#fff1f0] p-4">
+          <div className="font-bold text-[#b42318]">Delete User Account</div>
+          <p className="mt-1 text-sm text-[#475467]">
+            Deleting removes this profile and the matching login account when one exists.
+          </p>
+
+          <label className="mt-3 block text-sm font-semibold text-[#172033]">
+            Reason for deletion
+            <textarea
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="Enter a short reason"
+              rows={2}
+              className="mt-1 w-full rounded-lg border border-[#fecdca] bg-white p-3 text-sm font-normal text-[#172033]"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={requestDelete}
+            className="mt-3 rounded-lg bg-[#b42318] px-4 py-2 text-sm font-semibold text-white hover:bg-[#9f1f16]"
+          >
+            Delete User
+          </button>
         </div>
       )}
 

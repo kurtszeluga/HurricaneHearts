@@ -236,12 +236,16 @@ export async function queueBlastEmail(_db, { subject, text, eventId = "", eventN
   ]);
 }
 
-export async function queueEventActivatedBlastEmail(db, { eventId, eventName, eventDate }) {
+export async function queueEventActivatedBlastEmail(db, { eventId, eventName, eventDate, eventInformation = "" }) {
   const subject = `Hurricane Hearts event activated: ${eventName}`;
+  const informationText = eventInformation?.trim()
+    ? `\nAdditional information:\n${eventInformation.trim()}\n`
+    : "";
   const text = `A Hurricane Hearts event has been activated.
 
 Event: ${eventName}
 Date: ${formatDateOnly(eventDate)}
+${informationText}
 
 Hurricane Hearts is now open for requests related to this event. Please sign in if you need assistance or would like to monitor requests from neighbors.`;
 

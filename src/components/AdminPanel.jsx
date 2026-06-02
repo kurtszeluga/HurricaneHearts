@@ -20,6 +20,11 @@ const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
   { label: "Name Z-A", value: "name-desc" },
   { label: "Email A-Z", value: "email-asc" },
+  { label: "Email Z-A", value: "email-desc" },
+  { label: "Phone A-Z", value: "phone-asc" },
+  { label: "Phone Z-A", value: "phone-desc" },
+  { label: "HH Team First", value: "team-first" },
+  { label: "HH Team Last", value: "team-last" },
   { label: "Address A-Z", value: "address-asc" },
   { label: "Admins First", value: "admin-first" },
   { label: "Residents First", value: "resident-first" },
@@ -33,6 +38,17 @@ function getUserRole(u) {
   return u.email === PRIMARY_OWNER_EMAIL
     ? "admin"
     : u.role || "resident";
+}
+
+function HeaderTooltip({ tooltip, children }) {
+  return (
+    <span className="group relative inline-flex justify-center">
+      <span>{children}</span>
+      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-64 -translate-x-1/2 rounded-md border border-[#c7d0dc] bg-[#172033] px-3 py-2 text-center text-xs font-semibold normal-case leading-snug text-white shadow-lg group-hover:block group-focus-within:block">
+        {tooltip}
+      </span>
+    </span>
+  );
 }
 
 export default function AdminPanel({ user, users }) {
@@ -78,6 +94,8 @@ export default function AdminPanel({ user, users }) {
       const nameB = (b.name || "").toLowerCase();
       const emailA = (a.email || "").toLowerCase();
       const emailB = (b.email || "").toLowerCase();
+      const phoneA = formatPhoneNumber(a.phone || "");
+      const phoneB = formatPhoneNumber(b.phone || "");
       const addressA = (a.address || "").toLowerCase();
       const addressB = (b.address || "").toLowerCase();
 
@@ -85,12 +103,19 @@ export default function AdminPanel({ user, users }) {
       const approvedB = b.approved !== false;
       const activeA = a.active !== false;
       const activeB = b.active !== false;
+      const teamA = Boolean(a.teamMember);
+      const teamB = Boolean(b.teamMember);
       const adminA = getUserRole(a) === "admin";
       const adminB = getUserRole(b) === "admin";
 
       if (sortBy === "name-asc") return nameA.localeCompare(nameB);
       if (sortBy === "name-desc") return nameB.localeCompare(nameA);
       if (sortBy === "email-asc") return emailA.localeCompare(emailB);
+      if (sortBy === "email-desc") return emailB.localeCompare(emailA);
+      if (sortBy === "phone-asc") return phoneA.localeCompare(phoneB);
+      if (sortBy === "phone-desc") return phoneB.localeCompare(phoneA);
+      if (sortBy === "team-first") return Number(teamB) - Number(teamA);
+      if (sortBy === "team-last") return Number(teamA) - Number(teamB);
       if (sortBy === "address-asc") return addressA.localeCompare(addressB);
       if (sortBy === "admin-first") return Number(adminB) - Number(adminA);
       if (sortBy === "resident-first") return Number(adminA) - Number(adminB);
@@ -134,6 +159,59 @@ export default function AdminPanel({ user, users }) {
     setSearch("");
     setActiveSummaryFilter("All");
     setSortBy("name-asc");
+  };
+
+  const sortHeaderConfig = {
+    user: {
+      values: ["name-asc", "name-desc"],
+      next: sortBy === "name-asc" ? "name-desc" : "name-asc",
+      arrow: sortBy === "name-asc" ? " ▲" : " ▼"
+    },
+    email: {
+      values: ["email-asc", "email-desc"],
+      next: sortBy === "email-asc" ? "email-desc" : "email-asc",
+      arrow: sortBy === "email-asc" ? " ▲" : " ▼"
+    },
+    phone: {
+      values: ["phone-asc", "phone-desc"],
+      next: sortBy === "phone-asc" ? "phone-desc" : "phone-asc",
+      arrow: sortBy === "phone-asc" ? " ▲" : " ▼"
+    },
+    team: {
+      values: ["team-first", "team-last"],
+      next: sortBy === "team-first" ? "team-last" : "team-first",
+      arrow: sortBy === "team-first" ? " ▲" : " ▼"
+    },
+    role: {
+      values: ["admin-first", "resident-first"],
+      next: sortBy === "admin-first" ? "resident-first" : "admin-first",
+      arrow: sortBy === "admin-first" ? " ▲" : " ▼"
+    },
+    approved: {
+      values: ["approved-first", "pending-first"],
+      next: sortBy === "approved-first" ? "pending-first" : "approved-first",
+      arrow: sortBy === "approved-first" ? " ▲" : " ▼"
+    },
+    status: {
+      values: ["active-first", "inactive-first"],
+      next: sortBy === "active-first" ? "inactive-first" : "active-first",
+      arrow: sortBy === "active-first" ? " ▲" : " ▼"
+    }
+  };
+
+  const isSortHeaderActive = (key) =>
+    sortHeaderConfig[key].values.includes(sortBy);
+
+  const sortHeaderLabel = (key, label) =>
+    isSortHeaderActive(key) ? `${label}${sortHeaderConfig[key].arrow}` : label;
+
+  const sortHeaderClass = (key) =>
+    isSortHeaderActive(key)
+      ? "font-bold text-[#b42318] hover:text-[#9f1f16]"
+      : "font-bold hover:text-[#b42318]";
+
+  const changeTableSort = (key) => {
+    setSortBy(sortHeaderConfig[key].next);
   };
 
   const updateUserApproval = async (targetUser, approved) => {
@@ -259,6 +337,13 @@ export default function AdminPanel({ user, users }) {
       address: updatedUser.address,
       phone: normalizePhoneNumber(updatedUser.phone),
       serviceCategories: updatedUser.serviceCategories || [],
+      teamMember: isPrimaryOwnerAdmin
+        ? updatedUser.teamMember || false
+        : editingUser?.teamMember || false,
+      managedCategories:
+        updatedUser.teamMember || editingUser?.teamMember
+          ? updatedUser.managedCategories || []
+          : [],
       role:
         updatedUser.email === PRIMARY_OWNER_EMAIL
           ? "admin"
@@ -318,6 +403,11 @@ export default function AdminPanel({ user, users }) {
       address: newUser.address,
       phone: normalizePhoneNumber(newUser.phone),
       serviceCategories: newUser.serviceCategories || [],
+      teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
+      managedCategories:
+        isPrimaryOwnerAdmin && newUser.teamMember
+          ? newUser.managedCategories || []
+          : [],
       role:
         newUser.email === PRIMARY_OWNER_EMAIL
           ? "admin"
@@ -351,12 +441,12 @@ export default function AdminPanel({ user, users }) {
     }
 
     const name = targetUser.name || targetUser.email || "this user";
+    const deleteReason = targetUser.deleteReason?.trim();
 
-    const confirmed = window.confirm(
-      `Delete ${name}'s user account? This removes both the app profile and Firebase Authentication login when one exists.`
-    );
-
-    if (!confirmed) return;
+    if (!deleteReason) {
+      alert("A reason is required before deleting a user account.");
+      return;
+    }
 
     const currentUser = auth.currentUser;
 
@@ -377,7 +467,8 @@ export default function AdminPanel({ user, users }) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          userId: targetUser.id
+          userId: targetUser.id,
+          deleteReason
         })
       });
 
@@ -392,6 +483,8 @@ export default function AdminPanel({ user, users }) {
           `${name}'s app profile was deleted. No matching Firebase Authentication account was found.`
         );
       }
+
+      setEditingUser(null);
     } catch (error) {
       console.error("Delete user account error:", error);
       alert(error.message || "Unable to delete user account.");
@@ -556,6 +649,8 @@ export default function AdminPanel({ user, users }) {
             address: "",
             phone: "",
             serviceCategories: [],
+            teamMember: false,
+            managedCategories: [],
             role: "resident",
             approved: true,
             active: true
@@ -575,6 +670,7 @@ export default function AdminPanel({ user, users }) {
           canManageAdminRole={isPrimaryOwnerAdmin}
           onCancel={() => setEditingUser(null)}
           onSave={saveEditedUser}
+          onDelete={deleteUserAccount}
         />
       )}
 
@@ -673,18 +769,6 @@ export default function AdminPanel({ user, users }) {
                   {active ? "Deactivate" : "Activate"}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => deleteUserAccount(u)}
-                  disabled={isPrimaryOwner || u.id === user.uid}
-                  className={
-                    isPrimaryOwner || u.id === user.uid
-                      ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
-                      : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg text-[10px] font-semibold"
-                  }
-                >
-                  Delete
-                </button>
               </div>
             </div>
           );
@@ -695,13 +779,72 @@ export default function AdminPanel({ user, users }) {
         <table className="w-full text-left border-separate border-spacing-y-1 text-xs">
           <thead>
             <tr className="text-[11px] text-[#667085]">
-              <th className="px-2 py-1 min-w-[130px]">User</th>
-              <th className="px-2 py-1 min-w-[150px]">Email</th>
-              <th className="px-1 py-1 min-w-[90px]">Phone</th>
-              <th className="px-1 py-1 min-w-[80px]">Role</th>
-              <th className="px-1 py-1 min-w-[80px]">Approved</th>
-              <th className="px-1 py-1 min-w-[80px]">Status</th>
-              <th className="px-1 py-1 min-w-[110px]">Actions</th>
+              <th className="px-2 py-1 min-w-[130px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("user")}
+                  className={sortHeaderClass("user")}
+                >
+                  {sortHeaderLabel("user", "User")}
+                </button>
+              </th>
+              <th className="px-2 py-1 min-w-[150px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("email")}
+                  className={sortHeaderClass("email")}
+                >
+                  {sortHeaderLabel("email", "Email")}
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[90px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("phone")}
+                  className={sortHeaderClass("phone")}
+                >
+                  {sortHeaderLabel("phone", "Phone")}
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[72px] text-center">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("team")}
+                  className={sortHeaderClass("team")}
+                >
+                  <HeaderTooltip tooltip="Hurricane Hearts Team Member">
+                    {sortHeaderLabel("team", "HH Team")}
+                  </HeaderTooltip>
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[80px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("role")}
+                  className={sortHeaderClass("role")}
+                >
+                  {sortHeaderLabel("role", "Role")}
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[80px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("approved")}
+                  className={sortHeaderClass("approved")}
+                >
+                  {sortHeaderLabel("approved", "Approved")}
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[80px]">
+                <button
+                  type="button"
+                  onClick={() => changeTableSort("status")}
+                  className={sortHeaderClass("status")}
+                >
+                  {sortHeaderLabel("status", "Status")}
+                </button>
+              </th>
+              <th className="px-1 py-1 min-w-[70px]">Actions</th>
             </tr>
           </thead>
 
@@ -738,6 +881,18 @@ export default function AdminPanel({ user, users }) {
 
                   <td className="px-1 py-2 text-[11px] text-[#475467] whitespace-nowrap">
                     {formatPhoneNumber(u.phone) || "No phone"}
+                  </td>
+
+                  <td className="px-1 py-2 text-center">
+                    <span
+                      className={
+                        u.teamMember
+                          ? "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#eff6ff] text-[#1d4ed8] font-bold text-xs"
+                          : "inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#e2e8f0] text-[#98a2b3] text-xs"
+                      }
+                    >
+                      {u.teamMember ? "✓" : ""}
+                    </span>
                   </td>
 
                   <td className="px-1 py-2">
@@ -797,28 +952,13 @@ export default function AdminPanel({ user, users }) {
                   </td>
 
                   <td className="px-1 py-2 rounded-r-lg">
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setEditingUser(u)}
-                        className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-lg font-semibold text-[10px]"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => deleteUserAccount(u)}
-                        disabled={isPrimaryOwner || u.id === user.uid}
-                        className={
-                          isPrimaryOwner || u.id === user.uid
-                            ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
-                            : "bg-[#fff1f0] hover:bg-[#fee4e2] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-lg font-semibold text-[10px]"
-                        }
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(u)}
+                      className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               );

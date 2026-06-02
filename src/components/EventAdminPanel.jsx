@@ -26,6 +26,7 @@ function isOpenOrUncompletedRequest(request) {
 export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState(todayString());
+  const [eventInformation, setEventInformation] = useState("");
 
   if (user.role !== "admin") return null;
 
@@ -42,6 +43,7 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
     if (!confirmed) return;
 
     const cleanEventName = eventName.trim();
+    const cleanEventInformation = eventInformation.trim();
 
     const eventId = `${eventDate}-${cleanEventName
       .toLowerCase()
@@ -55,6 +57,7 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
       eventId,
       eventName: cleanEventName,
       eventDate,
+      eventInformation: cleanEventInformation,
       activatedAt: serverTimestamp(),
       activatedByUid: user.uid,
       activatedByName,
@@ -70,6 +73,7 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
       eventId,
       eventName: cleanEventName,
       eventDate,
+      eventInformation: cleanEventInformation,
       action: "activated",
       details: "Event was activated and request module opened.",
       byUid: user.uid,
@@ -88,7 +92,8 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
       await queueEventActivatedBlastEmail(db, {
         eventId,
         eventName: cleanEventName,
-        eventDate
+        eventDate,
+        eventInformation: cleanEventInformation
       }).catch((error) => {
         console.error("Event activation blast email error:", error);
         alert(error.message || "Unable to send event activation blast email.");
@@ -96,6 +101,7 @@ export default function EventAdminPanel({ user, activeEvent, requests = [] }) {
     }
 
     setEventName("");
+    setEventInformation("");
   };
 
   const deactivateEvent = async () => {
@@ -178,26 +184,36 @@ Deactivate '${activeEvent.eventName}' anyway?`;
         )}
 
         {!activeEvent && (
-          <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_auto] md:flex md:items-center md:justify-end gap-2 md:gap-3 min-w-0 order-2 md:order-3">
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:justify-end md:gap-3 min-w-0 order-2 md:order-3">
             <>
-              <input
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                placeholder="Event name"
-                className="px-2 py-2 md:py-1 rounded-md text-sm w-full md:w-40 min-w-0 bg-white border border-[#abefc6] text-[#172033]"
-              />
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] md:col-span-2">
+                <input
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
+                  placeholder="Event name"
+                  className="px-2 py-2 md:py-1 rounded-md text-sm w-full md:w-40 min-w-0 bg-white border border-[#abefc6] text-[#172033]"
+                />
 
-              <input
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                type="date"
-                className="px-2 py-2 md:py-1 rounded-md text-sm w-full sm:w-36 bg-white border border-[#abefc6] text-[#172033]"
+                <input
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                  type="date"
+                  className="px-2 py-2 md:py-1 rounded-md text-sm w-full sm:w-36 bg-white border border-[#abefc6] text-[#172033]"
+                />
+              </div>
+
+              <textarea
+                value={eventInformation}
+                onChange={(e) => setEventInformation(e.target.value)}
+                placeholder="Comments or information for event email"
+                rows={2}
+                className="px-2 py-2 rounded-md text-sm w-full min-w-0 bg-white border border-[#abefc6] text-[#172033] resize-y md:col-span-2"
               />
 
               <button
                 type="button"
                 onClick={activateEvent}
-                className="bg-[#16803c] hover:bg-[#126b32] text-white px-3 py-2 md:py-1 rounded-md font-semibold text-sm whitespace-nowrap"
+                className="bg-[#16803c] hover:bg-[#126b32] text-white px-3 py-2 md:py-1 rounded-md font-semibold text-sm whitespace-nowrap md:justify-self-end"
               >
                 Activate
               </button>

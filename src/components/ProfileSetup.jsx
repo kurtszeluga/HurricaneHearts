@@ -4,23 +4,11 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
+import { requestCategoryGroups } from "../utils/requestCategories";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
 const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
 const TERMS_VERSION = "1.0";
-
-const requestCategories = [
-  "Wellness Check",
-  "Transportation",
-  "Food-Water",
-  "Adopt A Buddy",
-  "Storm Prep",
-  "Storm Cleanup",
-  "Power-Generator Help",
-  "Pet Assistance",
-  "Borrow Supplies",
-  "Other"
-];
 
 export default function ProfileSetup({ user, onProfileSaved }) {
   const [showTerms, setShowTerms] = useState(false);
@@ -126,28 +114,38 @@ export default function ProfileSetup({ user, onProfileSaved }) {
             Select any request categories you would be willing to support as a helper.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-3">
-            {requestCategories.map((category) => {
-              const selected = form.serviceCategories.includes(category);
+          <div className="space-y-4">
+            {requestCategoryGroups.map((group) => (
+              <div key={group.label}>
+                <div className="text-xs font-bold uppercase text-[#667085] mb-2">
+                  {group.label}
+                </div>
 
-              return (
-                <label
-                  key={category}
-                  className={
-                    selected
-                      ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold"
-                      : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected}
-                    onChange={() => toggleServiceCategory(category)}
-                  />
-                  {category}
-                </label>
-              );
-            })}
+                <div className="grid md:grid-cols-2 gap-3">
+                  {group.categories.map((category) => {
+                    const selected = form.serviceCategories.includes(category);
+
+                    return (
+                      <label
+                        key={category}
+                        className={
+                          selected
+                            ? "border border-[#fecdca] bg-[#fff1f0] rounded-lg p-3 flex items-center gap-2 font-semibold"
+                            : "border border-[#c7d0dc] rounded-lg p-3 flex items-center gap-2 bg-white"
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleServiceCategory(category)}
+                        />
+                        {category}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
