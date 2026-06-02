@@ -322,20 +322,38 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                 Food Allergies
               </div>
 
-              <label className="flex items-center gap-2 text-sm font-semibold text-[#475467]">
-                <input
-                  type="checkbox"
-                  checked={form.hasFoodAllergies}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      hasFoodAllergies: e.target.checked,
-                      foodAllergies: e.target.checked ? form.foodAllergies : ""
-                    })
-                  }
-                />
-                Yes, there are food allergies or dietary restrictions.
-              </label>
+              <div className="flex flex-wrap gap-4 text-sm font-semibold text-[#475467]">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="food-allergies"
+                    checked={form.hasFoodAllergies === true}
+                    onChange={() =>
+                      setForm({
+                        ...form,
+                        hasFoodAllergies: true
+                      })
+                    }
+                  />
+                  Yes
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="food-allergies"
+                    checked={form.hasFoodAllergies === false}
+                    onChange={() =>
+                      setForm({
+                        ...form,
+                        hasFoodAllergies: false,
+                        foodAllergies: ""
+                      })
+                    }
+                  />
+                  No
+                </label>
+              </div>
 
               {form.hasFoodAllergies && (
                 <input
