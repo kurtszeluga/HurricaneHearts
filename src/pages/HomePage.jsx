@@ -1,4 +1,22 @@
-import { formatDateOnly } from "../utils/formatDate";
+import { useState } from "react";
+import { formatDateOnly, formatDateTime } from "../utils/formatDate";
+
+function getTimeValue(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function sortByCreatedAt(rows, direction) {
+  return [...rows].sort((a, b) => {
+    const comparison = getTimeValue(a.createdAt) - getTimeValue(b.createdAt);
+    return direction === "asc" ? comparison : -comparison;
+  });
+}
 
 export default function HomePage({
   user,
@@ -7,6 +25,10 @@ export default function HomePage({
   onNewRequest,
   onGoToRequests
 }) {
+  const [openDateSortDirection, setOpenDateSortDirection] = useState("desc");
+  const [claimsDateSortDirection, setClaimsDateSortDirection] = useState("desc");
+  const [myRequestsDateSortDirection, setMyRequestsDateSortDirection] = useState("desc");
+
   const myRequests = requests.filter((r) => r.residentUid === user.uid || r.residentEmail === user.email);
   const myClaims = requests.filter((r) => {
     const userIds = [user.uid, user.id].filter(Boolean);
@@ -31,27 +53,29 @@ export default function HomePage({
   const completedRequests = requests.filter((r) => r.status === "Completed");
   const cancelledRequests = requests.filter((r) => r.status === "Cancelled");
 
-  const myActiveClaims = myClaims.filter((request) => {
-    return request.status !== "Completed" && request.status !== "Cancelled";
-  });
+  const myActiveClaims = sortByCreatedAt(
+    myClaims.filter((request) => {
+      return request.status !== "Completed" && request.status !== "Cancelled";
+    }),
+    claimsDateSortDirection
+  );
 
-  const myActiveRequests = myRequests.filter((request) => {
-    return request.status !== "Completed" && request.status !== "Cancelled";
-  });
-  const newOpenRequests = requests
-    .filter((request) => {
+  const myActiveRequests = sortByCreatedAt(
+    myRequests.filter((request) => {
+      return request.status !== "Completed" && request.status !== "Cancelled";
+    }),
+    myRequestsDateSortDirection
+  );
+  const newOpenRequests = sortByCreatedAt(
+    requests.filter((request) => {
       return (
         request.status === "Open" &&
         request.residentUid !== user.uid &&
         request.residentEmail !== user.email
       );
-    })
-    .sort((a, b) => {
-      const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
-      const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
-
-      return dateB - dateA;
-    })
+    }),
+    openDateSortDirection
+  )
     .slice(0, 5);
 
   const getMyClaim = (request) => {
@@ -90,6 +114,18 @@ export default function HomePage({
         </span>
       )}
     </div>
+  );
+
+  const dateSortButton = (label, direction, setDirection) => (
+    <button
+      type="button"
+      onClick={() =>
+        setDirection((current) => current === "asc" ? "desc" : "asc")
+      }
+      className="font-bold text-[#b42318] hover:text-[#9f1f16]"
+    >
+      {label}{direction === "asc" ? " ▲" : " ▼"}
+    </button>
   );
 
   const summaryButtonClass = "text-center rounded-md border px-2 py-2 font-semibold transition shadow-sm";
@@ -208,7 +244,10 @@ export default function HomePage({
             <table className="w-full text-sm">
               <thead className="bg-[#f8fafc] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
-                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Resident</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[130px]">
+                    {dateSortButton("Date/Time", openDateSortDirection, setOpenDateSortDirection)}
+                  </th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Name</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">People</th>
@@ -219,6 +258,9 @@ export default function HomePage({
               <tbody className="divide-y divide-gray-100">
                 {newOpenRequests.map((request) => (
                   <tr key={request.id} className="hover:bg-[#fff7ed] align-top">
+                    <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
+                      {formatDateTime(request.createdAt) || "Not recorded"}
+                    </td>
                     <td className="px-2 py-2 font-semibold text-center text-[#172033]">
                       {request.residentName || "Resident"}
                     </td>
@@ -277,7 +319,10 @@ export default function HomePage({
             <table className="w-full text-sm">
               <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
-                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Resident</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[130px]">
+                    {dateSortButton("Date/Time", claimsDateSortDirection, setClaimsDateSortDirection)}
+                  </th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[140px]">Name</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[100px]">My Claim</th>
@@ -292,6 +337,9 @@ export default function HomePage({
 
                   return (
                     <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
+                      <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
+                        {formatDateTime(request.createdAt) || "Not recorded"}
+                      </td>
                       <td className="px-2 py-2 font-semibold text-center text-[#172033]">
                         {request.residentName || "Resident"}
                       </td>
@@ -361,6 +409,9 @@ export default function HomePage({
             <table className="w-full text-sm">
               <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
+                  <th className="text-center px-2 py-2 font-bold min-w-[130px]">
+                    {dateSortButton("Date/Time", myRequestsDateSortDirection, setMyRequestsDateSortDirection)}
+                  </th>
                   <th className="text-center px-2 py-2 font-bold min-w-[130px]">Category</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">People</th>
@@ -373,6 +424,9 @@ export default function HomePage({
               <tbody className="divide-y divide-gray-100">
                 {myActiveRequests.map((request) => (
                   <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
+                    <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
+                      {formatDateTime(request.createdAt) || "Not recorded"}
+                    </td>
                     <td className="px-2 py-2">{categoryBadges(request)}</td>
                     <td className="px-2 py-2 text-center text-sm text-[#475467]">{request.urgency || "Medium"}</td>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">

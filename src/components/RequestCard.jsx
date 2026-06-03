@@ -78,8 +78,62 @@ function getPeopleRemaining(request) {
   return Math.max(needed - committed, 0);
 }
 
-function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRemaining, onClose }) {
+function getLatestClaimedAt(request) {
+  return (request.claimCommitments || [])
+    .map((claim) => claim.claimedAt)
+    .filter(Boolean)
+    .sort((a, b) => {
+      const dateA = new Date(a).getTime();
+      const dateB = new Date(b).getTime();
+      return dateB - dateA;
+    })[0];
+}
+
+function getStatusDateMeta(request) {
+  if (request.status === "Completed") {
+    return { label: "Completed", value: request.completedAt };
+  }
+
+  if (request.status === "Cancelled") {
+    return { label: "Cancelled", value: request.cancelledAt };
+  }
+
+  if (request.status === "Assigned") {
+    return { label: "Assigned", value: getLatestClaimedAt(request) };
+  }
+
+  return { label: "Created", value: request.createdAt };
+}
+
+function getHistoryTimeValue(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function formatHistoryAction(action) {
+  if (!action) return "Updated";
+  return action
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function RequestDetailsModal({
+  request,
+  requestHistory = [],
+  peopleNeeded,
+  peopleCommitted,
+  peopleRemaining,
+  onClose
+}) {
   const printDetails = () => window.print();
+  const sortedHistory = [...requestHistory].sort((a, b) => {
+    return getHistoryTimeValue(a.createdAt || a.timestamp) - getHistoryTimeValue(b.createdAt || b.timestamp);
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -206,6 +260,34 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
             </div>
           )}
 
+          <div className="border rounded-2xl p-3 mb-5 text-sm">
+            <div className="text-xs font-bold text-gray-500 uppercase mb-2">Request History</div>
+            {sortedHistory.length === 0 ? (
+              <div className="text-[#667085]">No history recorded yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {sortedHistory.map((item) => (
+                  <div key={item.id || `${item.action}-${item.createdAt?.seconds || item.createdAt || ""}`} className="rounded-xl bg-[#f8fafc] border border-[#e4e7ec] p-3">
+                    <div className="font-bold text-[#172033]">
+                      {formatHistoryAction(item.action)}
+                    </div>
+                    <div className="text-[#475467]">
+                      By: {item.byName || item.byEmail || "Unknown"}
+                    </div>
+                    <div className="text-[#667085]">
+                      When: {formatDateTime(item.createdAt || item.timestamp) || "Unknown time"}
+                    </div>
+                    {item.details && (
+                      <div className="mt-2 whitespace-pre-wrap text-[#475467]">
+                        {item.details}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {request.completionComment && (
             <div className="border rounded-2xl p-3 mb-5 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Completion Comment</div>
@@ -225,7 +307,7 @@ function RequestDetailsModal({ request, peopleNeeded, peopleCommitted, peopleRem
   );
 }
 
-export default function RequestCard({ request, user, users = [], onEdit }) {
+export default function RequestCard({ request, user, users = [], requestHistory = [], onEdit }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
   const [claimPeople, setClaimPeople] = useState("1");
@@ -252,6 +334,9 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
   const allergyText = request.hasFoodAllergies
     ? request.foodAllergies || "Food allergies were indicated, but details were not provided."
     : "";
+  const thisRequestHistory = requestHistory.filter((item) => item.requestId === request.id);
+  const statusDateMeta = getStatusDateMeta(request);
+  const statusDateTime = formatDateTime(statusDateMeta.value);
 
   const claimRequest = async () => {
     if (!isAdmin && request.residentUid === user.uid) {
@@ -458,6 +543,10 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
   return (
     <>
       <tr className="hover:bg-[#f1f5f9] align-top">
+        <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
+          {formatDateTime(request.createdAt) || "Not recorded"}
+        </td>
+
         <td className="px-2 py-2">
           <div className="font-semibold text-[#172033] text-sm">
             {request.residentName || "Resident"}
@@ -493,7 +582,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
           </span>
         </td>
 
-        <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
+        <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
           <div>N: {peopleNeeded}</div>
           <div>C: {peopleCommitted}</div>
           <div>R: {peopleRemaining}</div>
@@ -503,6 +592,10 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
           <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
             {request.status || "Open"}
           </span>
+          <div className="mt-1 text-[11px] leading-tight text-[#667085]">
+            <div>{statusDateMeta.label}</div>
+            <div>{statusDateTime || "Not recorded"}</div>
+          </div>
         </td>
 
         <td className="px-2 py-2 text-xs text-[#475467] min-w-[120px]">
@@ -561,6 +654,7 @@ export default function RequestCard({ request, user, users = [], onEdit }) {
         createPortal(
           <RequestDetailsModal
             request={request}
+            requestHistory={thisRequestHistory}
             peopleNeeded={peopleNeeded}
             peopleCommitted={peopleCommitted}
             peopleRemaining={peopleRemaining}

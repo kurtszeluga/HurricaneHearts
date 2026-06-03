@@ -32,10 +32,21 @@ function isMyClaim(request, user) {
   );
 }
 
+function getTimeValue(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
 export default function RequestsPage({
   user,
   users = [],
   requests,
+  requestHistory = [],
   onNewRequest,
   onEditRequest,
   activeEvent,
@@ -43,6 +54,7 @@ export default function RequestsPage({
   onRequestFilterChange
 }) {
   const [search, setSearch] = useState("");
+  const [dateSortDirection, setDateSortDirection] = useState("desc");
   const setRequestFilter = onRequestFilterChange || (() => {});
 
   const filteredRequests = useMemo(() => {
@@ -84,8 +96,12 @@ export default function RequestsPage({
             category.toLowerCase().includes(term)
           )
         );
+      })
+      .sort((a, b) => {
+        const comparison = getTimeValue(a.createdAt) - getTimeValue(b.createdAt);
+        return dateSortDirection === "asc" ? comparison : -comparison;
       });
-  }, [requests, requestFilter, search, user]);
+  }, [requests, requestFilter, search, user, dateSortDirection]);
 
   return (
     <div className="space-y-4">
@@ -169,7 +185,7 @@ export default function RequestsPage({
         </div>
       ) : (
         <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
-          <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs text-[#667085] flex flex-wrap gap-4 justify-end">
+          <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs text-[#667085] flex flex-wrap gap-4 justify-center">
             <span><strong>N:</strong> # People Needed</span>
             <span><strong>C:</strong> Committed</span>
             <span><strong>R:</strong> Remaining</span>
@@ -179,6 +195,19 @@ export default function RequestsPage({
             <table className="w-full text-sm">
               <thead className="bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs uppercase text-[#667085]">
                 <tr>
+                  <th className="text-left px-2 py-2 font-bold min-w-[130px]">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDateSortDirection((current) =>
+                          current === "asc" ? "desc" : "asc"
+                        )
+                      }
+                      className="font-bold text-[#b42318] hover:text-[#9f1f16]"
+                    >
+                      Date/Time{dateSortDirection === "asc" ? " ▲" : " ▼"}
+                    </button>
+                  </th>
                   <th className="text-left px-2 py-2 font-bold min-w-[120px]">Name</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[120px]">Category</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[70px]">Urgency</th>
@@ -196,6 +225,7 @@ export default function RequestsPage({
                     request={request}
                     user={user}
                     users={users}
+                    requestHistory={requestHistory}
                     onEdit={onEditRequest}
                   />
                 ))}

@@ -219,6 +219,7 @@ export default function Dashboard({
           onEditRequest={openEditRequest}
           activeEvent={activeEvent}
           users={users}
+          requestHistory={requestHistory}
           requestFilter={requestFilter}
           onRequestFilterChange={setRequestFilter}
         />
