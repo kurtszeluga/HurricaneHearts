@@ -122,6 +122,37 @@ function formatHistoryAction(action) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function DetailItem({ label, children }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] font-bold uppercase text-[#667085]">{label}</div>
+      <div className="break-words text-sm text-[#172033]">{children}</div>
+    </div>
+  );
+}
+
+function CompactSection({ title, children }) {
+  return (
+    <section className="rounded-lg border border-[#d8e0ea] bg-white p-3 text-sm">
+      <h3 className="mb-2 text-xs font-bold uppercase text-[#667085]">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function CollapsibleSection({ title, count, children }) {
+  return (
+    <details className="rounded-lg border border-[#d8e0ea] bg-white text-sm">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-bold uppercase text-[#667085]">
+        {title}{typeof count === "number" ? ` (${count})` : ""}
+      </summary>
+      <div className="border-t border-[#e4e7ec] p-3">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 function RequestDetailsModal({
   request,
   requestHistory = [],
@@ -137,76 +168,81 @@ function RequestDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b flex items-center justify-between print:hidden">
-          <h2 className="text-xl font-bold">Request Details</h2>
+      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto">
+        <div className="sticky top-0 z-10 bg-white p-3 border-b flex items-center justify-between gap-3 print:hidden">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold leading-tight">Request Details</h2>
+            <div className="text-xs text-[#667085] truncate">
+              {request.residentName || "Resident"}
+            </div>
+          </div>
 
           <div className="flex gap-2">
             <button
               onClick={printDetails}
-              className="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold text-sm"
+              className="bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold text-xs"
             >
               Print
             </button>
 
             <button
               onClick={onClose}
-              className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-semibold text-sm"
+              className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg font-semibold text-xs"
             >
               Close
             </button>
           </div>
         </div>
 
-        <div className="p-6 print:p-0">
-          <div className="mb-5">
+        <div className="p-3 print:p-0">
+          <div className="mb-3">
             <h1 className="text-2xl font-bold">{request.residentName || "Resident"}</h1>
             <p className="text-gray-500">Hurricane Hearts Request Detail</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-3 mb-5 text-sm">
-            <div className="border rounded-2xl p-3">
+          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Event</div>
               <div>{request.eventName || "Not provided"}</div>
               <div className="text-gray-500">{formatDateOnly(request.eventDate) || "No event date"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Status</div>
               <div>{request.status || "Open"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Claimed By</div>
               <div>{getClaimedBy(request)}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Name</div>
               <div>{request.residentName || "Resident"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Phone</div>
               <div>{formatPhoneNumber(request.residentPhone) || "Not provided"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Email</div>
               <div className="break-all">{request.residentEmail || "Not provided"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
               <div>{request.residentAddress || "Not provided"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Urgency</div>
               <div>{request.urgency || "Medium"}</div>
             </div>
 
-            <div className="border rounded-2xl p-3">
+            <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">People</div>
               <div>Needed: {peopleNeeded}</div>
               <div>Committed: {peopleCommitted}</div>
@@ -214,7 +250,7 @@ function RequestDetailsModal({
             </div>
           </div>
 
-          <div className="border rounded-2xl p-3 mb-5 text-sm">
+          <div className="border rounded-lg p-2 mb-3 text-sm">
             <div className="text-xs font-bold text-gray-500 uppercase mb-2">Categories</div>
             <div className="flex flex-wrap gap-2">
               {(request.categories || []).map((category) => (
@@ -226,13 +262,13 @@ function RequestDetailsModal({
             </div>
           </div>
 
-          <div className="border rounded-2xl p-3 mb-5 text-sm">
+          <div className="border rounded-lg p-2 mb-3 text-sm">
             <div className="text-xs font-bold text-gray-500 uppercase mb-2">Need / Request Description</div>
             <div className="whitespace-pre-wrap">{request.need || "No details provided"}</div>
           </div>
 
           {(request.categories || []).includes(DONATE_A_DISH_CATEGORY) && (
-            <div className="border rounded-2xl p-3 mb-5 text-sm">
+            <div className="border rounded-lg p-2 mb-3 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Food Allergies</div>
               <div className="whitespace-pre-wrap">
                 {request.hasFoodAllergies
@@ -243,11 +279,11 @@ function RequestDetailsModal({
           )}
 
           {(request.claimCommitments || []).length > 0 && (
-            <div className="border rounded-2xl p-3 mb-5 text-sm">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-2">Claims</div>
-              <div className="space-y-2">
+            <details className="border rounded-lg mb-3 text-sm">
+              <summary className="cursor-pointer p-2 text-xs font-bold text-gray-500 uppercase">Claims ({(request.claimCommitments || []).length})</summary>
+              <div className="border-t p-2 space-y-2">
                 {(request.claimCommitments || []).map((claim) => (
-                  <div key={`${claim.uid}-${claim.claimedAt}`} className="bg-blue-50 text-blue-800 p-3 rounded-xl">
+                  <div key={`${claim.uid}-${claim.claimedAt}`} className="bg-blue-50 text-blue-800 p-2 rounded-lg">
                     <div className="font-bold">{claim.name}</div>
                     <div>{claim.peopleProvided} people</div>
                     {claim.phone && <div>Phone: {formatPhoneNumber(claim.phone)}</div>}
@@ -257,17 +293,18 @@ function RequestDetailsModal({
                   </div>
                 ))}
               </div>
-            </div>
+            </details>
           )}
 
-          <div className="border rounded-2xl p-3 mb-5 text-sm">
-            <div className="text-xs font-bold text-gray-500 uppercase mb-2">Request History</div>
+          <details className="border rounded-lg mb-3 text-sm">
+            <summary className="cursor-pointer p-2 text-xs font-bold text-gray-500 uppercase">Request History ({sortedHistory.length})</summary>
+            <div className="border-t p-2">
             {sortedHistory.length === 0 ? (
               <div className="text-[#667085]">No history recorded yet.</div>
             ) : (
               <div className="space-y-2">
                 {sortedHistory.map((item) => (
-                  <div key={item.id || `${item.action}-${item.createdAt?.seconds || item.createdAt || ""}`} className="rounded-xl bg-[#f8fafc] border border-[#e4e7ec] p-3">
+                  <div key={item.id || `${item.action}-${item.createdAt?.seconds || item.createdAt || ""}`} className="rounded-lg bg-[#f8fafc] border border-[#e4e7ec] p-2">
                     <div className="font-bold text-[#172033]">
                       {formatHistoryAction(item.action)}
                     </div>
@@ -286,17 +323,18 @@ function RequestDetailsModal({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {request.completionComment && (
-            <div className="border rounded-2xl p-3 mb-5 text-sm">
+            <div className="border rounded-lg p-2 mb-3 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Completion Comment</div>
               <div>{request.completionComment}</div>
             </div>
           )}
 
           {request.cancellationReason && (
-            <div className="border rounded-2xl p-3 text-sm">
+            <div className="border rounded-lg p-2 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Cancellation Reason</div>
               <div>{request.cancellationReason}</div>
             </div>
