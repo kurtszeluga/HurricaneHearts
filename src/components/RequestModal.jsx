@@ -8,7 +8,10 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { formatDateOnly } from "../utils/formatDate";
-import { requestCategoryGroups } from "../utils/requestCategories";
+import {
+  categoryDescriptions,
+  requestCategoryGroups
+} from "../utils/requestCategories";
 
 const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const DONATE_A_DISH_CATEGORY = "Donate a Dish";
@@ -307,7 +310,12 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                           checked={selected}
                           onChange={() => toggleCategory(category)}
                         />
-                        <span>{category}</span>
+                        <span className="grid gap-1">
+                          <span>{category}</span>
+                          <span className="text-xs font-normal leading-snug text-[#667085]">
+                            {categoryDescriptions[category] || ""}
+                          </span>
+                        </span>
                       </label>
                     );
                   })}
@@ -321,6 +329,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
               <div className="font-semibold text-[#172033] mb-3">
                 Food Allergies
               </div>
+
+              <p className="mb-3 rounded-md border border-[#fecdca] bg-white px-3 py-2 text-xs font-bold leading-snug text-[#b42318]">
+                IMPORTANT!! Identify any Allergens in the comments [Milk, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soybean, Sesame]
+              </p>
 
               <div className="flex flex-wrap gap-4 text-sm font-semibold text-[#475467]">
                 <label className="flex items-center gap-2">
@@ -359,7 +371,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                 <input
                   value={form.foodAllergies}
                   onChange={(e) => setForm({ ...form, foodAllergies: e.target.value })}
-                  placeholder="Example: peanut allergy, gluten-free, no shellfish"
+                  placeholder="Example: peanut allergy, no shellfish"
                   className="mt-3 w-full rounded-lg border border-[#fed7aa] bg-white p-3 text-sm"
                 />
               )}
