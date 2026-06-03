@@ -8,6 +8,7 @@ import {
   queueRequestCancelledEmails,
   queueRequestClaimedEmails
 } from "../utils/emailNotifications";
+import { categoryDescriptions } from "../utils/requestCategories";
 
 const urgencyColors = {
   Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
@@ -252,11 +253,14 @@ function RequestDetailsModal({
 
           <div className="border rounded-lg p-2 mb-3 text-sm">
             <div className="text-xs font-bold text-gray-500 uppercase mb-2">Categories</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid gap-2">
               {(request.categories || []).map((category) => (
-                <span key={category} className="bg-red-50 text-red-700 px-2 py-1 rounded-lg text-xs font-semibold">
-                  {category}
-                </span>
+                <div key={category} className="rounded-lg bg-red-50 px-2 py-1.5 text-xs">
+                  <div className="font-bold text-red-700">{category}</div>
+                  <div className="mt-1 leading-snug text-[#667085]">
+                    {categoryDescriptions[category] || ""}
+                  </div>
+                </div>
               ))}
               {(request.categories || []).length === 0 && <span>Not provided</span>}
             </div>
