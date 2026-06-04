@@ -19,6 +19,9 @@ export default function ProfileEditor({
   const canManageTeamMember = adminMode && canManageAdminRole;
   const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
   const canEditLoginId = adminMode && canManageAdminRole && Boolean(user.id);
+  const needsAddressReview =
+    user.addressVerificationOverride === true &&
+    user.addressVerified !== true;
 
   const [form, setForm] = useState({
     ...user,
@@ -37,6 +40,9 @@ export default function ProfileEditor({
   });
   const [newPassword, setNewPassword] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
+  const [addressReviewComment, setAddressReviewComment] = useState(
+    user.addressReviewComment || ""
+  );
 
   const toggleServiceCategory = (category) => {
     setForm((current) => {
@@ -86,9 +92,19 @@ export default function ProfileEditor({
       return;
     }
 
+    if (
+      needsAddressReview &&
+      form.approved !== false &&
+      addressReviewComment.trim().length < 4
+    ) {
+      alert("Please enter an address review comment before approving this user.");
+      return;
+    }
+
     await onSave({
       ...form,
       newPassword: newPassword || "",
+      addressReviewComment: addressReviewComment.trim(),
       email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
       hasEmail: hasProfileEmail,
       loginId: form.loginId.trim(),
@@ -137,6 +153,22 @@ export default function ProfileEditor({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-[#172033]">{title}</h3>
       </div>
+
+      {needsAddressReview && (
+        <div className="mb-5 rounded-lg border-2 border-[#f79009] bg-[#fffbeb] p-4 text-sm text-[#7a2e0e]">
+          <div className="text-base font-bold text-[#b54708]">
+            Address Requires Admin Review
+          </div>
+          <p className="mt-1">
+            This resident submitted an address that did not match the uploaded directory.
+          </p>
+          {user.addressVerificationOverrideNote && (
+            <p className="mt-2 font-semibold">
+              Resident note: {user.addressVerificationOverrideNote}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         <label className="text-sm font-semibold text-[#172033]">
@@ -194,53 +226,73 @@ export default function ProfileEditor({
           />
         </label>
 
-        <label className="text-sm font-semibold text-[#172033]">
+        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
           House number
           <input
             value={form.houseNumber}
             onChange={(e) => setForm({ ...form, houseNumber: e.target.value })}
             placeholder="House number"
-            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            className={
+              needsAddressReview
+                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
           />
         </label>
 
-        <label className="text-sm font-semibold text-[#172033]">
+        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
           Street name
           <input
             value={form.streetName}
             onChange={(e) => setForm({ ...form, streetName: e.target.value })}
             placeholder="Street name"
-            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            className={
+              needsAddressReview
+                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
           />
         </label>
 
-        <label className="text-sm font-semibold text-[#172033]">
+        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
           City
           <input
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
             placeholder="City"
-            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            className={
+              needsAddressReview
+                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
           />
         </label>
 
-        <label className="text-sm font-semibold text-[#172033]">
+        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
           Zip
           <input
             value={form.zip}
             onChange={(e) => setForm({ ...form, zip: e.target.value })}
             placeholder="Zip"
-            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            className={
+              needsAddressReview
+                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
           />
         </label>
 
-        <label className="text-sm font-semibold text-[#172033]">
+        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
           AR Lot number
           <input
             value={form.arLotNumber}
             onChange={(e) => setForm({ ...form, arLotNumber: e.target.value })}
             placeholder="AR Lot number"
-            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            className={
+              needsAddressReview
+                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
           />
         </label>
       </div>
@@ -409,6 +461,19 @@ export default function ProfileEditor({
               </span>
             )}
           </label>
+
+          {needsAddressReview && (
+            <label className="basis-full text-sm font-bold text-[#b54708]">
+              Address review comment required before approval
+              <textarea
+                value={addressReviewComment}
+                onChange={(e) => setAddressReviewComment(e.target.value)}
+                placeholder="Example: verified by phone with resident, corrected lot number, or approved after manual review"
+                rows={3}
+                className="mt-1 w-full rounded-lg border-2 border-[#f79009] bg-[#fffbeb] p-3 text-sm font-normal text-[#7a2e0e]"
+              />
+            </label>
+          )}
 
           <label className="flex items-center gap-2 text-sm font-semibold mt-6">
             <input

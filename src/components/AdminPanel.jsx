@@ -3,6 +3,7 @@ import {
   addDoc,
   collection,
   doc,
+  serverTimestamp,
   updateDoc
 } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
@@ -41,6 +42,10 @@ function getUserRole(u) {
   return u.email === PRIMARY_OWNER_EMAIL
     ? "admin"
     : u.role || "resident";
+}
+
+function needsAddressReview(user) {
+  return user.addressVerificationOverride === true && user.addressVerified !== true;
 }
 
 function HeaderTooltip({ tooltip, children }) {
@@ -225,6 +230,12 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       return;
     }
 
+    if (approved && targetUser.approved === false && needsAddressReview(targetUser)) {
+      alert("This address needs admin review before approval. Please edit the account, verify the address fields, and enter an address review comment.");
+      setEditingUser(targetUser);
+      return;
+    }
+
     const action = approved ? "approve" : "move back to pending";
     const name = targetUser.name || targetUser.email || "this user";
 
@@ -311,6 +322,24 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     const newPassword = String(updatedUser.newPassword || "");
     const nextLoginId = String(updatedUser.loginId || "").trim();
     const previousLoginId = String(editingUser?.loginId || "").trim();
+    const approvingFlaggedAddress =
+      editingUser?.approved === false &&
+      updatedUser.approved !== false &&
+      needsAddressReview(editingUser);
+    const addressReviewComment = String(updatedUser.addressReviewComment || "").trim();
+
+    if (approvingFlaggedAddress && addressReviewComment.length < 4) {
+      alert("Please enter an address review comment before approving this user.");
+      return;
+    }
+
+    if (approvingFlaggedAddress) {
+      const confirmedAddressReview = window.confirm(
+        `Approve ${name} after manual address review?\n\nComment: ${addressReviewComment}`
+      );
+
+      if (!confirmedAddressReview) return;
+    }
 
     const confirmed = window.confirm(
       `Save profile and account changes for ${name}?`
@@ -373,6 +402,16 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         updatedUser.email === PRIMARY_OWNER_EMAIL
           ? true
           : updatedUser.active ?? true,
+      ...(approvingFlaggedAddress
+        ? {
+            addressVerified: true,
+            addressManuallyReviewed: true,
+            addressReviewComment,
+            addressReviewedAt: serverTimestamp(),
+            addressReviewedByEmail: user.email || "",
+            addressReviewedByUid: user.uid || ""
+          }
+        : {}),
       profileComplete: Boolean(
         updatedUser.name?.trim() &&
           (updatedUser.email?.trim() || updatedUser.authEmail?.trim() || editingUser?.authEmail?.trim()) &&
@@ -796,9 +835,17 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const role = getUserRole(u);
               const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
               const displayAddress = formatAddress(u);
+              const addressNeedsReview = needsAddressReview(u);
 
           return (
-            <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4">
+            <div
+              key={u.id}
+              className={
+                addressNeedsReview
+                  ? "bg-[#fffbeb] border-2 border-[#f79009] rounded-lg p-4"
+                  : "bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4"
+              }
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-semibold text-[#172033] truncate">
@@ -814,9 +861,13 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                 <button
                   type="button"
                   onClick={() => setEditingUser(u)}
-                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap"
+                  className={
+                    addressNeedsReview
+                      ? "bg-[#b54708] hover:bg-[#93370d] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap"
+                      : "bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-1.5 rounded-lg text-[11px] font-semibold whitespace-nowrap"
+                  }
                 >
-                  Edit
+                  {addressNeedsReview ? "Review Address" : "Edit"}
                 </button>
               </div>
 
@@ -826,9 +877,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                 </div>
                 <div className="break-words">
                   Address: {displayAddress || "No address"}
-                  {u.addressVerificationOverride && (
-                    <div className="mt-1 font-semibold text-[#92400e]">
-                      Address needs admin review
+                  {addressNeedsReview && (
+                    <div className="mt-2 rounded-md bg-[#b54708] px-2 py-1.5 text-center text-[11px] font-bold uppercase tracking-wide text-white">
+                      Address must be reviewed before approval
                     </div>
                   )}
                 </div>
@@ -863,16 +914,20 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                 <button
                   type="button"
                   onClick={() => updateUserApproval(u, !approved)}
-                  disabled={isPrimaryOwner}
+                  disabled={isPrimaryOwner || (!approved && addressNeedsReview)}
                   className={
-                    isPrimaryOwner
+                    isPrimaryOwner || (!approved && addressNeedsReview)
                       ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg text-[10px] font-semibold cursor-not-allowed"
                       : approved
                         ? "bg-[#ecfdf3] hover:bg-[#dcfae6] text-[#067647] border border-[#abefc6] px-2 py-1 rounded-lg text-[10px] font-semibold"
                         : "bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] px-2 py-1 rounded-lg text-[10px] font-semibold"
                   }
                 >
-                  {approved ? "Approved" : "Pending"}
+                  {!approved && addressNeedsReview
+                    ? "Review Address"
+                    : approved
+                      ? "Approved"
+                      : "Pending"}
                 </button>
 
                 <button
@@ -976,9 +1031,17 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const role = getUserRole(u);
               const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
               const displayAddress = formatAddress(u);
+              const addressNeedsReview = needsAddressReview(u);
 
               return (
-                <tr key={u.id} className="bg-[#f1f5f9] align-top">
+                <tr
+                  key={u.id}
+                  className={
+                    addressNeedsReview
+                      ? "bg-[#fffbeb] align-top outline outline-2 outline-[#f79009]"
+                      : "bg-[#f1f5f9] align-top"
+                  }
+                >
                   <td className="px-2 py-2 rounded-l-lg">
                     <div className="font-semibold text-[#172033] text-xs leading-tight truncate max-w-[140px]">
                       {u.name || "Unnamed User"}
@@ -993,9 +1056,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                     <div className="text-[10px] text-[#667085] leading-tight truncate max-w-[140px]">
                       {displayAddress || "No address"}
                     </div>
-                    {u.addressVerificationOverride && (
-                      <div className="mt-1 text-[10px] font-semibold text-[#92400e]">
-                        Address review
+                    {addressNeedsReview && (
+                      <div className="mt-1 rounded bg-[#b54708] px-1.5 py-1 text-center text-[10px] font-bold uppercase text-white">
+                        Review address
                       </div>
                     )}
                   </td>
@@ -1048,16 +1111,20 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                     <button
                       type="button"
                       onClick={() => updateUserApproval(u, !approved)}
-                      disabled={isPrimaryOwner}
+                      disabled={isPrimaryOwner || (!approved && addressNeedsReview)}
                       className={
-                        isPrimaryOwner
+                        isPrimaryOwner || (!approved && addressNeedsReview)
                           ? "bg-[#e2e8f0] text-[#98a2b3] px-2 py-1 rounded-lg font-semibold cursor-not-allowed text-[10px]"
                           : approved
                             ? "bg-[#ecfdf3] hover:bg-[#dcfae6] text-[#067647] border border-[#abefc6] px-2 py-1 rounded-lg font-semibold text-[10px]"
                             : "bg-[#fffbeb] hover:bg-[#fef3c7] text-[#92400e] border border-[#fde68a] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       }
                     >
-                      {approved ? "Approved" : "Pending"}
+                      {!approved && addressNeedsReview
+                        ? "Review"
+                        : approved
+                          ? "Approved"
+                          : "Pending"}
                     </button>
                   </td>
 
@@ -1082,9 +1149,13 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                     <button
                       type="button"
                       onClick={() => setEditingUser(u)}
-                      className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                      className={
+                        addressNeedsReview
+                          ? "bg-[#b54708] hover:bg-[#93370d] border border-[#b54708] text-white px-2 py-1 rounded-lg font-bold text-[10px]"
+                          : "bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-lg font-semibold text-[10px]"
+                      }
                     >
-                      Edit
+                      {addressNeedsReview ? "Review" : "Edit"}
                     </button>
                   </td>
                 </tr>
