@@ -645,7 +645,6 @@ export default function LoginScreen({ message }) {
           <nav className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#475467]">
             <a className="hover:text-[#b42318]" href="#mission">Mission</a>
             <a className="hover:text-[#b42318]" href="#how-it-works">How It Works</a>
-            <a className="hover:text-[#b42318]" href="#updates">Updates</a>
           </nav>
         </div>
       </header>
@@ -669,21 +668,6 @@ export default function LoginScreen({ message }) {
               <p className="mt-5 text-lg text-slate-100 leading-relaxed max-w-2xl">
                 Hurricane Hearts helps Arlington Ridge residents request assistance, volunteer support, and stay connected when a weather event affects the community.
               </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <a
-                  href="#access"
-                  className="bg-[#b42318] hover:bg-[#9f1f16] text-white px-5 py-3 rounded-md font-bold"
-                >
-                  Login
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setMode("requestAccess")}
-                  className="bg-white text-[#172033] hover:bg-[#f1f5f9] px-5 py-3 rounded-md font-bold"
-                >
-                  Request Access
-                </button>
-              </div>
             </div>
 
             <motion.div
@@ -983,23 +967,6 @@ export default function LoginScreen({ message }) {
           </div>
         </section>
 
-        <section id="updates" className="bg-[#172033] text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid lg:grid-cols-[1fr_auto] gap-6 items-center">
-            <div>
-              <p className="text-xs font-bold uppercase text-[#fecdca]">Community Updates</p>
-              <h2 className="mt-2 text-3xl font-bold">Weather-aware, event-focused, and resident-only.</h2>
-              <p className="mt-3 text-slate-300 leading-relaxed max-w-3xl">
-                The private member area includes NWS weather alerts, activation notices, request summaries, document links, resident directory tools, and email notifications.
-              </p>
-            </div>
-            <a
-              href="#access"
-              className="inline-flex justify-center bg-white text-[#172033] hover:bg-[#f1f5f9] px-5 py-3 rounded-md font-bold"
-            >
-              Go To Access
-            </a>
-          </div>
-        </section>
       </main>
 
       <footer className="bg-white border-t border-[#d8e0ea]">
@@ -1008,10 +975,8 @@ export default function LoginScreen({ message }) {
             <div className="font-bold text-[#172033]">Hurricane Hearts</div>
             <div>Arlington Ridge neighbor-to-neighbor assistance.</div>
           </div>
-          <div className="flex flex-wrap gap-4 font-semibold">
-            <a href="#mission" className="hover:text-[#b42318]">Mission</a>
-            <a href="#how-it-works" className="hover:text-[#b42318]">How It Works</a>
-            <a href="#access" className="hover:text-[#b42318]">Member Access</a>
+          <div className="text-sm text-[#667085]">
+            Copyright 2026 Hurricane Hearts. All rights reserved.
           </div>
         </div>
       </footer>
