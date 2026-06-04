@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   createUserWithEmailAndPassword,
@@ -53,11 +53,7 @@ const emptyForm = {
 
 export default function LoginScreen({ message }) {
 
-  const [storedMessage] = useState(() =>
-    sessionStorage.getItem(BLOCK_MESSAGE_KEY) || ""
-  );
-
-  const displayMessage = message || storedMessage;
+  const displayMessage = message || "";
 
   const [mode, setMode] =
     useState("login");
@@ -79,12 +75,6 @@ export default function LoginScreen({ message }) {
 
   const [form, setForm] =
     useState(emptyForm);
-
-  useEffect(() => {
-    if (!message && storedMessage) {
-      sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
-    }
-  }, [message, storedMessage]);
 
   const updateForm = (field, value) => {
 

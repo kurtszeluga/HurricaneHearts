@@ -20,9 +20,7 @@ function isProfileComplete(profile) {
 export default function useAuthUser() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authMessage, setAuthMessage] = useState(() => {
-    return sessionStorage.getItem(BLOCK_MESSAGE_KEY) || "";
-  });
+  const [authMessage, setAuthMessage] = useState("");
 
   const blockAndSignOut = async (message) => {
     sessionStorage.setItem(BLOCK_MESSAGE_KEY, message);
@@ -33,6 +31,8 @@ export default function useAuthUser() {
   };
 
   useEffect(() => {
+    sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
+
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (!firebaseUser) {
