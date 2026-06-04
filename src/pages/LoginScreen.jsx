@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   createUserWithEmailAndPassword,
@@ -74,6 +74,29 @@ export default function LoginScreen({ message }) {
 
   const [form, setForm] =
     useState(emptyForm);
+  const [addressMismatchDialog, setAddressMismatchDialog] =
+    useState(null);
+  const addressMismatchResolverRef = useRef(null);
+
+  const askAddressMismatch = () => {
+    return new Promise((resolve) => {
+      addressMismatchResolverRef.current = resolve;
+      setAddressMismatchDialog({
+        note: "Address did not match directory."
+      });
+    });
+  };
+
+  const resolveAddressMismatch = (action) => {
+    const note = addressMismatchDialog?.note || "";
+
+    addressMismatchResolverRef.current?.({
+      action,
+      note
+    });
+    addressMismatchResolverRef.current = null;
+    setAddressMismatchDialog(null);
+  };
 
   const updateForm = (field, value) => {
 
@@ -292,13 +315,9 @@ export default function LoginScreen({ message }) {
       let addressVerificationOverrideNote = "";
 
       if (addressValidation.configured && !addressValidation.valid) {
-        const mismatchChoice = window.prompt(
-          "The house number, street name, city, zip, and AR lot number did not match the community address directory.\n\nEnter E to edit the form.\nEnter C to cancel this request.\nEnter S to submit anyway for admin review.",
-          "E"
-        );
-        const normalizedChoice = String(mismatchChoice || "E").trim().toLowerCase();
+        const mismatchDecision = await askAddressMismatch();
 
-        if (normalizedChoice === "c") {
+        if (mismatchDecision.action === "cancel") {
           setForm(emptyForm);
           setAcceptedTerms(false);
           setShowTerms(false);
@@ -307,17 +326,13 @@ export default function LoginScreen({ message }) {
           return;
         }
 
-        if (normalizedChoice !== "s") {
+        if (mismatchDecision.action !== "submit") {
           setSubmitting(false);
           return;
         }
 
         addressVerificationOverride = true;
-        addressVerificationOverrideNote =
-          window.prompt(
-            "Optional: add a short note for admin review.",
-            "Address did not match directory."
-          ) || "";
+        addressVerificationOverrideNote = mismatchDecision.note || "";
       }
 
       if (requestedLoginId && !isValidLoginId(requestedLoginId)) {
@@ -1005,6 +1020,61 @@ export default function LoginScreen({ message }) {
         <TermsAndConditions
           onClose={() => setShowTerms(false)}
         />
+      )}
+
+      {addressMismatchDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-lg bg-white p-5 shadow-xl">
+            <h3 className="text-lg font-bold text-[#172033]">
+              Address Not Found
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-[#475467]">
+              The house number, street name, city, zip, and AR lot number did not match the community address directory.
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-[#475467]">
+              You can edit the form, cancel this request, or submit it anyway for admin review.
+            </p>
+
+            <label className="mt-4 block text-sm font-semibold text-[#172033]">
+              Optional note for admin review
+              <textarea
+                value={addressMismatchDialog.note}
+                onChange={(event) =>
+                  setAddressMismatchDialog({
+                    ...addressMismatchDialog,
+                    note: event.target.value
+                  })
+                }
+                rows={3}
+                className="mt-1 w-full rounded-md border border-[#c7d0dc] p-3 text-sm font-normal text-[#172033]"
+              />
+            </label>
+
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => resolveAddressMismatch("edit")}
+                className="rounded-md border border-[#c7d0dc] bg-white px-4 py-2 text-sm font-semibold text-[#475467] hover:bg-[#f1f5f9]"
+              >
+                Edit Form
+              </button>
+              <button
+                type="button"
+                onClick={() => resolveAddressMismatch("cancel")}
+                className="rounded-md border border-[#fecdca] bg-[#fff1f0] px-4 py-2 text-sm font-semibold text-[#b42318] hover:bg-[#fee4e2]"
+              >
+                Cancel Request
+              </button>
+              <button
+                type="button"
+                onClick={() => resolveAddressMismatch("submit")}
+                className="rounded-md bg-[#b42318] px-4 py-2 text-sm font-semibold text-white hover:bg-[#9f1f16]"
+              >
+                Submit Anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
