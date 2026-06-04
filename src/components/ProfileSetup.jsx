@@ -88,10 +88,33 @@ export default function ProfileSetup({ user, onProfileSaved }) {
 
     const addressValidation = await validateSignupAddress();
     const addressVerificationEnabled = addressValidation.configured;
+    let addressVerificationOverride = false;
+    let addressVerificationOverrideNote = "";
 
     if (addressValidation.configured && !addressValidation.valid) {
-      alert("The house number, street name, city, zip, and AR lot number did not match the community address directory. Please check the information or contact the Hurricane Hearts administrator.");
-      return;
+      const continueAnyway = window.confirm(
+        "The house number, street name, city, zip, and AR lot number did not match the community address directory.\n\nChoose OK to submit anyway for admin review.\nChoose Cancel to edit the form or cancel your request."
+      );
+
+      if (!continueAnyway) {
+        const cancelRequest = window.confirm(
+          "Choose OK to cancel this request.\nChoose Cancel to return to the form and edit the address."
+        );
+
+        if (cancelRequest) {
+          onProfileSaved(null);
+          await signOut(auth);
+        }
+
+        return;
+      }
+
+      addressVerificationOverride = true;
+      addressVerificationOverrideNote =
+        window.prompt(
+          "Optional: add a short note for admin review.",
+          "Address did not match directory."
+        ) || "";
     }
 
     const updatedProfile = {
@@ -108,6 +131,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
         addressValidation.configured &&
         addressValidation.valid,
       addressVerificationRequired: addressVerificationEnabled,
+      addressVerificationOverride,
+      addressVerificationOverrideNote: addressVerificationOverrideNote.trim(),
       phone: normalizePhoneNumber(form.phone),
       role: user.role || "resident",
       approved: false,

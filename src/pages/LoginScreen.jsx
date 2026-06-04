@@ -288,16 +288,37 @@ export default function LoginScreen({ message }) {
 
       const addressValidation = await validateSignupAddress();
       const addressVerificationEnabled = addressValidation.configured;
+      let addressVerificationOverride = false;
+      let addressVerificationOverrideNote = "";
 
       if (addressValidation.configured && !addressValidation.valid) {
-
-        alert(
-          "The house number, street name, city, zip, and AR lot number did not match the community address directory. Please check the information or contact the Hurricane Hearts administrator."
+        const continueAnyway = window.confirm(
+          "The house number, street name, city, zip, and AR lot number did not match the community address directory.\n\nChoose OK to submit anyway for admin review.\nChoose Cancel to edit the form or cancel your request."
         );
 
-        setSubmitting(false);
+        if (!continueAnyway) {
+          const cancelRequest = window.confirm(
+            "Choose OK to cancel this request.\nChoose Cancel to return to the form and edit the address."
+          );
 
-        return;
+          if (cancelRequest) {
+            setForm(emptyForm);
+            setAcceptedTerms(false);
+            setShowTerms(false);
+            setMode("login");
+          }
+
+          setSubmitting(false);
+
+          return;
+        }
+
+        addressVerificationOverride = true;
+        addressVerificationOverrideNote =
+          window.prompt(
+            "Optional: add a short note for admin review.",
+            "Address did not match directory."
+          ) || "";
       }
 
       if (requestedLoginId && !isValidLoginId(requestedLoginId)) {
@@ -390,6 +411,11 @@ export default function LoginScreen({ message }) {
 
         addressVerificationRequired:
           addressVerificationEnabled,
+
+        addressVerificationOverride,
+
+        addressVerificationOverrideNote:
+          addressVerificationOverrideNote.trim(),
 
         phone: normalizePhoneNumber(
           form.phone

@@ -826,6 +826,11 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                 </div>
                 <div className="break-words">
                   Address: {displayAddress || "No address"}
+                  {u.addressVerificationOverride && (
+                    <div className="mt-1 font-semibold text-[#92400e]">
+                      Address needs admin review
+                    </div>
+                  )}
                 </div>
                 <div>
                   Approved: <span className={approved ? "font-semibold text-[#067647]" : "font-semibold text-[#92400e]"}>
@@ -988,6 +993,11 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                     <div className="text-[10px] text-[#667085] leading-tight truncate max-w-[140px]">
                       {displayAddress || "No address"}
                     </div>
+                    {u.addressVerificationOverride && (
+                      <div className="mt-1 text-[10px] font-semibold text-[#92400e]">
+                        Address review
+                      </div>
+                    )}
                   </td>
 
                   <td className="px-2 py-2 text-[11px] text-[#475467]">
