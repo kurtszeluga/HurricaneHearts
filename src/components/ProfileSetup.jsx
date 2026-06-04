@@ -92,20 +92,19 @@ export default function ProfileSetup({ user, onProfileSaved }) {
     let addressVerificationOverrideNote = "";
 
     if (addressValidation.configured && !addressValidation.valid) {
-      const continueAnyway = window.confirm(
-        "The house number, street name, city, zip, and AR lot number did not match the community address directory.\n\nChoose OK to submit anyway for admin review.\nChoose Cancel to edit the form or cancel your request."
+      const mismatchChoice = window.prompt(
+        "The house number, street name, city, zip, and AR lot number did not match the community address directory.\n\nEnter E to edit the form.\nEnter C to cancel this request.\nEnter S to submit anyway for admin review.",
+        "E"
       );
+      const normalizedChoice = String(mismatchChoice || "E").trim().toLowerCase();
 
-      if (!continueAnyway) {
-        const cancelRequest = window.confirm(
-          "Choose OK to cancel this request.\nChoose Cancel to return to the form and edit the address."
-        );
+      if (normalizedChoice === "c") {
+        onProfileSaved(null);
+        await signOut(auth);
+        return;
+      }
 
-        if (cancelRequest) {
-          onProfileSaved(null);
-          await signOut(auth);
-        }
-
+      if (normalizedChoice !== "s") {
         return;
       }
 
