@@ -49,7 +49,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isActiveApprovedUser() || isAdmin();
+      allow read: if isOwner(userId) || isActiveApprovedUser() || isAdmin();
 
       allow create: if signedIn()
         && isOwner(userId)

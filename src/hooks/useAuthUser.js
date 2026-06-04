@@ -121,6 +121,13 @@ export default function useAuthUser() {
         setLoading(false);
       } catch (error) {
         console.error("Auth profile error:", error);
+        if (error.code === "permission-denied") {
+          await blockAndSignOut(
+            "Your access request is waiting for admin approval. Please contact the Hurricane Hearts administrator if you need access sooner."
+          );
+          return;
+        }
+
         await blockAndSignOut(
           "There was a problem loading your account profile. Please contact the Hurricane Hearts administrator."
         );
