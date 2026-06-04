@@ -7,6 +7,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatAddress } from "../utils/addressFields";
 import { formatDateOnly } from "../utils/formatDate";
 import {
   categoryDescriptions,
@@ -211,7 +212,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           "Resident",
         residentEmail: selectedRequestor.email || "",
         residentPhone: selectedRequestor.phone || "",
-        residentAddress: selectedRequestor.address || "",
+        residentAddress: formatAddress(selectedRequestor),
         residentUid: selectedRequestor.uid || selectedRequestor.id,
         status: "Open",
         assignedHelper: null,

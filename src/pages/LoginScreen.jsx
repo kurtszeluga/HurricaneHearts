@@ -13,6 +13,10 @@ import {
   formatPhoneNumber,
   normalizePhoneNumber
 } from "../utils/formatPhoneNumber";
+import {
+  formatAddress,
+  isAddressComplete
+} from "../utils/addressFields";
 import { queueAccessRequestEmails } from "../utils/emailNotifications";
 
 const BLOCK_MESSAGE_KEY =
@@ -30,7 +34,11 @@ const emptyForm = {
   email: "",
   password: "",
   name: "",
-  address: "",
+  houseNumber: "",
+  streetName: "",
+  city: "",
+  zip: "",
+  arLotNumber: "",
   phone: ""
 };
 
@@ -154,12 +162,12 @@ export default function LoginScreen({ message }) {
         !form.email.trim() ||
         !form.password ||
         !form.name.trim() ||
-        !form.address.trim() ||
+        !isAddressComplete(form) ||
         !form.phone.trim()
       ) {
 
         alert(
-          "Please complete name, address, phone, email, and password."
+          "Please complete name, house number, street name, city, zip, AR lot number, phone, email, and password."
         );
 
         setSubmitting(false);
@@ -201,7 +209,17 @@ export default function LoginScreen({ message }) {
 
         email: form.email.trim(),
 
-        address: form.address.trim(),
+        houseNumber: form.houseNumber.trim(),
+
+        streetName: form.streetName.trim(),
+
+        city: form.city.trim(),
+
+        zip: form.zip.trim(),
+
+        arLotNumber: form.arLotNumber.trim(),
+
+        address: formatAddress(form),
 
         phone: normalizePhoneNumber(
           form.phone
@@ -263,7 +281,11 @@ export default function LoginScreen({ message }) {
         email: "",
         password: "",
         name: "",
-        address: "",
+        houseNumber: "",
+        streetName: "",
+        city: "",
+        zip: "",
+        arLotNumber: "",
         phone: ""
       });
 
@@ -480,13 +502,47 @@ export default function LoginScreen({ message }) {
                     className="border border-[#c7d0dc] rounded-md p-3"
                   />
 
-                  <input
-                    value={form.address}
-                    onChange={(e) => updateForm("address", e.target.value)}
-                    placeholder="Arlington Ridge address"
-                    disabled={submitting}
-                    className="border border-[#c7d0dc] rounded-md p-3"
-                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      value={form.houseNumber}
+                      onChange={(e) => updateForm("houseNumber", e.target.value)}
+                      placeholder="House number"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3"
+                    />
+
+                    <input
+                      value={form.streetName}
+                      onChange={(e) => updateForm("streetName", e.target.value)}
+                      placeholder="Street name"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3"
+                    />
+
+                    <input
+                      value={form.city}
+                      onChange={(e) => updateForm("city", e.target.value)}
+                      placeholder="City"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3"
+                    />
+
+                    <input
+                      value={form.zip}
+                      onChange={(e) => updateForm("zip", e.target.value)}
+                      placeholder="Zip"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3"
+                    />
+
+                    <input
+                      value={form.arLotNumber}
+                      onChange={(e) => updateForm("arLotNumber", e.target.value)}
+                      placeholder="AR Lot number"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3 sm:col-span-2"
+                    />
+                  </div>
 
                   <input
                     value={form.phone}

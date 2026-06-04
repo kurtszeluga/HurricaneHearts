@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatAddress } from "../utils/addressFields";
 import { normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import Navbar from "../components/Navbar";
 import RequestModal from "../components/RequestModal";
@@ -118,7 +119,12 @@ export default function Dashboard({
       const updatedProfile = {
         name: updatedUser.name,
         email: updatedUser.email,
-        address: updatedUser.address,
+        houseNumber: updatedUser.houseNumber?.trim() || "",
+        streetName: updatedUser.streetName?.trim() || "",
+        city: updatedUser.city?.trim() || "",
+        zip: updatedUser.zip?.trim() || "",
+        arLotNumber: updatedUser.arLotNumber?.trim() || "",
+        address: formatAddress(updatedUser),
         phone: normalizePhoneNumber(updatedUser.phone),
         serviceCategories,
         managedCategories: user.teamMember ? managedCategories : user.managedCategories || [],

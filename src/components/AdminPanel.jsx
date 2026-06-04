@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import ProfileEditor from "./ProfileEditor";
+import { formatAddress, isAddressComplete } from "../utils/addressFields";
 import {
   formatPhoneNumber,
   normalizePhoneNumber
@@ -15,6 +16,7 @@ import { queueApprovalEmail } from "../utils/emailNotifications";
 
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
 const DELETE_USER_API_PATH = "/api/delete-user";
+const UPDATE_USER_PASSWORD_API_PATH = "/api/update-user-password";
 
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
@@ -65,13 +67,14 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     const rows = [...users]
       .filter((u) => {
         if (!term) return true;
+        const displayAddress = formatAddress(u).toLowerCase();
 
         return (
           (u.name || "").toLowerCase().includes(term) ||
           (u.email || "").toLowerCase().includes(term) ||
           (u.phone || "").toLowerCase().includes(term) ||
           formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
-          (u.address || "").toLowerCase().includes(term)
+          displayAddress.includes(term)
         );
       })
       .filter((u) => {
@@ -96,8 +99,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       const emailB = (b.email || "").toLowerCase();
       const phoneA = formatPhoneNumber(a.phone || "");
       const phoneB = formatPhoneNumber(b.phone || "");
-      const addressA = (a.address || "").toLowerCase();
-      const addressB = (b.address || "").toLowerCase();
+      const addressA = formatAddress(a).toLowerCase();
+      const addressB = formatAddress(b).toLowerCase();
 
       const approvedA = a.approved !== false;
       const approvedB = b.approved !== false;
@@ -303,6 +306,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
   const saveEditedUser = async (updatedUser) => {
     const name = updatedUser.name || updatedUser.email || "this user";
+    const newPassword = String(updatedUser.newPassword || "");
 
     const confirmed = window.confirm(
       `Save profile and account changes for ${name}?`
@@ -334,7 +338,12 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     await updateDoc(doc(db, "users", updatedUser.id), {
       name: updatedUser.name,
       email: updatedUser.email,
-      address: updatedUser.address,
+      houseNumber: updatedUser.houseNumber?.trim() || "",
+      streetName: updatedUser.streetName?.trim() || "",
+      city: updatedUser.city?.trim() || "",
+      zip: updatedUser.zip?.trim() || "",
+      arLotNumber: updatedUser.arLotNumber?.trim() || "",
+      address: formatAddress(updatedUser),
       phone: normalizePhoneNumber(updatedUser.phone),
       serviceCategories: updatedUser.serviceCategories || [],
       teamMember: isPrimaryOwnerAdmin
@@ -361,10 +370,48 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       profileComplete: Boolean(
         updatedUser.name?.trim() &&
           updatedUser.email?.trim() &&
-          updatedUser.address?.trim() &&
+          isAddressComplete(updatedUser) &&
           updatedUser.phone?.trim()
       )
     });
+
+    if (newPassword) {
+      if (!isPrimaryOwnerAdmin) {
+        alert("Only the primary owner can change user passwords.");
+        return;
+      }
+
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        alert("Please sign in again before changing a user password.");
+        return;
+      }
+
+      try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch(UPDATE_USER_PASSWORD_API_PATH, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userId: updatedUser.id,
+            newPassword
+          })
+        });
+        const body = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(body?.error || "Unable to change user password.");
+        }
+      } catch (error) {
+        console.error("Password update error:", error);
+        alert(error.message || "Unable to change user password.");
+        return;
+      }
+    }
 
     if (wasPending && isNowApproved) {
       await queueApprovalEmail(db, {
@@ -400,7 +447,12 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     await addDoc(collection(db, "users"), {
       name: newUser.name,
       email: newUser.email,
-      address: newUser.address,
+      houseNumber: newUser.houseNumber?.trim() || "",
+      streetName: newUser.streetName?.trim() || "",
+      city: newUser.city?.trim() || "",
+      zip: newUser.zip?.trim() || "",
+      arLotNumber: newUser.arLotNumber?.trim() || "",
+      address: formatAddress(newUser),
       phone: normalizePhoneNumber(newUser.phone),
       serviceCategories: newUser.serviceCategories || [],
       teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
@@ -648,7 +700,11 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           user={{
             name: "",
             email: "",
-            address: "",
+            houseNumber: "",
+            streetName: "",
+            city: "",
+            zip: "",
+            arLotNumber: "",
             phone: "",
             serviceCategories: [],
             teamMember: false,
@@ -689,6 +745,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const active = u.active !== false;
               const role = getUserRole(u);
               const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+              const displayAddress = formatAddress(u);
 
           return (
             <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4">
@@ -718,7 +775,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                   Role: <span className="font-semibold capitalize">{role}</span>
                 </div>
                 <div className="break-words">
-                  Address: {u.address || "No address"}
+                  Address: {displayAddress || "No address"}
                 </div>
                 <div>
                   Approved: <span className={approved ? "font-semibold text-[#067647]" : "font-semibold text-[#92400e]"}>
@@ -863,6 +920,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const active = u.active !== false;
               const role = getUserRole(u);
               const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+              const displayAddress = formatAddress(u);
 
               return (
                 <tr key={u.id} className="bg-[#f1f5f9] align-top">
@@ -878,7 +936,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                     </div>
 
                     <div className="text-[10px] text-[#667085] leading-tight truncate max-w-[140px]">
-                      {u.address || "No address"}
+                      {displayAddress || "No address"}
                     </div>
                   </td>
 

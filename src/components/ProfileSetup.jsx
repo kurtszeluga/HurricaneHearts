@@ -4,6 +4,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
+import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
@@ -16,7 +17,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
   const [form, setForm] = useState({
     name: user.name || "",
     email: user.email || "",
-    address: user.address || "",
+    ...getAddressParts(user),
     phone: normalizePhoneNumber(user.phone),
     serviceCategories: user.serviceCategories || []
   });
@@ -35,8 +36,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
   };
 
   const saveProfile = async () => {
-    if (!form.name.trim() || !form.email.trim() || !form.address.trim() || !form.phone.trim()) {
-      alert("Please complete name, email, address, and phone.");
+    if (!form.name.trim() || !form.email.trim() || !isAddressComplete(form) || !form.phone.trim()) {
+      alert("Please complete name, email, house number, street name, city, zip, AR lot number, and phone.");
       return;
     }
 
@@ -48,6 +49,12 @@ export default function ProfileSetup({ user, onProfileSaved }) {
     const updatedProfile = {
       ...user,
       ...form,
+      houseNumber: form.houseNumber.trim(),
+      streetName: form.streetName.trim(),
+      city: form.city.trim(),
+      zip: form.zip.trim(),
+      arLotNumber: form.arLotNumber.trim(),
+      address: formatAddress(form),
       phone: normalizePhoneNumber(form.phone),
       role: user.role || "resident",
       approved: false,
@@ -93,12 +100,42 @@ export default function ProfileSetup({ user, onProfileSaved }) {
             className="border border-[#c7d0dc] rounded-lg p-3.5"
           />
 
-          <input
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            placeholder="Arlington Ridge address"
-            className="border border-[#c7d0dc] rounded-lg p-3.5"
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <input
+              value={form.houseNumber}
+              onChange={(e) => setForm({ ...form, houseNumber: e.target.value })}
+              placeholder="House number"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
+            />
+
+            <input
+              value={form.streetName}
+              onChange={(e) => setForm({ ...form, streetName: e.target.value })}
+              placeholder="Street name"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
+            />
+
+            <input
+              value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+              placeholder="City"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
+            />
+
+            <input
+              value={form.zip}
+              onChange={(e) => setForm({ ...form, zip: e.target.value })}
+              placeholder="Zip"
+              className="border border-[#c7d0dc] rounded-lg p-3.5"
+            />
+
+            <input
+              value={form.arLotNumber}
+              onChange={(e) => setForm({ ...form, arLotNumber: e.target.value })}
+              placeholder="AR Lot number"
+              className="border border-[#c7d0dc] rounded-lg p-3.5 md:col-span-2"
+            />
+          </div>
 
           <input
             value={form.phone}

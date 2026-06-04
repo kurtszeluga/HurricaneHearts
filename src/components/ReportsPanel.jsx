@@ -1,3 +1,4 @@
+import { formatAddress } from "../utils/addressFields";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 
@@ -126,7 +127,7 @@ export default function ReportsPanel({ user, users = [], requests = [], requestH
       Name: u.name || "",
       Email: u.email || "",
       Phone: formatPhoneNumber(u.phone) || "",
-      Address: u.address || "",
+      Address: formatAddress(u),
       Role: u.role || "resident",
       Approved: u.approved !== false ? "Yes" : "No",
       Active: u.active !== false ? "Yes" : "No",

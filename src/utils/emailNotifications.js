@@ -1,4 +1,5 @@
 import { auth } from "../firebase/config";
+import { formatAddress } from "./addressFields";
 import { formatDateOnly } from "./formatDate";
 
 export const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
@@ -91,7 +92,7 @@ Thank you for being part of Hurricane Hearts.`;
 Name: ${profile.name}
 Email: ${profile.email}
 Phone: ${profile.phone || "Not provided"}
-Address: ${profile.address || "Not provided"}
+Address: ${formatAddress(profile) || "Not provided"}
 
 Please sign in to the Admin Panel to approve or manage this account.`;
 

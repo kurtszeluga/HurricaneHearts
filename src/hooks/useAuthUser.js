@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
+import { isAddressComplete } from "../utils/addressFields";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
 const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
@@ -11,7 +12,7 @@ function isProfileComplete(profile) {
   return Boolean(
     profile.name?.trim() &&
       profile.email?.trim() &&
-      profile.address?.trim() &&
+      (profile.address?.trim() || isAddressComplete(profile)) &&
       profile.phone?.trim()
   );
 }
@@ -67,6 +68,11 @@ export default function useAuthUser() {
           uid: firebaseUser.uid,
           name: existing.name || "",
           email: existing.email || firebaseUser.email || "",
+          houseNumber: existing.houseNumber || "",
+          streetName: existing.streetName || "",
+          city: existing.city || "",
+          zip: existing.zip || "",
+          arLotNumber: existing.arLotNumber || "",
           address: existing.address || "",
           phone: existing.phone || "",
           serviceCategories: existing.serviceCategories || [],

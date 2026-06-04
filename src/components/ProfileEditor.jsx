@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
@@ -19,9 +20,9 @@ export default function ProfileEditor({
 
   const [form, setForm] = useState({
     ...user,
+    ...getAddressParts(user),
     name: user.name || "",
     email: user.email || "",
-    address: user.address || "",
     phone: formatPhoneNumber(user.phone || ""),
     role: isPrimaryOwner ? "admin" : user.role || "resident",
     approved: isPrimaryOwner ? true : user.approved ?? true,
@@ -30,6 +31,7 @@ export default function ProfileEditor({
     teamMember: user.teamMember || false,
     managedCategories: user.managedCategories || []
   });
+  const [newPassword, setNewPassword] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
 
   const toggleServiceCategory = (category) => {
@@ -59,14 +61,26 @@ export default function ProfileEditor({
   };
 
   const save = async () => {
-    if (!form.name.trim() || !form.email.trim() || !form.address.trim() || !form.phone.trim()) {
-      alert("Please complete name, email, address, and phone.");
+    if (!form.name.trim() || !form.email.trim() || !isAddressComplete(form) || !form.phone.trim()) {
+      alert("Please complete name, email, house number, street name, city, zip, AR lot number, and phone.");
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      alert("New password must be at least 6 characters.");
       return;
     }
 
     await onSave({
       ...form,
+      newPassword: newPassword || "",
       email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
+      houseNumber: form.houseNumber.trim(),
+      streetName: form.streetName.trim(),
+      city: form.city.trim(),
+      zip: form.zip.trim(),
+      arLotNumber: form.arLotNumber.trim(),
+      address: formatAddress(form),
       phone: normalizePhoneNumber(form.phone),
       role: isPrimaryOwner ? "admin" : form.role,
       approved: isPrimaryOwner ? true : form.approved,
@@ -135,12 +149,58 @@ export default function ProfileEditor({
         />
 
         <input
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-          placeholder="Address"
+          value={form.houseNumber}
+          onChange={(e) => setForm({ ...form, houseNumber: e.target.value })}
+          placeholder="House number"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+        />
+
+        <input
+          value={form.streetName}
+          onChange={(e) => setForm({ ...form, streetName: e.target.value })}
+          placeholder="Street name"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+        />
+
+        <input
+          value={form.city}
+          onChange={(e) => setForm({ ...form, city: e.target.value })}
+          placeholder="City"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+        />
+
+        <input
+          value={form.zip}
+          onChange={(e) => setForm({ ...form, zip: e.target.value })}
+          placeholder="Zip"
+          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+        />
+
+        <input
+          value={form.arLotNumber}
+          onChange={(e) => setForm({ ...form, arLotNumber: e.target.value })}
+          placeholder="AR Lot number"
           className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
         />
       </div>
+
+      {adminMode && canManageAdminRole && user.id && (
+        <div className="bg-[#f8fafc] border border-[#c7d0dc] rounded-lg p-5 mt-5">
+          <div className="font-bold text-[#172033] mb-1">Password</div>
+          <p className="text-sm text-[#667085] mb-3">
+            Existing passwords cannot be viewed. Enter a new password here to replace it.
+          </p>
+
+          <input
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="••••••••"
+            type="password"
+            autoComplete="new-password"
+            className="w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
+          />
+        </div>
+      )}
 
       <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-5 mt-5">
         <div className="font-bold text-[#172033] mb-2">Willing to Help With</div>

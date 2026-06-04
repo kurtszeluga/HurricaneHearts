@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatAddress } from "../utils/addressFields";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import {
   categoryAbbreviations,
@@ -63,7 +64,7 @@ function PrintableUserDetails({ user, onClose }) {
 
             <div className="border rounded-2xl p-4">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
-              <div>{user.address || "Not provided"}</div>
+              <div>{formatAddress(user) || "Not provided"}</div>
             </div>
 
             <div className="border rounded-2xl p-4">
@@ -156,12 +157,14 @@ export default function UserDirectory({ users = [] }) {
       .filter((u) => u.active !== false && u.approved !== false)
       .filter((u) => {
         if (!term) return true;
+        const displayAddress = formatAddress(u).toLowerCase();
+
         return (
           (u.name || "").toLowerCase().includes(term) ||
           (u.email || "").toLowerCase().includes(term) ||
           (u.phone || "").toLowerCase().includes(term) ||
           formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
-          (u.address || "").toLowerCase().includes(term) ||
+          displayAddress.includes(term) ||
           (u.serviceCategories || []).some((category) =>
             category.toLowerCase().includes(term)
           )
@@ -229,6 +232,7 @@ export default function UserDirectory({ users = [] }) {
       <div className="space-y-4 md:hidden">
         {filteredUsers.map((u) => {
           const selectedCategories = (u.serviceCategories || []).filter(Boolean);
+          const displayAddress = formatAddress(u);
 
           return (
             <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 shadow-sm">
@@ -255,7 +259,7 @@ export default function UserDirectory({ users = [] }) {
               </div>
 
               <div className="text-xs text-[#475467] mt-3 break-words">
-                {u.address || "No address"}
+                {displayAddress || "No address"}
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
