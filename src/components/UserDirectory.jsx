@@ -63,6 +63,11 @@ function PrintableUserDetails({ user, onClose }) {
             </div>
 
             <div className="border rounded-2xl p-4">
+              <div className="text-xs font-bold text-gray-500 uppercase mb-1">User ID</div>
+              <div>{user.loginId || "Not assigned"}</div>
+            </div>
+
+            <div className="border rounded-2xl p-4">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
               <div>{formatAddress(user) || "Not provided"}</div>
             </div>

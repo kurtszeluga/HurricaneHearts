@@ -17,6 +17,7 @@ import { queueApprovalEmail } from "../utils/emailNotifications";
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
 const DELETE_USER_API_PATH = "/api/delete-user";
 const UPDATE_USER_PASSWORD_API_PATH = "/api/update-user-password";
+const UPDATE_LOGIN_ID_API_PATH = "/api/update-login-id";
 
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
@@ -72,6 +73,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         return (
           (u.name || "").toLowerCase().includes(term) ||
           (u.email || "").toLowerCase().includes(term) ||
+          (u.loginId || "").toLowerCase().includes(term) ||
           (u.phone || "").toLowerCase().includes(term) ||
           formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
           displayAddress.includes(term)
@@ -307,6 +309,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
   const saveEditedUser = async (updatedUser) => {
     const name = updatedUser.name || updatedUser.email || "this user";
     const newPassword = String(updatedUser.newPassword || "");
+    const nextLoginId = String(updatedUser.loginId || "").trim();
+    const previousLoginId = String(editingUser?.loginId || "").trim();
 
     const confirmed = window.confirm(
       `Save profile and account changes for ${name}?`
@@ -374,6 +378,50 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           updatedUser.phone?.trim()
       )
     });
+
+    if (
+      nextLoginId &&
+      (
+        nextLoginId !== previousLoginId ||
+        updatedUser.email !== editingUser?.email
+      )
+    ) {
+      if (!isPrimaryOwnerAdmin) {
+        alert("Only the primary owner can change User IDs.");
+        return;
+      }
+
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        alert("Please sign in again before changing a User ID.");
+        return;
+      }
+
+      try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch(UPDATE_LOGIN_ID_API_PATH, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userId: updatedUser.id,
+            loginId: nextLoginId
+          })
+        });
+        const body = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(body?.error || "Unable to change User ID.");
+        }
+      } catch (error) {
+        console.error("User ID update error:", error);
+        alert(error.message || "Unable to change User ID.");
+        return;
+      }
+    }
 
     if (newPassword) {
       if (!isPrimaryOwnerAdmin) {
@@ -643,7 +691,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, email, phone, address"
+          placeholder="Search name, User ID, email, phone, address"
           className="border border-[#c7d0dc] rounded-lg px-3 py-2 bg-white text-sm w-full"
         />
 

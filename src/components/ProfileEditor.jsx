@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
+import { getLoginIdMessage, isValidLoginId } from "../utils/loginId";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
 export default function ProfileEditor({
@@ -17,12 +18,15 @@ export default function ProfileEditor({
   const canEditRole = canManageAdminRole || isPrimaryOwner;
   const canManageTeamMember = adminMode && canManageAdminRole;
   const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
+  const canEditLoginId = adminMode && canManageAdminRole && Boolean(user.id);
 
   const [form, setForm] = useState({
     ...user,
     ...getAddressParts(user),
     name: user.name || "",
     email: user.email || "",
+    loginId: user.loginId || "",
+    loginIdKey: user.loginIdKey || "",
     phone: formatPhoneNumber(user.phone || ""),
     role: isPrimaryOwner ? "admin" : user.role || "resident",
     approved: isPrimaryOwner ? true : user.approved ?? true,
@@ -71,10 +75,16 @@ export default function ProfileEditor({
       return;
     }
 
+    if (canEditLoginId && form.loginId.trim() && !isValidLoginId(form.loginId)) {
+      alert(getLoginIdMessage());
+      return;
+    }
+
     await onSave({
       ...form,
       newPassword: newPassword || "",
       email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
+      loginId: form.loginId.trim(),
       houseNumber: form.houseNumber.trim(),
       streetName: form.streetName.trim(),
       city: form.city.trim(),
@@ -122,66 +132,110 @@ export default function ProfileEditor({
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Full name"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          Full name
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Full name"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
 
-        <input
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          placeholder="Email"
-          disabled={isPrimaryOwner}
-          className={
-            isPrimaryOwner
-              ? "border border-[#c7d0dc] rounded-lg p-3.5 bg-[#e2e8f0] text-[#667085]"
-              : "border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-          }
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          Email
+          <input
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="Email"
+            disabled={isPrimaryOwner}
+            className={
+              isPrimaryOwner
+                ? "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-[#e2e8f0] text-[#667085] font-normal"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            }
+          />
+        </label>
 
-        <input
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })}
-          placeholder="Phone"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          User ID
+          <input
+            value={form.loginId}
+            onChange={(e) => setForm({ ...form, loginId: e.target.value })}
+            placeholder={canEditLoginId ? "Enter User ID" : "Not assigned"}
+            disabled={!canEditLoginId}
+            className={
+              canEditLoginId
+                ? "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-[#e2e8f0] text-[#667085] font-normal"
+            }
+          />
+          {canEditLoginId && (
+            <span className="mt-1 block text-xs font-normal text-[#667085]">
+              {getLoginIdMessage()}
+            </span>
+          )}
+        </label>
 
-        <input
-          value={form.houseNumber}
-          onChange={(e) => setForm({ ...form, houseNumber: e.target.value })}
-          placeholder="House number"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          Phone
+          <input
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: formatPhoneNumber(e.target.value) })}
+            placeholder="Phone"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
 
-        <input
-          value={form.streetName}
-          onChange={(e) => setForm({ ...form, streetName: e.target.value })}
-          placeholder="Street name"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          House number
+          <input
+            value={form.houseNumber}
+            onChange={(e) => setForm({ ...form, houseNumber: e.target.value })}
+            placeholder="House number"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
 
-        <input
-          value={form.city}
-          onChange={(e) => setForm({ ...form, city: e.target.value })}
-          placeholder="City"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          Street name
+          <input
+            value={form.streetName}
+            onChange={(e) => setForm({ ...form, streetName: e.target.value })}
+            placeholder="Street name"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
 
-        <input
-          value={form.zip}
-          onChange={(e) => setForm({ ...form, zip: e.target.value })}
-          placeholder="Zip"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          City
+          <input
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            placeholder="City"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
 
-        <input
-          value={form.arLotNumber}
-          onChange={(e) => setForm({ ...form, arLotNumber: e.target.value })}
-          placeholder="AR Lot number"
-          className="border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-        />
+        <label className="text-sm font-semibold text-[#172033]">
+          Zip
+          <input
+            value={form.zip}
+            onChange={(e) => setForm({ ...form, zip: e.target.value })}
+            placeholder="Zip"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
+
+        <label className="text-sm font-semibold text-[#172033]">
+          AR Lot number
+          <input
+            value={form.arLotNumber}
+            onChange={(e) => setForm({ ...form, arLotNumber: e.target.value })}
+            placeholder="AR Lot number"
+            className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+          />
+        </label>
       </div>
 
       {adminMode && canManageAdminRole && user.id && (
@@ -191,14 +245,17 @@ export default function ProfileEditor({
             Existing passwords cannot be viewed. Enter a new password here to replace it.
           </p>
 
-          <input
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="••••••••"
-            type="password"
-            autoComplete="new-password"
-            className="w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white"
-          />
+          <label className="block text-sm font-semibold text-[#172033]">
+            New password
+            <input
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+              type="password"
+              autoComplete="new-password"
+              className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
+            />
+          </label>
         </div>
       )}
 
