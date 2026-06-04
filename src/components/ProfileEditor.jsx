@@ -9,6 +9,7 @@ export default function ProfileEditor({
   user,
   adminMode = false,
   canManageAdminRole = true,
+  scrollInside = false,
   onSave,
   onDelete,
   onCancel
@@ -19,9 +20,10 @@ export default function ProfileEditor({
   const canManageTeamMember = adminMode && canManageAdminRole;
   const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
   const canEditLoginId = adminMode && canManageAdminRole && Boolean(user.id);
+  const addressVerificationFailed = user.addressVerificationOverride === true;
+  const addressManuallyReviewed = user.addressManuallyReviewed === true;
   const needsAddressReview =
-    user.addressVerificationOverride === true &&
-    user.addressVerified !== true;
+    addressVerificationFailed && !addressManuallyReviewed;
 
   const [form, setForm] = useState({
     ...user,
@@ -149,15 +151,35 @@ export default function ProfileEditor({
   };
 
   return (
-    <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-5 mb-6">
+    <div
+      className={
+        scrollInside
+          ? "bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-5 mb-6 max-h-[calc(100vh-9rem)] overflow-y-auto overscroll-contain"
+          : "bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-5 mb-6"
+      }
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-[#172033]">{title}</h3>
       </div>
 
-      {needsAddressReview && (
-        <div className="mb-5 rounded-lg border-2 border-[#f79009] bg-[#fffbeb] p-4 text-sm text-[#7a2e0e]">
-          <div className="text-base font-bold text-[#b54708]">
-            Address Requires Admin Review
+      {addressVerificationFailed && (
+        <div
+          className={
+            needsAddressReview
+              ? "mb-5 rounded-lg border-2 border-[#f79009] bg-[#fffbeb] p-4 text-sm text-[#7a2e0e]"
+              : "mb-5 rounded-lg border border-[#abefc6] bg-[#ecfdf3] p-4 text-sm text-[#05603a]"
+          }
+        >
+          <div
+            className={
+              needsAddressReview
+                ? "text-base font-bold text-[#b54708]"
+                : "text-base font-bold text-[#067647]"
+            }
+          >
+            {needsAddressReview
+              ? "Address Requires Admin Review"
+              : "Address Verification Failed - Manually Reviewed"}
           </div>
           <p className="mt-1">
             This resident submitted an address that did not match the uploaded directory.
@@ -165,6 +187,11 @@ export default function ProfileEditor({
           {user.addressVerificationOverrideNote && (
             <p className="mt-2 font-semibold">
               Resident note: {user.addressVerificationOverrideNote}
+            </p>
+          )}
+          {addressManuallyReviewed && user.addressReviewComment && (
+            <p className="mt-2 font-semibold">
+              Admin review comment: {user.addressReviewComment}
             </p>
           )}
         </div>

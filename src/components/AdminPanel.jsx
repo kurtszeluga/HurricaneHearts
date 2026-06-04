@@ -45,7 +45,7 @@ function getUserRole(u) {
 }
 
 function needsAddressReview(user) {
-  return user.addressVerificationOverride === true && user.addressVerified !== true;
+  return user.addressVerificationOverride === true && user.addressManuallyReviewed !== true;
 }
 
 function HeaderTooltip({ tooltip, children }) {
@@ -404,7 +404,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           : updatedUser.active ?? true,
       ...(approvingFlaggedAddress
         ? {
-            addressVerified: true,
+            addressVerified: false,
             addressManuallyReviewed: true,
             addressReviewComment,
             addressReviewedAt: serverTimestamp(),
@@ -804,6 +804,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           }}
           adminMode
           canManageAdminRole={isPrimaryOwnerAdmin}
+          scrollInside
           onCancel={() => setShowAddUser(false)}
           onSave={addManualUser}
         />
@@ -815,6 +816,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           user={editingUser}
           adminMode
           canManageAdminRole={isPrimaryOwnerAdmin}
+          scrollInside
           onCancel={() => setEditingUser(null)}
           onSave={saveEditedUser}
           onDelete={deleteUserAccount}
