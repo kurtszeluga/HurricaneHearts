@@ -89,6 +89,20 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /loginIds/{loginIdKey} {
+      allow read: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.authEmail == request.auth.token.email
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.loginIdKey == loginIdKey
+        && !exists(/databases/$(database)/documents/loginIds/$(loginIdKey));
+
+      allow update: if isPrimaryOwnerAdmin();
+      allow delete: if isPrimaryOwnerAdmin();
+    }
+
     match /requests/{requestId} {
       allow read: if isActiveApprovedUser();
 
@@ -136,9 +150,18 @@ service cloud.firestore {
 
     match /system/{docId} {
       allow read: if isActiveApprovedUser()
-        && (docId != "emailSettings" || isAdmin());
-      allow create, update: if isAdmin()
-        && docId in ["activeEvent", "emailSettings"];
+        && (
+          (docId != "emailSettings" && docId != "signupSettings")
+          || isAdmin()
+        );
+      allow create, update: if (
+          isAdmin()
+          && docId in ["activeEvent", "emailSettings"]
+        )
+        || (
+          isPrimaryOwnerAdmin()
+          && docId == "signupSettings"
+        );
       allow delete: if isAdmin();
     }
 

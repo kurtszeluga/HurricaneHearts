@@ -68,6 +68,8 @@ export default function useAuthUser() {
           uid: firebaseUser.uid,
           name: existing.name || "",
           email: existing.email || firebaseUser.email || "",
+          loginId: existing.loginId || "",
+          loginIdKey: existing.loginIdKey || "",
           houseNumber: existing.houseNumber || "",
           streetName: existing.streetName || "",
           city: existing.city || "",

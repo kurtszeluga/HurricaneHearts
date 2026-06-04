@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   signOut
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import TermsAndConditions from "../components/TermsAndConditions";
 import {
@@ -17,7 +17,14 @@ import {
   formatAddress,
   isAddressComplete
 } from "../utils/addressFields";
+import { validateCommunityAddress } from "../utils/communityAddressDirectory";
 import { queueAccessRequestEmails } from "../utils/emailNotifications";
+import {
+  getLoginIdMessage,
+  isValidLoginId,
+  looksLikeEmail,
+  normalizeLoginId
+} from "../utils/loginId";
 
 const BLOCK_MESSAGE_KEY =
   "hurricaneHeartsAuthMessage";
@@ -32,6 +39,7 @@ const TERMS_VERSION = "1.0";
 
 const emptyForm = {
   email: "",
+  loginId: "",
   password: "",
   name: "",
   houseNumber: "",
@@ -83,6 +91,39 @@ export default function LoginScreen({ message }) {
     }));
   };
 
+  const resolveLoginEmail = async () => {
+    const loginValue = form.email.trim();
+
+    if (!loginValue) {
+      throw new Error("Please enter your email or User ID.");
+    }
+
+    if (looksLikeEmail(loginValue)) {
+      return loginValue;
+    }
+
+    if (!isValidLoginId(loginValue)) {
+      throw new Error("Invalid login or password.");
+    }
+
+    const response = await fetch("/api/resolve-login-id", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        loginId: loginValue
+      })
+    });
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok || !body.email) {
+      throw new Error(body?.error || "Invalid login or password.");
+    }
+
+    return body.email;
+  };
+
   const loginWithEmail = async () => {
 
     try {
@@ -100,18 +141,16 @@ export default function LoginScreen({ message }) {
         "login"
       );
 
-      await signInWithEmailAndPassword(
-        auth,
-        form.email.trim(),
-        form.password
-      );
+      const loginEmail = await resolveLoginEmail();
+
+      await signInWithEmailAndPassword(auth, loginEmail, form.password);
 
     } catch (error) {
 
       console.error(error);
 
       alert(
-        "Login failed. Please check your email and password."
+        error.message || "Login failed. Please check your email/User ID and password."
       );
     }
   };
@@ -123,16 +162,15 @@ export default function LoginScreen({ message }) {
       if (!form.email.trim()) {
 
         alert(
-          "Please enter your email address first."
+          "Please enter your email or User ID first."
         );
 
         return;
       }
 
-      await sendPasswordResetEmail(
-        auth,
-        form.email.trim()
-      );
+      const loginEmail = await resolveLoginEmail();
+
+      await sendPasswordResetEmail(auth, loginEmail);
 
       alert(
         "Password reset email sent. Please check your inbox."
@@ -148,6 +186,22 @@ export default function LoginScreen({ message }) {
     }
   };
 
+  const shouldVerifySignupAddress = async () => {
+    try {
+      const response = await fetch("/api/signup-settings");
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        return false;
+      }
+
+      return body.addressVerificationEnabled === true;
+    } catch (error) {
+      console.warn("Signup settings lookup skipped:", error);
+      return false;
+    }
+  };
+
   const requestAccessWithEmail = async () => {
 
     if (submitting) {
@@ -160,6 +214,7 @@ export default function LoginScreen({ message }) {
 
       if (
         !form.email.trim() ||
+        !form.loginId.trim() ||
         !form.password ||
         !form.name.trim() ||
         !isAddressComplete(form) ||
@@ -167,7 +222,7 @@ export default function LoginScreen({ message }) {
       ) {
 
         alert(
-          "Please complete name, house number, street name, city, zip, AR lot number, phone, email, and password."
+          "Please complete name, house number, street name, city, zip, AR lot number, phone, email, User ID, and password."
         );
 
         setSubmitting(false);
@@ -179,6 +234,59 @@ export default function LoginScreen({ message }) {
 
         alert(
           "Please review and accept the Terms and Conditions before submitting your access request."
+        );
+
+        setSubmitting(false);
+
+        return;
+      }
+
+      const addressVerificationEnabled =
+        await shouldVerifySignupAddress();
+      const addressValidation = addressVerificationEnabled
+        ? validateCommunityAddress(form)
+        : {
+            configured: false,
+            valid: true,
+            match: null
+          };
+
+      if (addressValidation.configured && !addressValidation.valid) {
+
+        alert(
+          "The house number, street name, city, zip, and AR lot number did not match the community address directory. Please check the information or contact the Hurricane Hearts administrator."
+        );
+
+        setSubmitting(false);
+
+        return;
+      }
+
+      if (!isValidLoginId(form.loginId)) {
+
+        alert(getLoginIdMessage());
+
+        setSubmitting(false);
+
+        return;
+      }
+
+      const loginIdKey = normalizeLoginId(form.loginId);
+      const loginIdResponse = await fetch("/api/check-login-id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          loginId: form.loginId
+        })
+      });
+      const loginIdBody = await loginIdResponse.json().catch(() => ({}));
+
+      if (!loginIdResponse.ok || !loginIdBody.available) {
+
+        alert(
+          loginIdBody?.error || "That User ID is already taken. Please choose another one."
         );
 
         setSubmitting(false);
@@ -209,6 +317,10 @@ export default function LoginScreen({ message }) {
 
         email: form.email.trim(),
 
+        loginId: form.loginId.trim(),
+
+        loginIdKey,
+
         houseNumber: form.houseNumber.trim(),
 
         streetName: form.streetName.trim(),
@@ -220,6 +332,14 @@ export default function LoginScreen({ message }) {
         arLotNumber: form.arLotNumber.trim(),
 
         address: formatAddress(form),
+
+        addressVerified:
+          addressVerificationEnabled &&
+          addressValidation.configured &&
+          addressValidation.valid,
+
+        addressVerificationRequired:
+          addressVerificationEnabled,
 
         phone: normalizePhoneNumber(
           form.phone
@@ -252,10 +372,27 @@ export default function LoginScreen({ message }) {
         createdAt: serverTimestamp()
       };
 
-      await setDoc(
+      const batch = writeBatch(db);
+
+      batch.set(
         doc(db, "users", credential.user.uid),
         accessRequestProfile
       );
+
+      batch.set(
+        doc(db, "loginIds", loginIdKey),
+        {
+          uid: credential.user.uid,
+          loginId: form.loginId.trim(),
+          loginIdKey,
+          email: form.email.trim(),
+          authEmail: form.email.trim(),
+          active: true,
+          createdAt: serverTimestamp()
+        }
+      );
+
+      await batch.commit();
 
       await queueAccessRequestEmails(
         db,
@@ -279,6 +416,7 @@ export default function LoginScreen({ message }) {
 
       setForm({
         email: "",
+        loginId: "",
         password: "",
         name: "",
         houseNumber: "",
@@ -311,6 +449,18 @@ export default function LoginScreen({ message }) {
       console.error(error);
 
       setSubmitting(false);
+
+      if (
+        auth.currentUser?.email === form.email.trim() &&
+        error.code !== "auth/email-already-in-use"
+      ) {
+        await auth.currentUser.delete().catch((deleteError) => {
+          console.error(
+            "Access request cleanup failed:",
+            deleteError
+          );
+        });
+      }
 
       if (
         error.code ===
@@ -502,6 +652,19 @@ export default function LoginScreen({ message }) {
                     className="border border-[#c7d0dc] rounded-md p-3"
                   />
 
+                  <div>
+                    <input
+                      value={form.loginId}
+                      onChange={(e) => updateForm("loginId", e.target.value)}
+                      placeholder="Create User ID"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3 w-full"
+                    />
+                    <div className="mt-1 text-xs text-[#667085]">
+                      {getLoginIdMessage()}
+                    </div>
+                  </div>
+
                   <div className="grid gap-3 sm:grid-cols-2">
                     <input
                       value={form.houseNumber}
@@ -583,8 +746,8 @@ export default function LoginScreen({ message }) {
                 <input
                   value={form.email}
                   onChange={(e) => updateForm("email", e.target.value)}
-                  placeholder="Email address"
-                  type="email"
+                  placeholder={mode === "login" ? "Email or User ID" : "Email address"}
+                  type="text"
                   disabled={submitting}
                   className="border border-[#c7d0dc] rounded-md p-3"
                 />

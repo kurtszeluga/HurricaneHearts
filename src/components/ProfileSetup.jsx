@@ -5,6 +5,7 @@ import { auth, db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
+import { validateCommunityAddress } from "../utils/communityAddressDirectory";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
@@ -35,6 +36,22 @@ export default function ProfileSetup({ user, onProfileSaved }) {
     });
   };
 
+  const shouldVerifySignupAddress = async () => {
+    try {
+      const response = await fetch("/api/signup-settings");
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        return false;
+      }
+
+      return body.addressVerificationEnabled === true;
+    } catch (error) {
+      console.warn("Signup settings lookup skipped:", error);
+      return false;
+    }
+  };
+
   const saveProfile = async () => {
     if (!form.name.trim() || !form.email.trim() || !isAddressComplete(form) || !form.phone.trim()) {
       alert("Please complete name, email, house number, street name, city, zip, AR lot number, and phone.");
@@ -43,6 +60,20 @@ export default function ProfileSetup({ user, onProfileSaved }) {
 
     if (!acceptedTerms) {
       alert("Please review and accept the Terms and Conditions before submitting your access request.");
+      return;
+    }
+
+    const addressVerificationEnabled = await shouldVerifySignupAddress();
+    const addressValidation = addressVerificationEnabled
+      ? validateCommunityAddress(form)
+      : {
+          configured: false,
+          valid: true,
+          match: null
+        };
+
+    if (addressValidation.configured && !addressValidation.valid) {
+      alert("The house number, street name, city, zip, and AR lot number did not match the community address directory. Please check the information or contact the Hurricane Hearts administrator.");
       return;
     }
 
@@ -55,6 +86,11 @@ export default function ProfileSetup({ user, onProfileSaved }) {
       zip: form.zip.trim(),
       arLotNumber: form.arLotNumber.trim(),
       address: formatAddress(form),
+      addressVerified:
+        addressVerificationEnabled &&
+        addressValidation.configured &&
+        addressValidation.valid,
+      addressVerificationRequired: addressVerificationEnabled,
       phone: normalizePhoneNumber(form.phone),
       role: user.role || "resident",
       approved: false,
