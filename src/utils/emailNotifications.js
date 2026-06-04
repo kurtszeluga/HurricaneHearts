@@ -79,6 +79,7 @@ async function sendEmailBatch(emails) {
 
 export async function queueAccessRequestEmails(_db, profile) {
   const firstName = profile.name?.split(" ")[0] || "there";
+  const hasRecipientEmail = Boolean(profile.email?.trim());
   const welcomeText = `Hi ${firstName},
 
 Welcome to Hurricane Hearts. Your access request has been received and is pending administrator approval.
@@ -90,20 +91,23 @@ Thank you for being part of Hurricane Hearts.`;
   const adminText = `A new Hurricane Hearts user is pending approval.
 
 Name: ${profile.name}
-Email: ${profile.email}
+Email: ${profile.email || "No email on file"}
+User ID: ${profile.loginId || "Not provided"}
 Phone: ${profile.phone || "Not provided"}
 Address: ${formatAddress(profile) || "Not provided"}
 
 Please sign in to the Admin Panel to approve or manage this account.`;
 
-  await sendEmailBatch([
-    createEmail({
-      to: profile.email,
-      subject: "Welcome to Hurricane Hearts",
-      text: welcomeText,
-      type: "access-request-welcome",
-      accessRequestUid: profile.uid
-    }),
+  const emails = [
+    ...(hasRecipientEmail ? [
+      createEmail({
+        to: profile.email,
+        subject: "Welcome to Hurricane Hearts",
+        text: welcomeText,
+        type: "access-request-welcome",
+        accessRequestUid: profile.uid
+      })
+    ] : []),
     createEmail({
       to: PRIMARY_ADMIN_EMAIL,
       subject: "New Hurricane Hearts user pending approval",
@@ -111,10 +115,16 @@ Please sign in to the Admin Panel to approve or manage this account.`;
       type: "admin-access-request",
       accessRequestUid: profile.uid
     })
-  ]);
+  ];
+
+  await sendEmailBatch(emails);
 }
 
 export async function queueApprovalEmail(_db, profile) {
+  if (!profile.email?.trim()) {
+    return;
+  }
+
   const firstName = profile.name?.split(" ")[0] || "there";
   const approvalText = `Hi ${firstName},
 

@@ -11,7 +11,7 @@ const ACCESS_SUCCESS_KEY = "hurricaneHeartsAccessRequestSuccess";
 function isProfileComplete(profile) {
   return Boolean(
     profile.name?.trim() &&
-      profile.email?.trim() &&
+      (profile.email?.trim() || profile.authEmail?.trim()) &&
       (profile.address?.trim() || isAddressComplete(profile)) &&
       profile.phone?.trim()
   );
@@ -67,7 +67,9 @@ export default function useAuthUser() {
         const profile = {
           uid: firebaseUser.uid,
           name: existing.name || "",
-          email: existing.email || firebaseUser.email || "",
+          email: existing.email || "",
+          hasEmail: existing.hasEmail !== false,
+          authEmail: existing.authEmail || firebaseUser.email || "",
           loginId: existing.loginId || "",
           loginIdKey: existing.loginIdKey || "",
           houseNumber: existing.houseNumber || "",

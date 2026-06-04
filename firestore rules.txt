@@ -95,7 +95,10 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.authEmail == request.auth.token.email
-        && request.resource.data.email == request.auth.token.email
+        && (
+          request.resource.data.email == request.auth.token.email
+          || request.resource.data.email == ""
+        )
         && request.resource.data.loginIdKey == loginIdKey
         && !exists(/databases/$(database)/documents/loginIds/$(loginIdKey));
 

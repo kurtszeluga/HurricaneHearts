@@ -65,8 +65,14 @@ export default function ProfileEditor({
   };
 
   const save = async () => {
-    if (!form.name.trim() || !form.email.trim() || !isAddressComplete(form) || !form.phone.trim()) {
-      alert("Please complete name, email, house number, street name, city, zip, AR lot number, and phone.");
+    const hasProfileEmail = form.hasEmail !== false || Boolean(form.email.trim());
+
+    if (!form.name.trim() || (hasProfileEmail && !form.email.trim()) || !isAddressComplete(form) || !form.phone.trim()) {
+      alert(
+        hasProfileEmail
+          ? "Please complete name, email, house number, street name, city, zip, AR lot number, and phone."
+          : "Please complete name, house number, street name, city, zip, AR lot number, and phone."
+      );
       return;
     }
 
@@ -84,6 +90,7 @@ export default function ProfileEditor({
       ...form,
       newPassword: newPassword || "",
       email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
+      hasEmail: hasProfileEmail,
       loginId: form.loginId.trim(),
       houseNumber: form.houseNumber.trim(),
       streetName: form.streetName.trim(),
@@ -147,7 +154,7 @@ export default function ProfileEditor({
           <input
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder="Email"
+            placeholder={form.hasEmail === false ? "No email on file" : "Email"}
             disabled={isPrimaryOwner}
             className={
               isPrimaryOwner

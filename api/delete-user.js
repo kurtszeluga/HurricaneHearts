@@ -169,12 +169,18 @@ export default async function handler(request, response) {
 
     const authUid = targetProfile.uid || targetProfile.id;
     const authDeleted = authUid ? await deleteAuthUser(auth, authUid) : false;
+    const loginIdKey = targetProfile.loginIdKey || "";
+
+    if (loginIdKey) {
+      await db.doc(`loginIds/${loginIdKey}`).delete();
+    }
 
     await db.doc(`users/${userId}`).delete();
 
     response.status(200).json({
       ok: true,
       authDeleted,
+      loginIdDeleted: Boolean(loginIdKey),
       profileDeleted: true
     });
   } catch (error) {

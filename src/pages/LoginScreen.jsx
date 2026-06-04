@@ -40,6 +40,7 @@ const TERMS_VERSION = "1.0";
 const emptyForm = {
   email: "",
   loginId: "",
+  hasEmail: "yes",
   password: "",
   name: "",
   houseNumber: "",
@@ -91,7 +92,10 @@ export default function LoginScreen({ message }) {
     }));
   };
 
-  const resolveLoginEmail = async () => {
+  const buildHiddenAuthEmail = (loginIdKey) =>
+    `${loginIdKey}@users.hurricanehearts.org`;
+
+  const resolveLoginEmail = async ({ includeDetails = false } = {}) => {
     const loginValue = form.email.trim();
 
     if (!loginValue) {
@@ -99,7 +103,12 @@ export default function LoginScreen({ message }) {
     }
 
     if (looksLikeEmail(loginValue)) {
-      return loginValue;
+      return includeDetails
+        ? {
+            email: loginValue,
+            hasEmail: true
+          }
+        : loginValue;
     }
 
     if (!isValidLoginId(loginValue)) {
@@ -121,7 +130,12 @@ export default function LoginScreen({ message }) {
       throw new Error(body?.error || "Invalid login or password.");
     }
 
-    return body.email;
+    return includeDetails
+      ? {
+          email: body.email,
+          hasEmail: body.hasEmail !== false
+        }
+      : body.email;
   };
 
   const loginWithEmail = async () => {
@@ -168,9 +182,16 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      const loginEmail = await resolveLoginEmail();
+      const login = await resolveLoginEmail({ includeDetails: true });
 
-      await sendPasswordResetEmail(auth, loginEmail);
+      if (!login.hasEmail) {
+        alert(
+          "This User ID does not have an email address on file. Please contact the Hurricane Hearts administrator to reset your password."
+        );
+        return;
+      }
+
+      await sendPasswordResetEmail(auth, login.email);
 
       alert(
         "Password reset email sent. Please check your inbox."
@@ -212,8 +233,10 @@ export default function LoginScreen({ message }) {
 
       setSubmitting(true);
 
+      const hasEmail = form.hasEmail !== "no";
+
       if (
-        !form.email.trim() ||
+        (hasEmail && !form.email.trim()) ||
         !form.loginId.trim() ||
         !form.password ||
         !form.name.trim() ||
@@ -222,7 +245,9 @@ export default function LoginScreen({ message }) {
       ) {
 
         alert(
-          "Please complete name, house number, street name, city, zip, AR lot number, phone, email, User ID, and password."
+          hasEmail
+            ? "Please complete name, house number, street name, city, zip, AR lot number, phone, email, User ID, and password."
+            : "Please complete name, house number, street name, city, zip, AR lot number, phone, User ID, and password."
         );
 
         setSubmitting(false);
@@ -272,6 +297,9 @@ export default function LoginScreen({ message }) {
       }
 
       const loginIdKey = normalizeLoginId(form.loginId);
+      const authEmail = hasEmail
+        ? form.email.trim()
+        : buildHiddenAuthEmail(loginIdKey);
       const loginIdResponse = await fetch("/api/check-login-id", {
         method: "POST",
         headers: {
@@ -306,7 +334,7 @@ export default function LoginScreen({ message }) {
       const credential =
         await createUserWithEmailAndPassword(
           auth,
-          form.email.trim(),
+          authEmail,
           form.password
         );
 
@@ -315,7 +343,11 @@ export default function LoginScreen({ message }) {
 
         name: form.name.trim(),
 
-        email: form.email.trim(),
+        email: hasEmail ? form.email.trim() : "",
+
+        hasEmail,
+
+        authEmail,
 
         loginId: form.loginId.trim(),
 
@@ -385,8 +417,8 @@ export default function LoginScreen({ message }) {
           uid: credential.user.uid,
           loginId: form.loginId.trim(),
           loginIdKey,
-          email: form.email.trim(),
-          authEmail: form.email.trim(),
+          email: hasEmail ? form.email.trim() : "",
+          authEmail,
           active: true,
           createdAt: serverTimestamp()
         }
@@ -417,6 +449,7 @@ export default function LoginScreen({ message }) {
       setForm({
         email: "",
         loginId: "",
+        hasEmail: "yes",
         password: "",
         name: "",
         houseNumber: "",
@@ -451,7 +484,7 @@ export default function LoginScreen({ message }) {
       setSubmitting(false);
 
       if (
-        auth.currentUser?.email === form.email.trim() &&
+        auth.currentUser &&
         error.code !== "auth/email-already-in-use"
       ) {
         await auth.currentUser.delete().catch((deleteError) => {
@@ -652,6 +685,48 @@ export default function LoginScreen({ message }) {
                     className="border border-[#c7d0dc] rounded-md p-3"
                   />
 
+                  <div className="rounded-md border border-[#c7d0dc] bg-[#f8fafc] p-3">
+                    <div className="mb-2 text-sm font-semibold text-[#172033]">
+                      Do you have an email address?
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#475467]">
+                        <input
+                          type="radio"
+                          name="hasEmail"
+                          value="yes"
+                          checked={form.hasEmail !== "no"}
+                          disabled={submitting}
+                          onChange={() => updateForm("hasEmail", "yes")}
+                        />
+                        Yes
+                      </label>
+
+                      <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#475467]">
+                        <input
+                          type="radio"
+                          name="hasEmail"
+                          value="no"
+                          checked={form.hasEmail === "no"}
+                          disabled={submitting}
+                          onChange={() => updateForm("hasEmail", "no")}
+                        />
+                        No
+                      </label>
+                    </div>
+                  </div>
+
+                  {form.hasEmail !== "no" && (
+                    <input
+                      value={form.email}
+                      onChange={(e) => updateForm("email", e.target.value)}
+                      placeholder="Email address"
+                      type="email"
+                      disabled={submitting}
+                      className="border border-[#c7d0dc] rounded-md p-3"
+                    />
+                  )}
+
                   <div>
                     <input
                       value={form.loginId}
@@ -743,14 +818,16 @@ export default function LoginScreen({ message }) {
               )}
 
               <div className="grid gap-3">
-                <input
-                  value={form.email}
-                  onChange={(e) => updateForm("email", e.target.value)}
-                  placeholder={mode === "login" ? "Email or User ID" : "Email address"}
-                  type="text"
-                  disabled={submitting}
-                  className="border border-[#c7d0dc] rounded-md p-3"
-                />
+                {mode === "login" && (
+                  <input
+                    value={form.email}
+                    onChange={(e) => updateForm("email", e.target.value)}
+                    placeholder="Email or User ID"
+                    type="text"
+                    disabled={submitting}
+                    className="border border-[#c7d0dc] rounded-md p-3"
+                  />
+                )}
 
                 <input
                   value={form.password}

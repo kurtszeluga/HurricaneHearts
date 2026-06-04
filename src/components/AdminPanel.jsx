@@ -342,6 +342,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     await updateDoc(doc(db, "users", updatedUser.id), {
       name: updatedUser.name,
       email: updatedUser.email,
+      hasEmail: updatedUser.hasEmail !== false,
+      authEmail: updatedUser.authEmail || editingUser?.authEmail || "",
       houseNumber: updatedUser.houseNumber?.trim() || "",
       streetName: updatedUser.streetName?.trim() || "",
       city: updatedUser.city?.trim() || "",
@@ -373,7 +375,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           : updatedUser.active ?? true,
       profileComplete: Boolean(
         updatedUser.name?.trim() &&
-          updatedUser.email?.trim() &&
+          (updatedUser.email?.trim() || updatedUser.authEmail?.trim() || editingUser?.authEmail?.trim()) &&
           isAddressComplete(updatedUser) &&
           updatedUser.phone?.trim()
       )

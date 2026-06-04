@@ -107,7 +107,8 @@ export default async function handler(request, response) {
     const loginRecord = snap.data() || {};
 
     response.status(200).json({
-      email: loginRecord.authEmail || loginRecord.email || ""
+      email: loginRecord.authEmail || loginRecord.email || "",
+      hasEmail: Boolean(loginRecord.email)
     });
   } catch (error) {
     console.error("Resolve login ID API error:", error);

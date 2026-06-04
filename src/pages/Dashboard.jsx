@@ -119,6 +119,8 @@ export default function Dashboard({
       const updatedProfile = {
         name: updatedUser.name,
         email: updatedUser.email,
+        hasEmail: updatedUser.hasEmail !== false,
+        authEmail: updatedUser.authEmail || user.authEmail || "",
         houseNumber: updatedUser.houseNumber?.trim() || "",
         streetName: updatedUser.streetName?.trim() || "",
         city: updatedUser.city?.trim() || "",
