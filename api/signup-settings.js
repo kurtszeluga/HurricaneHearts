@@ -66,12 +66,15 @@ export default async function handler(request, response) {
 
     response.status(200).json({
       addressVerificationEnabled:
-        settings.addressVerificationEnabled === true
+        settings.addressVerificationEnabled === true,
+      addressDirectoryCount:
+        Number(settings.addressDirectoryCount || settings.addressDirectory?.length || 0)
     });
   } catch (error) {
     console.error("Signup settings API error:", error);
     response.status(500).json({
       addressVerificationEnabled: false,
+      addressDirectoryCount: 0,
       error: error.message || "Unable to load signup settings."
     });
   }

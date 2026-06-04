@@ -17,7 +17,6 @@ import {
   formatAddress,
   isAddressComplete
 } from "../utils/addressFields";
-import { validateCommunityAddress } from "../utils/communityAddressDirectory";
 import { queueAccessRequestEmails } from "../utils/emailNotifications";
 import {
   getLoginIdMessage,
@@ -203,19 +202,43 @@ export default function LoginScreen({ message }) {
     }
   };
 
-  const shouldVerifySignupAddress = async () => {
+  const validateSignupAddress = async () => {
     try {
-      const response = await fetch("/api/signup-settings");
+      const response = await fetch("/api/validate-signup-address", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          houseNumber: form.houseNumber,
+          streetName: form.streetName,
+          city: form.city,
+          zip: form.zip,
+          arLotNumber: form.arLotNumber
+        })
+      });
       const body = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        return false;
+        return {
+          configured: false,
+          valid: true,
+          directoryCount: 0
+        };
       }
 
-      return body.addressVerificationEnabled === true;
+      return {
+        configured: body.configured === true,
+        valid: body.valid !== false,
+        directoryCount: Number(body.directoryCount || 0)
+      };
     } catch (error) {
-      console.warn("Signup settings lookup skipped:", error);
-      return false;
+      console.warn("Signup address validation skipped:", error);
+      return {
+        configured: false,
+        valid: true,
+        directoryCount: 0
+      };
     }
   };
 
@@ -263,15 +286,8 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      const addressVerificationEnabled =
-        await shouldVerifySignupAddress();
-      const addressValidation = addressVerificationEnabled
-        ? validateCommunityAddress(form)
-        : {
-            configured: false,
-            valid: true,
-            match: null
-          };
+      const addressValidation = await validateSignupAddress();
+      const addressVerificationEnabled = addressValidation.configured;
 
       if (addressValidation.configured && !addressValidation.valid) {
 

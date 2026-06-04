@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { parseCommunityAddressCsv } from "../utils/communityAddressDirectory";
 
 const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
 
@@ -8,6 +9,8 @@ export default function SignupSettingsPanel({ user }) {
   const isPrimaryOwner = user.email === PRIMARY_OWNER_EMAIL;
   const [addressVerificationEnabled, setAddressVerificationEnabled] =
     useState(false);
+  const [addressDirectoryCount, setAddressDirectoryCount] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
@@ -23,6 +26,9 @@ export default function SignupSettingsPanel({ user }) {
         if (mounted) {
           setAddressVerificationEnabled(
             settings.addressVerificationEnabled === true
+          );
+          setAddressDirectoryCount(
+            Number(settings.addressDirectoryCount || settings.addressDirectory?.length || 0)
           );
         }
       } catch (error) {
@@ -83,6 +89,42 @@ export default function SignupSettingsPanel({ user }) {
     }
   };
 
+  const uploadAddressCsv = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    setUploading(true);
+    setStatus("");
+
+    try {
+      const csvText = await file.text();
+      const addressDirectory = parseCommunityAddressCsv(csvText);
+
+      await setDoc(
+        doc(db, "system", "signupSettings"),
+        {
+          addressDirectory,
+          addressDirectoryCount: addressDirectory.length,
+          addressDirectoryFileName: file.name,
+          addressDirectoryUpdatedAt: serverTimestamp(),
+          addressDirectoryUpdatedByEmail: user.email || "",
+          addressDirectoryUpdatedByUid: user.uid || ""
+        },
+        { merge: true }
+      );
+
+      setAddressDirectoryCount(addressDirectory.length);
+      setStatus(`Uploaded ${addressDirectory.length} address records from ${file.name}.`);
+    } catch (error) {
+      console.error("Address CSV upload error:", error);
+      setStatus(error.message || "Unable to upload address CSV.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-4 mb-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -128,6 +170,42 @@ export default function SignupSettingsPanel({ user }) {
               ? "Verification ON"
               : "Verification OFF"}
         </span>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-bold text-[#172033]">
+              Address Directory CSV
+            </div>
+            <div className="text-xs text-[#667085] mt-1">
+              Loaded records:{" "}
+              <span className="font-bold text-[#172033]">
+                {addressDirectoryCount}
+              </span>
+            </div>
+            <div className="text-xs text-[#667085] mt-1">
+              Required columns: houseNumber, streetName, city, zip, arLotNumber
+            </div>
+          </div>
+
+          <label
+            className={
+              uploading || saving
+                ? "inline-flex cursor-not-allowed items-center justify-center rounded-lg bg-[#98a2b3] px-4 py-2 text-sm font-semibold text-white"
+                : "inline-flex cursor-pointer items-center justify-center rounded-lg bg-[#1f3a5f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#172b46]"
+            }
+          >
+            {uploading ? "Uploading..." : "Upload CSV"}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              disabled={uploading || saving}
+              onChange={uploadAddressCsv}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
 
       {status && (

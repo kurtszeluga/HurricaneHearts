@@ -5,7 +5,6 @@ import { auth, db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
-import { validateCommunityAddress } from "../utils/communityAddressDirectory";
 import { requestCategoryGroups } from "../utils/requestCategories";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
@@ -36,19 +35,43 @@ export default function ProfileSetup({ user, onProfileSaved }) {
     });
   };
 
-  const shouldVerifySignupAddress = async () => {
+  const validateSignupAddress = async () => {
     try {
-      const response = await fetch("/api/signup-settings");
+      const response = await fetch("/api/validate-signup-address", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          houseNumber: form.houseNumber,
+          streetName: form.streetName,
+          city: form.city,
+          zip: form.zip,
+          arLotNumber: form.arLotNumber
+        })
+      });
       const body = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        return false;
+        return {
+          configured: false,
+          valid: true,
+          directoryCount: 0
+        };
       }
 
-      return body.addressVerificationEnabled === true;
+      return {
+        configured: body.configured === true,
+        valid: body.valid !== false,
+        directoryCount: Number(body.directoryCount || 0)
+      };
     } catch (error) {
-      console.warn("Signup settings lookup skipped:", error);
-      return false;
+      console.warn("Signup address validation skipped:", error);
+      return {
+        configured: false,
+        valid: true,
+        directoryCount: 0
+      };
     }
   };
 
@@ -63,14 +86,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
       return;
     }
 
-    const addressVerificationEnabled = await shouldVerifySignupAddress();
-    const addressValidation = addressVerificationEnabled
-      ? validateCommunityAddress(form)
-      : {
-          configured: false,
-          valid: true,
-          match: null
-        };
+    const addressValidation = await validateSignupAddress();
+    const addressVerificationEnabled = addressValidation.configured;
 
     if (addressValidation.configured && !addressValidation.valid) {
       alert("The house number, street name, city, zip, and AR lot number did not match the community address directory. Please check the information or contact the Hurricane Hearts administrator.");

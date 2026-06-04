@@ -1,14 +1,3 @@
-const validResidentAddresses = [
-  // Add entries here when the community address list is available.
-  // {
-  //   houseNumber: "123",
-  //   streetName: "Example Street",
-  //   city: "Leesburg",
-  //   zip: "34748",
-  //   arLotNumber: "456"
-  // }
-];
-
 function normalizeValue(value = "") {
   return String(value)
     .trim()
@@ -20,7 +9,7 @@ function normalizeLotNumber(value = "") {
   return normalizeValue(value).replace(/^ar\s*lot\s*/i, "");
 }
 
-function normalizeAddress(source = {}) {
+export function normalizeCommunityAddress(source = {}) {
   return {
     houseNumber: normalizeValue(source.houseNumber),
     streetName: normalizeValue(source.streetName),
@@ -30,19 +19,112 @@ function normalizeAddress(source = {}) {
   };
 }
 
-export function isCommunityAddressDirectoryConfigured() {
-  return validResidentAddresses.length > 0;
-}
+function parseCsvLine(line = "") {
+  const cells = [];
+  let current = "";
+  let insideQuotes = false;
 
-export function findCommunityAddressMatch(source = {}) {
-  if (!isCommunityAddressDirectoryConfigured()) {
-    return null;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const nextCharacter = line[index + 1];
+
+    if (character === "\"" && insideQuotes && nextCharacter === "\"") {
+      current += "\"";
+      index += 1;
+    } else if (character === "\"") {
+      insideQuotes = !insideQuotes;
+    } else if (character === "," && !insideQuotes) {
+      cells.push(current.trim());
+      current = "";
+    } else {
+      current += character;
+    }
   }
 
-  const target = normalizeAddress(source);
+  cells.push(current.trim());
 
-  return validResidentAddresses.find((entry) => {
-    const current = normalizeAddress(entry);
+  return cells;
+}
+
+function normalizeHeader(value = "") {
+  return normalizeValue(value).replace(/[^a-z0-9]/g, "");
+}
+
+const headerAliases = {
+  housenumber: "houseNumber",
+  house: "houseNumber",
+  streetnumber: "houseNumber",
+  streetname: "streetName",
+  street: "streetName",
+  city: "city",
+  zip: "zip",
+  zipcode: "zip",
+  arlotnumber: "arLotNumber",
+  arlot: "arLotNumber",
+  lotnumber: "arLotNumber",
+  lot: "arLotNumber"
+};
+
+export function parseCommunityAddressCsv(csvText = "") {
+  const rows = String(csvText)
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (rows.length < 2) {
+    throw new Error("CSV must include a header row and at least one address row.");
+  }
+
+  const headers = parseCsvLine(rows[0]).map((header) => {
+    return headerAliases[normalizeHeader(header)] || "";
+  });
+  const requiredFields = ["houseNumber", "streetName", "city", "zip", "arLotNumber"];
+  const missingFields = requiredFields.filter((field) => !headers.includes(field));
+
+  if (missingFields.length > 0) {
+    throw new Error(
+      "CSV is missing required columns: houseNumber, streetName, city, zip, arLotNumber."
+    );
+  }
+
+  return rows.slice(1).map((line, index) => {
+    const cells = parseCsvLine(line);
+    const row = {};
+
+    headers.forEach((field, cellIndex) => {
+      if (field) {
+        row[field] = cells[cellIndex] || "";
+      }
+    });
+
+    const normalized = normalizeCommunityAddress(row);
+
+    if (
+      !normalized.houseNumber ||
+      !normalized.streetName ||
+      !normalized.city ||
+      !normalized.zip ||
+      !normalized.arLotNumber
+    ) {
+      throw new Error(`CSV row ${index + 2} is missing required address data.`);
+    }
+
+    return {
+      houseNumber: row.houseNumber.trim(),
+      streetName: row.streetName.trim(),
+      city: row.city.trim(),
+      zip: row.zip.trim(),
+      arLotNumber: row.arLotNumber.trim()
+    };
+  });
+}
+
+export function findCommunityAddressMatch(source = {}, directory = []) {
+  const target = normalizeCommunityAddress(source);
+
+  return directory.find((entry) => {
+    const current = normalizeCommunityAddress(entry);
 
     return (
       current.houseNumber === target.houseNumber &&
@@ -54,8 +136,8 @@ export function findCommunityAddressMatch(source = {}) {
   }) || null;
 }
 
-export function validateCommunityAddress(source = {}) {
-  if (!isCommunityAddressDirectoryConfigured()) {
+export function validateCommunityAddress(source = {}, directory = []) {
+  if (!Array.isArray(directory) || directory.length === 0) {
     return {
       configured: false,
       valid: true,
@@ -63,7 +145,7 @@ export function validateCommunityAddress(source = {}) {
     };
   }
 
-  const match = findCommunityAddressMatch(source);
+  const match = findCommunityAddressMatch(source, directory);
 
   return {
     configured: true,
