@@ -234,10 +234,11 @@ export default function LoginScreen({ message }) {
       setSubmitting(true);
 
       const hasEmail = form.hasEmail !== "no";
+      const requestedLoginId = form.loginId.trim();
 
       if (
         (hasEmail && !form.email.trim()) ||
-        !form.loginId.trim() ||
+        (!hasEmail && !requestedLoginId) ||
         !form.password ||
         !form.name.trim() ||
         !isAddressComplete(form) ||
@@ -246,7 +247,7 @@ export default function LoginScreen({ message }) {
 
         alert(
           hasEmail
-            ? "Please complete name, house number, street name, city, zip, AR lot number, phone, email, User ID, and password."
+            ? "Please complete name, house number, street name, city, zip, AR lot number, phone, email, and password."
             : "Please complete name, house number, street name, city, zip, AR lot number, phone, User ID, and password."
         );
 
@@ -287,7 +288,7 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      if (!isValidLoginId(form.loginId)) {
+      if (requestedLoginId && !isValidLoginId(requestedLoginId)) {
 
         alert(getLoginIdMessage());
 
@@ -296,30 +297,35 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      const loginIdKey = normalizeLoginId(form.loginId);
+      const loginIdKey = requestedLoginId
+        ? normalizeLoginId(requestedLoginId)
+        : "";
       const authEmail = hasEmail
         ? form.email.trim()
         : buildHiddenAuthEmail(loginIdKey);
-      const loginIdResponse = await fetch("/api/check-login-id", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          loginId: form.loginId
-        })
-      });
-      const loginIdBody = await loginIdResponse.json().catch(() => ({}));
 
-      if (!loginIdResponse.ok || !loginIdBody.available) {
+      if (requestedLoginId) {
+        const loginIdResponse = await fetch("/api/check-login-id", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            loginId: requestedLoginId
+          })
+        });
+        const loginIdBody = await loginIdResponse.json().catch(() => ({}));
 
-        alert(
-          loginIdBody?.error || "That User ID is already taken. Please choose another one."
-        );
+        if (!loginIdResponse.ok || !loginIdBody.available) {
 
-        setSubmitting(false);
+          alert(
+            loginIdBody?.error || "That User ID is already taken. Please choose another one."
+          );
 
-        return;
+          setSubmitting(false);
+
+          return;
+        }
       }
 
       sessionStorage.removeItem(
@@ -349,7 +355,7 @@ export default function LoginScreen({ message }) {
 
         authEmail,
 
-        loginId: form.loginId.trim(),
+        loginId: requestedLoginId,
 
         loginIdKey,
 
@@ -411,18 +417,20 @@ export default function LoginScreen({ message }) {
         accessRequestProfile
       );
 
-      batch.set(
-        doc(db, "loginIds", loginIdKey),
-        {
-          uid: credential.user.uid,
-          loginId: form.loginId.trim(),
-          loginIdKey,
-          email: hasEmail ? form.email.trim() : "",
-          authEmail,
-          active: true,
-          createdAt: serverTimestamp()
-        }
-      );
+      if (requestedLoginId) {
+        batch.set(
+          doc(db, "loginIds", loginIdKey),
+          {
+            uid: credential.user.uid,
+            loginId: requestedLoginId,
+            loginIdKey,
+            email: hasEmail ? form.email.trim() : "",
+            authEmail,
+            active: true,
+            createdAt: serverTimestamp()
+          }
+        );
+      }
 
       await batch.commit();
 
@@ -731,12 +739,18 @@ export default function LoginScreen({ message }) {
                     <input
                       value={form.loginId}
                       onChange={(e) => updateForm("loginId", e.target.value)}
-                      placeholder="Create User ID"
+                      placeholder={
+                        form.hasEmail === "no"
+                          ? "Create User ID"
+                          : "Create User ID (optional)"
+                      }
                       disabled={submitting}
                       className="border border-[#c7d0dc] rounded-md p-3 w-full"
                     />
                     <div className="mt-1 text-xs text-[#667085]">
-                      {getLoginIdMessage()}
+                      {form.hasEmail === "no"
+                        ? getLoginIdMessage()
+                        : `Optional. ${getLoginIdMessage()}`}
                     </div>
                   </div>
 
