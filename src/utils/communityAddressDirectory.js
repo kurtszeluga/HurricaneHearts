@@ -69,14 +69,18 @@ export function parseCommunityAddressCsv(csvText = "") {
   const rows = String(csvText)
     .replace(/^\uFEFF/, "")
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+    .map((line, index) => ({
+      line,
+      rowNumber: index + 1,
+      cells: parseCsvLine(line)
+    }))
+    .filter((row) => row.cells.some((cell) => cell.trim()));
 
   if (rows.length < 2) {
     throw new Error("CSV must include a header row and at least one address row.");
   }
 
-  const headers = parseCsvLine(rows[0]).map((header) => {
+  const headers = rows[0].cells.map((header) => {
     return headerAliases[normalizeHeader(header)] || "";
   });
   const requiredFields = ["houseNumber", "streetName", "city", "zip", "arLotNumber"];
@@ -88,8 +92,10 @@ export function parseCommunityAddressCsv(csvText = "") {
     );
   }
 
-  return rows.slice(1).map((line, index) => {
-    const cells = parseCsvLine(line);
+  const addressRows = [];
+
+  for (const csvRow of rows.slice(1)) {
+    const cells = csvRow.cells;
     const row = {};
 
     headers.forEach((field, cellIndex) => {
@@ -100,24 +106,33 @@ export function parseCommunityAddressCsv(csvText = "") {
 
     const normalized = normalizeCommunityAddress(row);
 
+    if (!normalized.houseNumber) {
+      break;
+    }
+
     if (
-      !normalized.houseNumber ||
       !normalized.streetName ||
       !normalized.city ||
       !normalized.zip ||
       !normalized.arLotNumber
     ) {
-      throw new Error(`CSV row ${index + 2} is missing required address data.`);
+      throw new Error(`CSV row ${csvRow.rowNumber} is missing required address data.`);
     }
 
-    return {
+    addressRows.push({
       houseNumber: row.houseNumber.trim(),
       streetName: row.streetName.trim(),
       city: row.city.trim(),
       zip: row.zip.trim(),
       arLotNumber: row.arLotNumber.trim()
-    };
-  });
+    });
+  }
+
+  if (addressRows.length === 0) {
+    throw new Error("CSV must include at least one address row with a house number.");
+  }
+
+  return addressRows;
 }
 
 export function findCommunityAddressMatch(source = {}, directory = []) {
