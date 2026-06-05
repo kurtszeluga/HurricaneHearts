@@ -18,6 +18,7 @@ const CREATE_USER_API_PATH = "/api/create-user";
 const DELETE_USER_API_PATH = "/api/delete-user";
 const UPDATE_USER_PASSWORD_API_PATH = "/api/update-user-password";
 const UPDATE_LOGIN_ID_API_PATH = "/api/update-login-id";
+const USERS_PER_PAGE = 25;
 
 const sortOptions = [
   { label: "Name A-Z", value: "name-asc" },
@@ -70,6 +71,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
   const [search, setSearch] = useState("");
   const [activeSummaryFilter, setActiveSummaryFilter] = useState("All");
   const [sortBy, setSortBy] = useState("name-asc");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -155,11 +157,20 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     };
   }, [users]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
+  const visiblePage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (visiblePage - 1) * USERS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(
+    pageStartIndex,
+    pageStartIndex + USERS_PER_PAGE
+  );
+
   if (user.role !== "admin") return null;
 
   const applySummaryFilter = (type) => {
     setSearch("");
     setActiveSummaryFilter(type);
+    setCurrentPage(1);
 
     if (type === "Approved") setSortBy("approved-first");
     if (type === "Pending") setSortBy("pending-first");
@@ -173,6 +184,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     setSearch("");
     setActiveSummaryFilter("All");
     setSortBy("name-asc");
+    setCurrentPage(1);
   };
 
   const sortHeaderConfig = {
@@ -226,6 +238,72 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
   const changeTableSort = (key) => {
     setSortBy(sortHeaderConfig[key].next);
+    setCurrentPage(1);
+  };
+
+  const PaginationControls = () => {
+    if (filteredUsers.length === 0) return null;
+
+    const firstVisibleUser = pageStartIndex + 1;
+    const lastVisibleUser = Math.min(
+      pageStartIndex + USERS_PER_PAGE,
+      filteredUsers.length
+    );
+    const buttonClass =
+      "flex h-8 w-8 items-center justify-center rounded-md border border-[#c7d0dc] bg-white font-bold text-[#475467] hover:bg-[#e2e8f0] disabled:cursor-not-allowed disabled:bg-[#f1f5f9] disabled:text-[#98a2b3]";
+
+    return (
+      <div className="flex flex-col gap-2 rounded-md border border-[#c7d0dc] bg-[#f8fafc] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs font-semibold text-[#667085]">
+          Showing {firstVisibleUser}-{lastVisibleUser} of {filteredUsers.length} matching users
+        </div>
+        <div className="flex items-center justify-center gap-1.5">
+          <button
+            type="button"
+            title="First page"
+            aria-label="First page"
+            onClick={() => setCurrentPage(1)}
+            disabled={visiblePage === 1}
+            className={buttonClass}
+          >
+            «
+          </button>
+          <button
+            type="button"
+            title="Previous page"
+            aria-label="Previous page"
+            onClick={() => setCurrentPage(Math.max(1, visiblePage - 1))}
+            disabled={visiblePage === 1}
+            className={buttonClass}
+          >
+            ‹
+          </button>
+          <div className="min-w-[88px] text-center text-xs font-bold text-[#172033]">
+            Page {visiblePage} of {totalPages}
+          </div>
+          <button
+            type="button"
+            title="Next page"
+            aria-label="Next page"
+            onClick={() => setCurrentPage(Math.min(totalPages, visiblePage + 1))}
+            disabled={visiblePage === totalPages}
+            className={buttonClass}
+          >
+            ›
+          </button>
+          <button
+            type="button"
+            title="Last page"
+            aria-label="Last page"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={visiblePage === totalPages}
+            className={buttonClass}
+          >
+            »
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const updateUserApproval = async (targetUser, approved) => {
@@ -758,14 +836,20 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       <div className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-3 mb-4 grid md:grid-cols-[1fr_auto_auto] gap-2">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
           placeholder="Search name, User ID, email, phone, address"
           className="border border-[#c7d0dc] rounded-lg px-3 py-2 bg-white text-sm w-full"
         />
 
         <button
           type="button"
-          onClick={() => setSearch("")}
+          onClick={() => {
+            setSearch("");
+            setCurrentPage(1);
+          }}
           disabled={!search}
           className={
             search
@@ -778,7 +862,10 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          onChange={(e) => {
+            setSortBy(e.target.value);
+            setCurrentPage(1);
+          }}
           className="border border-[#c7d0dc] rounded-lg px-2 py-2 bg-white text-sm"
         >
           {sortOptions.map((option) => (
@@ -793,7 +880,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         <div>
           {usersLoading
             ? "Loading data..."
-            : `Showing ${filteredUsers.length} of ${users.length} users`}
+            : `Matching ${filteredUsers.length} of ${users.length} users`}
           {activeSummaryFilter !== "All" && (
             <span className="ml-2 font-semibold text-[#b42318]">
               Filter: {activeSummaryFilter}
@@ -808,6 +895,10 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         >
           Reset filters
         </button>
+      </div>
+
+      <div className="mb-4">
+        <PaginationControls />
       </div>
 
       {showAddUser && (
@@ -858,7 +949,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       ) : (
         <>
           <div className="space-y-4 md:hidden">
-            {filteredUsers.map((u) => {
+            {paginatedUsers.map((u) => {
               const approved = u.approved !== false;
               const active = u.active !== false;
               const role = getUserRole(u);
@@ -1054,7 +1145,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           </thead>
 
           <tbody>
-            {filteredUsers.map((u) => {
+            {paginatedUsers.map((u) => {
               const approved = u.approved !== false;
               const active = u.active !== false;
               const role = getUserRole(u);
@@ -1192,6 +1283,10 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-4">
+        <PaginationControls />
       </div>
 
       {filteredUsers.length === 0 && (

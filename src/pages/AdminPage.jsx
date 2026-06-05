@@ -6,8 +6,8 @@ export default function AdminPage({ user, users, usersLoading = false, activeEve
   return (
     <>
       <EventAdminPanel user={user} activeEvent={activeEvent} />
-      <SignupSettingsPanel user={user} />
       <AdminPanel user={user} users={users} usersLoading={usersLoading} />
+      <SignupSettingsPanel user={user} />
     </>
   );
 }
