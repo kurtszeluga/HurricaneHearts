@@ -6,6 +6,7 @@ const SUPER_ADMIN_EMAILS = [
   "hurricanehearts.admin@gmail.com",
   "kurtszeluga@gmail.com"
 ];
+const TERMS_VERSION = "1.0";
 
 function setCorsHeaders(response) {
   response.setHeader(
@@ -155,6 +156,7 @@ export default async function handler(request, response) {
     const role = String(body.role || "resident").trim();
     const approved = body.approved !== false;
     const active = body.active !== false;
+    const termsAccepted = body.termsAccepted === true;
     const targetIsSuperAdmin = isSuperAdminEmail(email);
     const requesterIsSuperAdmin =
       isSuperAdminEmail(adminProfile?.email) || isSuperAdminEmail(decodedToken.email);
@@ -174,6 +176,13 @@ export default async function handler(request, response) {
     if ((role === "admin" || targetIsSuperAdmin) && !requesterIsSuperAdmin) {
       response.status(403).json({
         error: "Only the Super Admin can create admin accounts."
+      });
+      return;
+    }
+
+    if (!termsAccepted) {
+      response.status(400).json({
+        error: "Terms and Conditions must be accepted before adding this user."
       });
       return;
     }
@@ -221,6 +230,9 @@ export default async function handler(request, response) {
       role: targetIsSuperAdmin ? "admin" : role === "admin" ? "admin" : "resident",
       approved: targetIsSuperAdmin ? true : approved,
       active: targetIsSuperAdmin ? true : active,
+      termsAccepted: true,
+      termsAcceptedAt: FieldValue.serverTimestamp(),
+      termsVersion: body.termsVersion || TERMS_VERSION,
       profileComplete: true,
       manuallyCreated: true,
       createdAt: FieldValue.serverTimestamp(),
