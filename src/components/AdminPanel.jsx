@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  addDoc,
-  collection,
   doc,
   serverTimestamp,
   updateDoc
@@ -14,8 +12,9 @@ import {
   normalizePhoneNumber
 } from "../utils/formatPhoneNumber";
 import { queueApprovalEmail } from "../utils/emailNotifications";
+import { isSuperAdminEmail } from "../utils/superAdmin";
 
-const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
+const CREATE_USER_API_PATH = "/api/create-user";
 const DELETE_USER_API_PATH = "/api/delete-user";
 const UPDATE_USER_PASSWORD_API_PATH = "/api/update-user-password";
 const UPDATE_LOGIN_ID_API_PATH = "/api/update-login-id";
@@ -39,9 +38,14 @@ const sortOptions = [
 ];
 
 function getUserRole(u) {
-  return u.email === PRIMARY_OWNER_EMAIL
+  return isSuperAdminEmail(u.email)
     ? "admin"
     : u.role || "resident";
+}
+
+function getUserRoleDisplay(u) {
+  if (isSuperAdminEmail(u.email)) return "Super Admin";
+  return getUserRole(u) === "admin" ? "Admin" : "Resident";
 }
 
 function needsAddressReview(user) {
@@ -60,7 +64,7 @@ function HeaderTooltip({ tooltip, children }) {
 }
 
 export default function AdminPanel({ user, users, usersLoading = false }) {
-  const isPrimaryOwnerAdmin = user.email === PRIMARY_OWNER_EMAIL;
+  const isPrimaryOwnerAdmin = isSuperAdminEmail(user.email);
   const [editingUser, setEditingUser] = useState(null);
   const [showAddUser, setShowAddUser] = useState(false);
   const [search, setSearch] = useState("");
@@ -225,8 +229,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
   };
 
   const updateUserApproval = async (targetUser, approved) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && approved === false) {
-      alert("The primary admin account must remain approved.");
+    if (isSuperAdminEmail(targetUser.email) && approved === false) {
+      alert("The Super Admin account must remain approved.");
       return;
     }
 
@@ -260,8 +264,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
   };
 
   const updateUserActiveStatus = async (targetUser, active) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && active === false) {
-      alert("The primary admin account must remain active.");
+    if (isSuperAdminEmail(targetUser.email) && active === false) {
+      alert("The Super Admin account must remain active.");
       return;
     }
 
@@ -286,12 +290,12 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
   const updateUserRole = async (targetUser, role) => {
     if (!isPrimaryOwnerAdmin) {
-      alert("Only the primary owner can manage admin access.");
+      alert("Only the Super Admin can manage admin access.");
       return;
     }
 
-    if (targetUser.email === PRIMARY_OWNER_EMAIL && role !== "admin") {
-      alert("The primary owner account must remain an admin.");
+    if (isSuperAdminEmail(targetUser.email) && role !== "admin") {
+      alert("The Super Admin account must remain an admin.");
       return;
     }
 
@@ -347,14 +351,14 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
     if (!confirmed) return;
 
-    if (updatedUser.email === PRIMARY_OWNER_EMAIL) {
+    if (isSuperAdminEmail(updatedUser.email)) {
       updatedUser.role = "admin";
       updatedUser.approved = true;
       updatedUser.active = true;
     }
 
     if (!isPrimaryOwnerAdmin && updatedUser.role !== getUserRole(editingUser || updatedUser)) {
-      alert("Only the primary owner can manage admin access.");
+      alert("Only the Super Admin can manage admin access.");
       return;
     }
 
@@ -364,7 +368,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
     }
 
     const wasPending = editingUser?.approved === false;
-    const isNowApproved = updatedUser.email === PRIMARY_OWNER_EMAIL
+    const isNowApproved = isSuperAdminEmail(updatedUser.email)
       ? true
       : updatedUser.approved ?? true;
 
@@ -389,17 +393,17 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           ? updatedUser.managedCategories || []
           : [],
       role:
-        updatedUser.email === PRIMARY_OWNER_EMAIL
+        isSuperAdminEmail(updatedUser.email)
           ? "admin"
           : isPrimaryOwnerAdmin
             ? updatedUser.role || "resident"
             : getUserRole(editingUser || updatedUser),
       approved:
-        updatedUser.email === PRIMARY_OWNER_EMAIL
+        isSuperAdminEmail(updatedUser.email)
           ? true
           : updatedUser.approved ?? true,
       active:
-        updatedUser.email === PRIMARY_OWNER_EMAIL
+        isSuperAdminEmail(updatedUser.email)
           ? true
           : updatedUser.active ?? true,
       ...(approvingFlaggedAddress
@@ -428,7 +432,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       )
     ) {
       if (!isPrimaryOwnerAdmin) {
-        alert("Only the primary owner can change User IDs.");
+        alert("Only the Super Admin can change User IDs.");
         return;
       }
 
@@ -466,7 +470,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
     if (newPassword) {
       if (!isPrimaryOwnerAdmin) {
-        alert("Only the primary owner can change user passwords.");
+        alert("Only the Super Admin can change user passwords.");
         return;
       }
 
@@ -515,13 +519,13 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
   };
 
   const addManualUser = async (newUser) => {
-    if (!isPrimaryOwnerAdmin && newUser.email === PRIMARY_OWNER_EMAIL) {
-      alert("Only the primary owner can create or manage the primary owner account.");
+    if (!isPrimaryOwnerAdmin && isSuperAdminEmail(newUser.email)) {
+      alert("Only the Super Admin can create or manage the Super Admin account.");
       return;
     }
 
     if (!isPrimaryOwnerAdmin && newUser.role === "admin") {
-      alert("Only the primary owner can create admin accounts.");
+      alert("Only the Super Admin can create admin accounts.");
       return;
     }
 
@@ -533,46 +537,69 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
     if (!confirmed) return;
 
-    await addDoc(collection(db, "users"), {
-      name: newUser.name,
-      email: newUser.email,
-      houseNumber: newUser.houseNumber?.trim() || "",
-      streetName: newUser.streetName?.trim() || "",
-      city: newUser.city?.trim() || "",
-      zip: newUser.zip?.trim() || "",
-      arLotNumber: newUser.arLotNumber?.trim() || "",
-      address: formatAddress(newUser),
-      phone: normalizePhoneNumber(newUser.phone),
-      serviceCategories: newUser.serviceCategories || [],
-      teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
-      managedCategories:
-        isPrimaryOwnerAdmin && newUser.teamMember
-          ? newUser.managedCategories || []
-          : [],
-      role:
-        newUser.email === PRIMARY_OWNER_EMAIL
-          ? "admin"
-          : isPrimaryOwnerAdmin
-            ? newUser.role || "resident"
-            : "resident",
-      approved:
-        newUser.email === PRIMARY_OWNER_EMAIL
-          ? true
-          : newUser.approved ?? true,
-      active:
-        newUser.email === PRIMARY_OWNER_EMAIL
-          ? true
-          : newUser.active ?? true,
-      profileComplete: true,
-      manuallyCreated: true
-    });
+    const currentUser = auth.currentUser;
 
-    setShowAddUser(false);
+    if (!currentUser) {
+      alert("Please sign in again before adding a user.");
+      return;
+    }
+
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await fetch(CREATE_USER_API_PATH, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: newUser.name,
+          email: newUser.email,
+          password: newUser.newPassword,
+          houseNumber: newUser.houseNumber?.trim() || "",
+          streetName: newUser.streetName?.trim() || "",
+          city: newUser.city?.trim() || "",
+          zip: newUser.zip?.trim() || "",
+          arLotNumber: newUser.arLotNumber?.trim() || "",
+          phone: normalizePhoneNumber(newUser.phone),
+          serviceCategories: newUser.serviceCategories || [],
+          teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
+          managedCategories:
+            isPrimaryOwnerAdmin && newUser.teamMember
+              ? newUser.managedCategories || []
+              : [],
+          role:
+            isSuperAdminEmail(newUser.email)
+              ? "admin"
+              : isPrimaryOwnerAdmin
+                ? newUser.role || "resident"
+                : "resident",
+          approved:
+            isSuperAdminEmail(newUser.email)
+              ? true
+              : newUser.approved ?? true,
+          active:
+            isSuperAdminEmail(newUser.email)
+              ? true
+              : newUser.active ?? true
+        })
+      });
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(body?.error || "Unable to add user.");
+      }
+
+      setShowAddUser(false);
+    } catch (error) {
+      console.error("Add user error:", error);
+      alert(error.message || "Unable to add user.");
+    }
   };
 
   const deleteUserAccount = async (targetUser) => {
-    if (targetUser.email === PRIMARY_OWNER_EMAIL) {
-      alert("The primary owner account cannot be deleted.");
+    if (isSuperAdminEmail(targetUser.email)) {
+      alert("The Super Admin account cannot be deleted.");
       return;
     }
 
@@ -835,7 +862,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const approved = u.approved !== false;
               const active = u.active !== false;
               const role = getUserRole(u);
-              const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+              const isPrimaryOwner = isSuperAdminEmail(u.email);
               const displayAddress = formatAddress(u);
               const addressNeedsReview = needsAddressReview(u);
 
@@ -875,7 +902,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
 
               <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[#475467]">
                 <div>
-                  Role: <span className="font-semibold capitalize">{role}</span>
+                  Role: <span className="font-semibold">{getUserRoleDisplay(u)}</span>
                 </div>
                 <div className="break-words">
                   Address: {displayAddress || "No address"}
@@ -1031,7 +1058,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
               const approved = u.approved !== false;
               const active = u.active !== false;
               const role = getUserRole(u);
-              const isPrimaryOwner = u.email === PRIMARY_OWNER_EMAIL;
+              const isPrimaryOwner = isSuperAdminEmail(u.email);
               const displayAddress = formatAddress(u);
               const addressNeedsReview = needsAddressReview(u);
 
@@ -1104,8 +1131,8 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
                             ? "bg-[#eff6ff] hover:bg-[#dbeafe] text-[#1f3a5f] border border-[#bfdbfe] px-2 py-1 rounded-lg font-semibold text-[10px]"
                             : "bg-white hover:bg-[#e2e8f0] text-[#475467] border border-[#c7d0dc] px-2 py-1 rounded-lg font-semibold text-[10px]"
                       }
-                    >
-                      {role}
+                  >
+                      {getUserRoleDisplay(u)}
                     </button>
                   </td>
 

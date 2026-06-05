@@ -3,6 +3,10 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
+const SUPER_ADMIN_EMAILS = [
+  PRIMARY_ADMIN_EMAIL,
+  "kurtszeluga@gmail.com"
+];
 const RESEND_SEND_URL = "https://api.resend.com/emails";
 const DEFAULT_FROM_EMAIL =
   "Hurricane Hearts <notifications@hurricanehearts.org>";
@@ -255,8 +259,8 @@ async function getRequest(db, requestId) {
 function isAdminProfile(profile, decodedToken) {
   return (
     profile?.role === "admin" ||
-    profile?.email === PRIMARY_ADMIN_EMAIL ||
-    decodedToken.email === PRIMARY_ADMIN_EMAIL
+    SUPER_ADMIN_EMAILS.includes(String(profile?.email || "").trim().toLowerCase()) ||
+    SUPER_ADMIN_EMAILS.includes(String(decodedToken.email || "").trim().toLowerCase())
   );
 }
 

@@ -3,6 +3,10 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
+const SUPER_ADMIN_EMAILS = [
+  PRIMARY_ADMIN_EMAIL,
+  "kurtszeluga@gmail.com"
+];
 
 function setCorsHeaders(response) {
   response.setHeader(
@@ -86,8 +90,8 @@ async function getUserProfile(db, uid) {
 
 function isPrimaryOwner(profile, decodedToken) {
   return (
-    profile?.email === PRIMARY_ADMIN_EMAIL ||
-    decodedToken.email === PRIMARY_ADMIN_EMAIL
+    SUPER_ADMIN_EMAILS.includes(String(profile?.email || "").trim().toLowerCase()) ||
+    SUPER_ADMIN_EMAILS.includes(String(decodedToken.email || "").trim().toLowerCase())
   );
 }
 
@@ -128,7 +132,7 @@ export default async function handler(request, response) {
 
     if (!isPrimaryOwner(adminProfile, decodedToken)) {
       response.status(403).json({
-        error: "Only the primary owner can change User IDs."
+        error: "Only the Super Admin can change User IDs."
       });
       return;
     }

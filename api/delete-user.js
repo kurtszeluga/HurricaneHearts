@@ -3,6 +3,10 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
 const PRIMARY_ADMIN_EMAIL = "hurricanehearts.admin@gmail.com";
+const SUPER_ADMIN_EMAILS = [
+  PRIMARY_ADMIN_EMAIL,
+  "kurtszeluga@gmail.com"
+];
 
 function setCorsHeaders(response) {
   response.setHeader(
@@ -87,9 +91,13 @@ async function getUserProfile(db, uid) {
 function isAdminProfile(profile, decodedToken) {
   return (
     profile?.role === "admin" ||
-    profile?.email === PRIMARY_ADMIN_EMAIL ||
-    decodedToken.email === PRIMARY_ADMIN_EMAIL
+    SUPER_ADMIN_EMAILS.includes(String(profile?.email || "").trim().toLowerCase()) ||
+    SUPER_ADMIN_EMAILS.includes(String(decodedToken.email || "").trim().toLowerCase())
   );
+}
+
+function isSuperAdminEmail(email = "") {
+  return SUPER_ADMIN_EMAILS.includes(String(email).trim().toLowerCase());
 }
 
 async function deleteAuthUser(auth, uid) {
@@ -160,9 +168,9 @@ export default async function handler(request, response) {
       return;
     }
 
-    if (targetProfile.email === PRIMARY_ADMIN_EMAIL) {
+    if (isSuperAdminEmail(targetProfile.email)) {
       response.status(400).json({
-        error: "The primary owner account cannot be deleted."
+        error: "The Super Admin account cannot be deleted."
       });
       return;
     }

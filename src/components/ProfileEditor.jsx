@@ -3,6 +3,7 @@ import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addr
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { getLoginIdMessage, isValidLoginId } from "../utils/loginId";
 import { requestCategoryGroups } from "../utils/requestCategories";
+import { isSuperAdminEmail } from "../utils/superAdmin";
 
 export default function ProfileEditor({
   title = "Edit Profile",
@@ -14,12 +15,12 @@ export default function ProfileEditor({
   onDelete,
   onCancel
 }) {
-  const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
-  const isPrimaryOwner = user.email === PRIMARY_OWNER_EMAIL;
+  const isPrimaryOwner = isSuperAdminEmail(user.email);
   const canEditRole = canManageAdminRole || isPrimaryOwner;
   const canManageTeamMember = adminMode && canManageAdminRole;
   const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
   const canEditLoginId = adminMode && canManageAdminRole && Boolean(user.id);
+  const canShowPasswordField = adminMode && (!user.id || canManageAdminRole);
   const addressVerificationFailed = user.addressVerificationOverride === true;
   const addressManuallyReviewed = user.addressManuallyReviewed === true;
   const needsAddressReview =
@@ -84,7 +85,12 @@ export default function ProfileEditor({
       return;
     }
 
-    if (newPassword && newPassword.length < 6) {
+    if (!user.id && adminMode && newPassword.length < 6) {
+      alert("Temporary password must be at least 6 characters.");
+      return;
+    }
+
+    if (user.id && newPassword && newPassword.length < 6) {
       alert("New password must be at least 6 characters.");
       return;
     }
@@ -107,7 +113,7 @@ export default function ProfileEditor({
       ...form,
       newPassword: newPassword || "",
       addressReviewComment: addressReviewComment.trim(),
-      email: isPrimaryOwner ? PRIMARY_OWNER_EMAIL : form.email,
+      email: isPrimaryOwner ? user.email || form.email : form.email,
       hasEmail: hasProfileEmail,
       loginId: form.loginId.trim(),
       houseNumber: form.houseNumber.trim(),
@@ -324,15 +330,19 @@ export default function ProfileEditor({
         </label>
       </div>
 
-      {adminMode && canManageAdminRole && user.id && (
+      {canShowPasswordField && (
         <div className="bg-[#f8fafc] border border-[#c7d0dc] rounded-lg p-5 mt-5">
-          <div className="font-bold text-[#172033] mb-1">Password</div>
+          <div className="font-bold text-[#172033] mb-1">
+            {user.id ? "Password" : "Temporary Password"}
+          </div>
           <p className="text-sm text-[#667085] mb-3">
-            Existing passwords cannot be viewed. Enter a new password here to replace it.
+            {user.id
+              ? "Existing passwords cannot be viewed. Enter a new password here to replace it."
+              : "Enter a temporary password for this new account. The resident can change it after logging in."}
           </p>
 
           <label className="block text-sm font-semibold text-[#172033]">
-            New password
+            {user.id ? "New password" : "Temporary password"}
             <input
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -417,7 +427,7 @@ export default function ProfileEditor({
 
           {!canManageTeamMember && !form.teamMember && (
             <p className="text-xs text-[#667085] mt-3">
-              Team member designation is restricted to the primary owner.
+              Team member designation is restricted to the Super Admin.
             </p>
           )}
 
@@ -479,12 +489,12 @@ export default function ProfileEditor({
 
             {isPrimaryOwner && (
               <span className="text-xs text-[#667085]">
-                Primary admin must remain approved, active, and Admin.
+                Super Admin must remain approved, active, and Admin.
               </span>
             )}
             {!isPrimaryOwner && !canEditRole && (
               <span className="text-xs text-[#667085]">
-                Admin role changes are restricted to the primary owner.
+                Admin role changes are restricted to the Super Admin.
               </span>
             )}
           </label>

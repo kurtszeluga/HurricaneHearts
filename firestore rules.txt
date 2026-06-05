@@ -28,19 +28,26 @@ service cloud.firestore {
         && userDoc().data.role == "admin";
     }
 
+    function isSuperAdminEmail(email) {
+      return email in [
+        "hurricanehearts.admin@gmail.com",
+        "kurtszeluga@gmail.com"
+      ];
+    }
+
     function isPrimaryOwnerAdmin() {
       return isAdmin()
-        && userDoc().data.email == "hurricanehearts.admin@gmail.com";
+        && isSuperAdminEmail(userDoc().data.email);
     }
 
     function keepsPrimaryOwnerEmail() {
       return (
-        resource.data.email != "hurricanehearts.admin@gmail.com"
+        !isSuperAdminEmail(resource.data.email)
         || request.resource.data.email == resource.data.email
       )
       && (
-        request.resource.data.email != "hurricanehearts.admin@gmail.com"
-        || resource.data.email == "hurricanehearts.admin@gmail.com"
+        !isSuperAdminEmail(request.resource.data.email)
+        || isSuperAdminEmail(resource.data.email)
       );
     }
 

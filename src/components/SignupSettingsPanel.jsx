@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { parseCommunityAddressCsv } from "../utils/communityAddressDirectory";
-
-const PRIMARY_OWNER_EMAIL = "hurricanehearts.admin@gmail.com";
+import { isSuperAdminEmail } from "../utils/superAdmin";
 
 export default function SignupSettingsPanel({ user }) {
-  const isPrimaryOwner = user.email === PRIMARY_OWNER_EMAIL;
+  const isPrimaryOwner = isSuperAdminEmail(user.email);
   const [addressVerificationEnabled, setAddressVerificationEnabled] =
     useState(false);
   const [addressDirectoryCount, setAddressDirectoryCount] = useState(0);
