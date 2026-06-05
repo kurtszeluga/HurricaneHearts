@@ -14,6 +14,7 @@ import HistoryPage from "./HistoryPage";
 import AdminPage from "./AdminPage";
 import ReportsPage from "./ReportsPage";
 import NotificationsPage from "./NotificationsPage";
+import TermsAndConditions from "../components/TermsAndConditions";
 
 const pageOptions = [
   "Home",
@@ -82,6 +83,7 @@ export default function Dashboard({
   );
   const [openModal, setOpenModal] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
+  const [showFooterTerms, setShowFooterTerms] = useState(false);
 
   const adminPages = ["Admin", "History", "Notifications", "Reports"];
   const visiblePages = pageOptions.filter((page) => {
@@ -363,9 +365,23 @@ export default function Dashboard({
         </main>
       </div>
 
-      <footer className="border-t border-[#d8e0ea] bg-white text-center text-xs text-[#667085] py-4">
-        © 2026 Hurricane Hearts — Arlington Ridge Community v.1.0
+      <footer className="border-t border-[#d8e0ea] bg-white py-4 text-center text-xs text-[#667085]">
+        <button
+          type="button"
+          onClick={() => setShowFooterTerms(true)}
+          className="mb-2 font-semibold underline hover:text-[#b42318]"
+        >
+          Terms and Conditions
+        </button>
+        <div>© 2026 Hurricane Hearts — Arlington Ridge Community v.1.0</div>
       </footer>
+
+      {showFooterTerms && (
+        <TermsAndConditions
+          onClose={() => setShowFooterTerms(false)}
+          requireReview={false}
+        />
+      )}
 
       <RequestModal
         open={openModal}

@@ -1,10 +1,15 @@
 import { useRef, useState } from "react";
 
 const TERMS_VERSION = "1.0";
+const TERMS_EFFECTIVE_DATE = "June 5, 2026";
 
-export default function TermsAndConditions({ onClose, onReviewComplete }) {
+export default function TermsAndConditions({
+  onClose,
+  onReviewComplete,
+  requireReview = true
+}) {
   const contentRef = useRef(null);
-  const [reviewComplete, setReviewComplete] = useState(false);
+  const [reviewComplete, setReviewComplete] = useState(!requireReview);
 
   const checkReviewProgress = () => {
     const content = contentRef.current;
@@ -14,7 +19,7 @@ export default function TermsAndConditions({ onClose, onReviewComplete }) {
       content.scrollTop + content.clientHeight >= content.scrollHeight - 12
     ) {
       setReviewComplete(true);
-      onReviewComplete?.();
+      if (requireReview) onReviewComplete?.();
     }
   };
 
@@ -24,7 +29,9 @@ export default function TermsAndConditions({ onClose, onReviewComplete }) {
         <div className="p-6 border-b flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Terms and Conditions</h2>
-            <p className="text-sm text-gray-500">Version {TERMS_VERSION}</p>
+            <p className="text-sm text-gray-500">
+              Version {TERMS_VERSION} | Effective: {TERMS_EFFECTIVE_DATE}
+            </p>
           </div>
 
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 font-semibold">
@@ -176,24 +183,70 @@ export default function TermsAndConditions({ onClose, onReviewComplete }) {
             respect to organizational status, insurance, volunteer activities, food assistance,
             transportation, privacy, and liability.
           </p>
+
+          <h3 className="font-bold text-lg text-gray-900">Legal References:</h3>
+          <p>
+            Florida Volunteer Protection Act, Florida Statutes section 768.1355:
+            <br />
+            <a
+              href="https://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0700-0799/0768/Sections/0768.1355.html"
+              target="_blank"
+              rel="noreferrer"
+              className="break-all text-[#1d4ed8] underline"
+            >
+              https://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&amp;URL=0700-0799/0768/Sections/0768.1355.html
+            </a>
+          </p>
+          <p>
+            Federal Volunteer Protection Act of 1997, 42 U.S.C. chapter 139:
+            <br />
+            <a
+              href="https://uscode.house.gov/view.xhtml?edition=prelim&path=/prelim@title42/chapter139"
+              target="_blank"
+              rel="noreferrer"
+              className="break-all text-[#1d4ed8] underline"
+            >
+              https://uscode.house.gov/view.xhtml?edition=prelim&amp;path=/prelim@title42/chapter139
+            </a>
+          </p>
+          <p>
+            Bill Emerson Good Samaritan Food Donation Act, 42 U.S.C. section 1791:
+            <br />
+            <a
+              href="https://uscode.house.gov/view.xhtml?req=(title:42%20section:1791%20edition:prelim)"
+              target="_blank"
+              rel="noreferrer"
+              className="break-all text-[#1d4ed8] underline"
+            >
+              https://uscode.house.gov/view.xhtml?req=(title:42%20section:1791%20edition:prelim)
+            </a>
+          </p>
+          <p>
+            Drafting note: These references may provide relevant context, but their protections
+            and requirements depend on the facts, the organization's legal status, the activity
+            involved, and applicable law. Their inclusion does not state that Hurricane Hearts
+            qualifies for any statutory protection.
+          </p>
         </div>
 
         <div className="p-6 border-t flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-gray-600">
-            {reviewComplete
-              ? "Review complete. You may close this window and accept the terms."
-              : "Scroll to the bottom to complete your review."}
+            {requireReview
+              ? reviewComplete
+                ? "Review complete. You may close this window and accept the terms."
+                : "Scroll to the bottom to complete your review."
+              : "Version 1.0 | Effective June 5, 2026"}
           </p>
           <button
             onClick={onClose}
-            disabled={!reviewComplete}
+            disabled={requireReview && !reviewComplete}
             className={
-              reviewComplete
+              !requireReview || reviewComplete
                 ? "bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-lg font-semibold"
                 : "bg-gray-200 text-gray-400 px-5 py-3 rounded-lg font-semibold cursor-not-allowed"
             }
           >
-            Done Reviewing
+            {requireReview ? "Done Reviewing" : "Close"}
           </button>
         </div>
       </div>

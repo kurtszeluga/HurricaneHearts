@@ -60,6 +60,9 @@ export default function LoginScreen({ message }) {
   const [showTerms, setShowTerms] =
     useState(false);
 
+  const [termsReviewRequired, setTermsReviewRequired] =
+    useState(true);
+
   const [acceptedTerms, setAcceptedTerms] =
     useState(false);
 
@@ -852,7 +855,10 @@ export default function LoginScreen({ message }) {
 
                     <button
                       type="button"
-                      onClick={() => setShowTerms(true)}
+                      onClick={() => {
+                        setTermsReviewRequired(true);
+                        setShowTerms(true);
+                      }}
                       disabled={submitting}
                       className="bg-white border border-[#c7d0dc] px-3 py-2 rounded-md font-semibold mr-3"
                     >
@@ -985,8 +991,18 @@ export default function LoginScreen({ message }) {
             <div className="font-bold text-[#172033]">Hurricane Hearts</div>
             <div>Arlington Ridge neighbor-to-neighbor assistance.</div>
           </div>
-          <div className="text-sm text-[#667085]">
-            Copyright 2026 Hurricane Hearts. All rights reserved.
+          <div className="flex flex-col gap-2 text-sm text-[#667085] md:items-end">
+            <button
+              type="button"
+              onClick={() => {
+                setTermsReviewRequired(false);
+                setShowTerms(true);
+              }}
+              className="font-semibold underline hover:text-[#b42318]"
+            >
+              Terms and Conditions
+            </button>
+            <div>Copyright 2026 Hurricane Hearts. All rights reserved.</div>
           </div>
         </div>
       </footer>
@@ -995,6 +1011,7 @@ export default function LoginScreen({ message }) {
         <TermsAndConditions
           onClose={() => setShowTerms(false)}
           onReviewComplete={() => setTermsReviewed(true)}
+          requireReview={termsReviewRequired}
         />
       )}
 
