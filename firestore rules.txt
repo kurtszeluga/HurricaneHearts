@@ -91,6 +91,22 @@ service cloud.firestore {
             "teamMember",
             "manuallyCreated"
           ])
+        )
+        || (
+          signedIn()
+          && isOwner(userId)
+          && resource.data.manuallyCreated == true
+          && resource.data.active == true
+          && resource.data.approved == true
+          && resource.data.termsAccepted != true
+          && request.resource.data.termsAccepted == true
+          && request.resource.data.firstLoginTermsRequired == false
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            "termsAccepted",
+            "termsAcceptedAt",
+            "termsVersion",
+            "firstLoginTermsRequired"
+          ])
         );
 
       allow delete: if isAdmin();

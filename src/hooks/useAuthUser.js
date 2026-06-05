@@ -86,6 +86,10 @@ export default function useAuthUser() {
           profileComplete: false,
           termsAccepted: existing.termsAccepted ?? false,
           termsVersion: existing.termsVersion || "",
+          manuallyCreated: existing.manuallyCreated === true,
+          firstLoginTermsRequired:
+            existing.firstLoginTermsRequired ??
+            (existing.manuallyCreated === true && existing.termsAccepted !== true),
           authProvider: existing.authProvider || "password",
           firstLoginProfileRequired:
             existing.firstLoginProfileRequired ?? false
@@ -100,7 +104,7 @@ export default function useAuthUser() {
           return;
         }
 
-        if (!profile.termsAccepted) {
+        if (!profile.termsAccepted && !profile.firstLoginTermsRequired) {
           await blockAndSignOut(
             "You must accept the Terms and Conditions before using Hurricane Hearts. Please request access again."
           );

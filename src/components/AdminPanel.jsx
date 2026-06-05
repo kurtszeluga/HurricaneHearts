@@ -14,7 +14,6 @@ import {
 import { queueApprovalEmail } from "../utils/emailNotifications";
 import { isSuperAdminEmail } from "../utils/superAdmin";
 
-const TERMS_VERSION = "1.0";
 const CREATE_USER_API_PATH = "/api/create-user";
 const DELETE_USER_API_PATH = "/api/delete-user";
 const UPDATE_USER_PASSWORD_API_PATH = "/api/update-user-password";
@@ -407,13 +406,6 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
         isSuperAdminEmail(updatedUser.email)
           ? true
           : updatedUser.active ?? true,
-      termsAccepted: updatedUser.termsAccepted === true,
-      termsAcceptedAt: updatedUser.termsAccepted === true
-        ? serverTimestamp()
-        : null,
-      termsVersion: updatedUser.termsAccepted === true
-        ? updatedUser.termsVersion || TERMS_VERSION
-        : "",
       ...(approvingFlaggedAddress
         ? {
             addressVerified: false,
@@ -589,9 +581,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           active:
             isSuperAdminEmail(newUser.email)
               ? true
-              : newUser.active ?? true,
-          termsAccepted: newUser.termsAccepted === true,
-          termsVersion: newUser.termsVersion || TERMS_VERSION
+              : newUser.active ?? true
         })
       });
       const body = await response.json().catch(() => ({}));
@@ -837,9 +827,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
             managedCategories: [],
             role: "resident",
             approved: true,
-            active: true,
-            termsAccepted: true,
-            termsVersion: TERMS_VERSION
+            active: true
           }}
           adminMode
           canManageAdminRole={isPrimaryOwnerAdmin}

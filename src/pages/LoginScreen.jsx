@@ -63,6 +63,9 @@ export default function LoginScreen({ message }) {
   const [acceptedTerms, setAcceptedTerms] =
     useState(false);
 
+  const [termsReviewed, setTermsReviewed] =
+    useState(false);
+
   const [showSuccessSplash, setShowSuccessSplash] =
     useState(false);
 
@@ -298,10 +301,10 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      if (!acceptedTerms) {
+      if (!termsReviewed || !acceptedTerms) {
 
         alert(
-          "Please review and accept the Terms and Conditions before submitting your access request."
+          "Please open the Terms and Conditions, scroll to the bottom, and accept them before submitting your access request."
         );
 
         setSubmitting(false);
@@ -320,6 +323,7 @@ export default function LoginScreen({ message }) {
         if (mismatchDecision.action === "cancel") {
           setForm(emptyForm);
           setAcceptedTerms(false);
+          setTermsReviewed(false);
           setShowTerms(false);
           setMode("login");
           setSubmitting(false);
@@ -521,6 +525,7 @@ export default function LoginScreen({ message }) {
       });
 
       setAcceptedTerms(false);
+      setTermsReviewed(false);
 
       setShowTerms(false);
 
@@ -858,11 +863,16 @@ export default function LoginScreen({ message }) {
                       <input
                         type="checkbox"
                         checked={acceptedTerms}
-                        disabled={submitting}
+                        disabled={submitting || !termsReviewed}
                         onChange={(e) => setAcceptedTerms(e.target.checked)}
                       />
                       I accept the Terms and Conditions.
                     </label>
+                    {!termsReviewed && (
+                      <p className="mt-2 text-xs font-semibold text-[#667085]">
+                        Open the terms and scroll to the bottom before accepting.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -984,6 +994,7 @@ export default function LoginScreen({ message }) {
       {showTerms && (
         <TermsAndConditions
           onClose={() => setShowTerms(false)}
+          onReviewComplete={() => setTermsReviewed(true)}
         />
       )}
 

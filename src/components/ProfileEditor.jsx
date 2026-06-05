@@ -5,8 +5,6 @@ import { getLoginIdMessage, isValidLoginId } from "../utils/loginId";
 import { requestCategoryGroups } from "../utils/requestCategories";
 import { isSuperAdminEmail } from "../utils/superAdmin";
 
-const TERMS_VERSION = "1.0";
-
 export default function ProfileEditor({
   title = "Edit Profile",
   user,
@@ -39,8 +37,6 @@ export default function ProfileEditor({
     role: isPrimaryOwner ? "admin" : user.role || "resident",
     approved: isPrimaryOwner ? true : user.approved ?? true,
     active: isPrimaryOwner ? true : user.active ?? true,
-    termsAccepted: user.termsAccepted ?? (adminMode && !user.id),
-    termsVersion: user.termsVersion || TERMS_VERSION,
     serviceCategories: user.serviceCategories || [],
     teamMember: user.teamMember || false,
     managedCategories: user.managedCategories || []
@@ -114,11 +110,6 @@ export default function ProfileEditor({
       return;
     }
 
-    if (adminMode && !form.termsAccepted) {
-      alert("Please confirm Terms and Conditions acceptance before saving this user.");
-      return;
-    }
-
     await onSave({
       ...form,
       newPassword: newPassword || "",
@@ -136,8 +127,6 @@ export default function ProfileEditor({
       role: isPrimaryOwner ? "admin" : form.role,
       approved: isPrimaryOwner ? true : form.approved,
       active: isPrimaryOwner ? true : form.active,
-      termsAccepted: form.termsAccepted === true,
-      termsVersion: form.termsVersion || TERMS_VERSION,
       teamMember: canManageTeamMember ? form.teamMember : user.teamMember || false,
       managedCategories:
         canManageTeamMember || user.teamMember
@@ -552,20 +541,11 @@ export default function ProfileEditor({
             Active
           </label>
 
-          <label className="flex items-center gap-2 text-sm font-semibold mt-6">
-            <input
-              type="checkbox"
-              checked={form.termsAccepted === true}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  termsAccepted: e.target.checked,
-                  termsVersion: e.target.checked ? TERMS_VERSION : ""
-                })
-              }
-            />
-            Terms Accepted
-          </label>
+          {user.id && (
+            <div className="mt-6 text-sm font-semibold text-[#475467]">
+              Terms: {user.termsAccepted ? "Accepted by user" : "Pending user acceptance"}
+            </div>
+          )}
         </div>
       )}
 

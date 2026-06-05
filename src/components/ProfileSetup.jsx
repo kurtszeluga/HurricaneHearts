@@ -14,6 +14,7 @@ const TERMS_VERSION = "1.0";
 export default function ProfileSetup({ user, onProfileSaved }) {
   const [showTerms, setShowTerms] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsReviewed, setTermsReviewed] = useState(false);
   const [addressMismatchDialog, setAddressMismatchDialog] = useState(null);
   const addressMismatchResolverRef = useRef(null);
   const [form, setForm] = useState({
@@ -103,8 +104,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
       return;
     }
 
-    if (!acceptedTerms) {
-      alert("Please review and accept the Terms and Conditions before submitting your access request.");
+    if (!termsReviewed || !acceptedTerms) {
+      alert("Please open the Terms and Conditions, scroll to the bottom, and accept them before submitting your access request.");
       return;
     }
 
@@ -294,10 +295,16 @@ export default function ProfileSetup({ user, onProfileSaved }) {
             <input
               type="checkbox"
               checked={acceptedTerms}
+              disabled={!termsReviewed}
               onChange={(e) => setAcceptedTerms(e.target.checked)}
             />
             I have read and accept the Terms and Conditions.
           </label>
+          {!termsReviewed && (
+            <p className="mt-2 text-xs font-semibold text-[#667085]">
+              Open the terms and scroll to the bottom before accepting.
+            </p>
+          )}
         </div>
 
         <button
@@ -308,7 +315,12 @@ export default function ProfileSetup({ user, onProfileSaved }) {
         </button>
       </div>
 
-      {showTerms && <TermsAndConditions onClose={() => setShowTerms(false)} />}
+      {showTerms && (
+        <TermsAndConditions
+          onClose={() => setShowTerms(false)}
+          onReviewComplete={() => setTermsReviewed(true)}
+        />
+      )}
 
       {addressMismatchDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
