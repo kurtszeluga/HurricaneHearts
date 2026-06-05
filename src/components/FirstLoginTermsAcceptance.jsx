@@ -2,8 +2,7 @@ import { useState } from "react";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
-
-const TERMS_VERSION = "1.0";
+import { CURRENT_TERMS_VERSION } from "../utils/terms";
 
 export default function FirstLoginTermsAcceptance({ user, onAccepted }) {
   const [showTerms, setShowTerms] = useState(false);
@@ -23,7 +22,7 @@ export default function FirstLoginTermsAcceptance({ user, onAccepted }) {
       await updateDoc(doc(db, "users", user.uid), {
         termsAccepted: true,
         termsAcceptedAt: serverTimestamp(),
-        termsVersion: TERMS_VERSION,
+        termsVersion: CURRENT_TERMS_VERSION,
         firstLoginTermsRequired: false
       });
 
@@ -31,8 +30,9 @@ export default function FirstLoginTermsAcceptance({ user, onAccepted }) {
         ...user,
         termsAccepted: true,
         termsAcceptedAt: new Date().toISOString(),
-        termsVersion: TERMS_VERSION,
-        firstLoginTermsRequired: false
+        termsVersion: CURRENT_TERMS_VERSION,
+        firstLoginTermsRequired: false,
+        termsReviewRequired: false
       });
     } catch (error) {
       console.error("Terms acceptance error:", error);
@@ -48,8 +48,8 @@ export default function FirstLoginTermsAcceptance({ user, onAccepted }) {
           Review Terms and Conditions
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[#475467]">
-          Before entering Hurricane Hearts for the first time, you must personally
-          review and accept the Terms and Conditions.
+          Before continuing into Hurricane Hearts, you must personally review and
+          accept the current Terms and Conditions.
         </p>
 
         <button

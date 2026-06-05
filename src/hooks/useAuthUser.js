@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { isAddressComplete } from "../utils/addressFields";
+import { requiresTermsAcceptance } from "../utils/terms";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
 const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
@@ -87,9 +88,7 @@ export default function useAuthUser() {
           termsAccepted: existing.termsAccepted ?? false,
           termsVersion: existing.termsVersion || "",
           manuallyCreated: existing.manuallyCreated === true,
-          firstLoginTermsRequired:
-            existing.firstLoginTermsRequired ??
-            (existing.manuallyCreated === true && existing.termsAccepted !== true),
+          firstLoginTermsRequired: existing.firstLoginTermsRequired ?? false,
           authProvider: existing.authProvider || "password",
           firstLoginProfileRequired:
             existing.firstLoginProfileRequired ?? false
@@ -104,19 +103,14 @@ export default function useAuthUser() {
           return;
         }
 
-        if (!profile.termsAccepted && !profile.firstLoginTermsRequired) {
-          await blockAndSignOut(
-            "You must accept the Terms and Conditions before using Hurricane Hearts. Please request access again."
-          );
-          return;
-        }
-
         if (profile.approved === false && profile.role !== "admin") {
           await blockAndSignOut(
             "Your account is pending approval. Please contact the Hurricane Hearts administrator if you need access sooner."
           );
           return;
         }
+
+        profile.termsReviewRequired = requiresTermsAcceptance(profile);
 
         sessionStorage.removeItem(BLOCK_MESSAGE_KEY);
         sessionStorage.removeItem(ACCESS_SUCCESS_KEY);

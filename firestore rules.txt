@@ -20,7 +20,8 @@ service cloud.firestore {
       return hasUserProfile()
         && userDoc().data.active == true
         && userDoc().data.approved == true
-        && userDoc().data.termsAccepted == true;
+        && userDoc().data.termsAccepted == true
+        && userDoc().data.termsVersion == "1.0";
     }
 
     function isAdmin() {
@@ -95,11 +96,10 @@ service cloud.firestore {
         || (
           signedIn()
           && isOwner(userId)
-          && resource.data.manuallyCreated == true
           && resource.data.active == true
           && resource.data.approved == true
-          && resource.data.termsAccepted != true
           && request.resource.data.termsAccepted == true
+          && request.resource.data.termsVersion == "1.0"
           && request.resource.data.firstLoginTermsRequired == false
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
             "termsAccepted",

@@ -14,7 +14,7 @@ import PullToRefresh from "./components/PullToRefresh";
 
 export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
-  const appAccessEnabled = Boolean(user?.termsAccepted);
+  const appAccessEnabled = Boolean(user && !user.termsReviewRequired);
   const activeEvent = useActiveEvent(appAccessEnabled);
   const requests = useRequests(appAccessEnabled, activeEvent?.eventId || null);
   const documents = useDocuments(appAccessEnabled);
@@ -35,7 +35,7 @@ export default function App() {
     return <LoginScreen message={authMessage} />;
   }
 
-  if (!user.termsAccepted && user.firstLoginTermsRequired) {
+  if (user.termsReviewRequired) {
     return <FirstLoginTermsAcceptance user={user} onAccepted={setUser} />;
   }
 

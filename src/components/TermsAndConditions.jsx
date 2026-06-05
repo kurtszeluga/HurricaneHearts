@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
-
-const TERMS_VERSION = "1.0";
-const TERMS_EFFECTIVE_DATE = "June 5, 2026";
+import {
+  CURRENT_TERMS_EFFECTIVE_DATE,
+  CURRENT_TERMS_VERSION
+} from "../utils/terms";
 
 export default function TermsAndConditions({
   onClose,
@@ -30,7 +31,7 @@ export default function TermsAndConditions({
           <div>
             <h2 className="text-2xl font-bold">Terms and Conditions</h2>
             <p className="text-sm text-gray-500">
-              Version {TERMS_VERSION} | Effective: {TERMS_EFFECTIVE_DATE}
+              Version {CURRENT_TERMS_VERSION} | Effective: {CURRENT_TERMS_EFFECTIVE_DATE}
             </p>
           </div>
 
@@ -235,7 +236,7 @@ export default function TermsAndConditions({
               ? reviewComplete
                 ? "Review complete. You may close this window and accept the terms."
                 : "Scroll to the bottom to complete your review."
-              : "Version 1.0 | Effective June 5, 2026"}
+              : `Version ${CURRENT_TERMS_VERSION} | Effective ${CURRENT_TERMS_EFFECTIVE_DATE}`}
           </p>
           <button
             onClick={onClose}

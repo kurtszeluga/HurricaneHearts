@@ -24,6 +24,7 @@ import {
   looksLikeEmail,
   normalizeLoginId
 } from "../utils/loginId";
+import { CURRENT_TERMS_VERSION } from "../utils/terms";
 
 const BLOCK_MESSAGE_KEY =
   "hurricaneHeartsAuthMessage";
@@ -33,8 +34,6 @@ const AUTH_MODE_KEY =
 
 const ACCESS_SUCCESS_KEY =
   "hurricaneHeartsAccessRequestSuccess";
-
-const TERMS_VERSION = "1.0";
 
 const emptyForm = {
   email: "",
@@ -462,7 +461,7 @@ export default function LoginScreen({ message }) {
 
         termsAcceptedAt: serverTimestamp(),
 
-        termsVersion: TERMS_VERSION,
+        termsVersion: CURRENT_TERMS_VERSION,
 
         accessRequestedAt: serverTimestamp(),
 

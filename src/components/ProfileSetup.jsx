@@ -6,11 +6,10 @@ import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
 import { requestCategoryGroups } from "../utils/requestCategories";
+import { CURRENT_TERMS_VERSION } from "../utils/terms";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
 const AUTH_MODE_KEY = "hurricaneHeartsAuthMode";
-const TERMS_VERSION = "1.0";
-
 export default function ProfileSetup({ user, onProfileSaved }) {
   const [showTerms, setShowTerms] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -154,7 +153,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
       profileComplete: true,
       termsAccepted: true,
       termsAcceptedAt: serverTimestamp(),
-      termsVersion: TERMS_VERSION
+      termsVersion: CURRENT_TERMS_VERSION
     };
 
     await setDoc(doc(db, "users", user.uid), updatedProfile, { merge: true });

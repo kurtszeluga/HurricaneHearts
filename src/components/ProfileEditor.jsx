@@ -4,6 +4,7 @@ import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNum
 import { getLoginIdMessage, isValidLoginId } from "../utils/loginId";
 import { requestCategoryGroups } from "../utils/requestCategories";
 import { isSuperAdminEmail } from "../utils/superAdmin";
+import { CURRENT_TERMS_VERSION } from "../utils/terms";
 
 export default function ProfileEditor({
   title = "Edit Profile",
@@ -543,7 +544,10 @@ export default function ProfileEditor({
 
           {user.id && (
             <div className="mt-6 text-sm font-semibold text-[#475467]">
-              Terms: {user.termsAccepted ? "Accepted by user" : "Pending user acceptance"}
+              Terms:{" "}
+              {user.termsAccepted && user.termsVersion === CURRENT_TERMS_VERSION
+                ? `Accepted by user (v${CURRENT_TERMS_VERSION})`
+                : "Pending current Terms acceptance"}
             </div>
           )}
         </div>
