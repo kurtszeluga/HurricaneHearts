@@ -42,6 +42,7 @@ export default function ProfileEditor({
     managedCategories: user.managedCategories || []
   });
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
   const [addressReviewComment, setAddressReviewComment] = useState(
     user.addressReviewComment || ""
@@ -347,10 +348,18 @@ export default function ProfileEditor({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="••••••••"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               className="mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
             />
+          </label>
+          <label className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#475467]">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+            />
+            Show password
           </label>
         </div>
       )}
