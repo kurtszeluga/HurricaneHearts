@@ -7,6 +7,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import RequestCard from "../components/RequestCard";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { getRequestCategoryLabel } from "../utils/requestCategories";
 
@@ -31,13 +32,24 @@ export default function HomePage({
   user,
   activeEvent,
   requests,
+  users = [],
+  requestHistory = [],
   onNewRequest,
   onGoToRequests,
-  onOpenRequestAction
+  onEditRequest
 }) {
   const [openDateSortDirection, setOpenDateSortDirection] = useState("desc");
   const [claimsDateSortDirection, setClaimsDateSortDirection] = useState("desc");
   const [myRequestsDateSortDirection, setMyRequestsDateSortDirection] = useState("desc");
+  const [dashboardRequestAction, setDashboardRequestAction] = useState(null);
+
+  const openDashboardRequestAction = (request, action) => {
+    setDashboardRequestAction({
+      request,
+      action,
+      token: Date.now()
+    });
+  };
 
   const myRequests = requests.filter((r) => r.residentUid === user.uid || r.residentEmail === user.email);
   const myClaims = requests.filter((r) => {
@@ -335,14 +347,14 @@ export default function HomePage({
                       <div className="flex flex-wrap justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => onOpenRequestAction(request, "claim")}
+                          onClick={() => openDashboardRequestAction(request, "claim")}
                           className="bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Claim
                         </button>
                         <button
                           type="button"
-                          onClick={() => onOpenRequestAction(request, "details")}
+                          onClick={() => openDashboardRequestAction(request, "details")}
                           className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Details
@@ -424,7 +436,7 @@ export default function HomePage({
                         <div className="flex flex-wrap justify-center gap-1">
                           <button
                             type="button"
-                            onClick={() => onOpenRequestAction(request, "details")}
+                            onClick={() => openDashboardRequestAction(request, "details")}
                             className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             Details
@@ -511,7 +523,7 @@ export default function HomePage({
                       <div className="flex flex-wrap justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => onOpenRequestAction(request, "details")}
+                          onClick={() => openDashboardRequestAction(request, "details")}
                           className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Details
@@ -532,6 +544,24 @@ export default function HomePage({
           </div>
         )}
       </div>
+
+      {dashboardRequestAction && (
+        <RequestCard
+          request={dashboardRequestAction.request}
+          user={user}
+          users={users}
+          requestHistory={requestHistory}
+          onEdit={onEditRequest}
+          openAction={dashboardRequestAction.action}
+          actionToken={dashboardRequestAction.token}
+          onActionHandled={() =>
+            setDashboardRequestAction((current) =>
+              current ? { ...current, action: null } : null
+            )
+          }
+          renderRow={false}
+        />
+      )}
     </div>
   );
 }

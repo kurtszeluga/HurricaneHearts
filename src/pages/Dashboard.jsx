@@ -81,7 +81,6 @@ export default function Dashboard({
       ? { type: "status", value: "Open" }
       : { type: "status", value: "All" }
   );
-  const [requestAction, setRequestAction] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [showFooterTerms, setShowFooterTerms] = useState(false);
@@ -168,23 +167,12 @@ export default function Dashboard({
   };
 
   const openRequestsWithFilter = (filter = "Open") => {
-    setRequestAction(null);
     if (typeof filter === "string") {
       setRequestFilter({ type: "status", value: filter });
     } else {
       setRequestFilter(filter);
     }
 
-    setActivePage("Requests");
-  };
-
-  const openRequestAction = (request, action) => {
-    setRequestFilter({ type: "status", value: "All" });
-    setRequestAction({
-      requestId: request.id,
-      action,
-      token: Date.now()
-    });
     setActivePage("Requests");
   };
 
@@ -233,7 +221,9 @@ export default function Dashboard({
           activeEvent={activeEvent}
           onNewRequest={openNewRequest}
           onGoToRequests={openRequestsWithFilter}
-          onOpenRequestAction={openRequestAction}
+          users={users}
+          requestHistory={requestHistory}
+          onEditRequest={openEditRequest}
           onGoToDirectory={() => goToPage("Directory")}
         />
       );
@@ -251,8 +241,6 @@ export default function Dashboard({
           requestHistory={requestHistory}
           requestFilter={requestFilter}
           onRequestFilterChange={setRequestFilter}
-          requestAction={requestAction}
-          onRequestActionHandled={() => setRequestAction(null)}
         />
       );
     }

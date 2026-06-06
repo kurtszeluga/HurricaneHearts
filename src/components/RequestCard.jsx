@@ -380,7 +380,8 @@ export default function RequestCard({
   onEdit,
   openAction = null,
   actionToken = null,
-  onActionHandled
+  onActionHandled,
+  renderRow = true
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
@@ -679,7 +680,8 @@ export default function RequestCard({
 
   return (
     <>
-      <tr className="hover:bg-[#f1f5f9] align-top">
+      {renderRow && (
+        <tr className="hover:bg-[#f1f5f9] align-top">
         <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
           {formatDateTime(request.createdAt) || "Not recorded"}
         </td>
@@ -785,7 +787,8 @@ export default function RequestCard({
             )}
           </div>
         </td>
-      </tr>
+        </tr>
+      )}
 
       {showDetails &&
         createPortal(

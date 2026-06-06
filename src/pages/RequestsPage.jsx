@@ -51,9 +51,7 @@ export default function RequestsPage({
   onEditRequest,
   activeEvent,
   requestFilter = { type: "status", value: "All" },
-  onRequestFilterChange,
-  requestAction = null,
-  onRequestActionHandled
+  onRequestFilterChange
 }) {
   const [search, setSearch] = useState("");
   const [dateSortDirection, setDateSortDirection] = useState("desc");
@@ -229,17 +227,6 @@ export default function RequestsPage({
                     users={users}
                     requestHistory={requestHistory}
                     onEdit={onEditRequest}
-                    openAction={
-                      requestAction?.requestId === request.id
-                        ? requestAction.action
-                        : null
-                    }
-                    actionToken={
-                      requestAction?.requestId === request.id
-                        ? requestAction.token
-                        : null
-                    }
-                    onActionHandled={onRequestActionHandled}
                   />
                 ))}
               </tbody>
