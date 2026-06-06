@@ -150,7 +150,7 @@ export async function queueRequestClaimedEmails(_db, { request, claim }) {
   const claimantName = claim.name || claim.email || "A resident";
   const requestLabel = request.need || "your request";
   const peopleProvided = claim.peopleProvided || 1;
-  const isDonateDishRequest = (request.categories || []).includes("Donate a Dish");
+  const isDonateDishRequest = (request.categories || []).includes("Request a Meal");
   const foodAllergyLine = isDonateDishRequest
     ? request.hasFoodAllergies
       ? `Food allergies: ${request.foodAllergies || "Food allergies were indicated, but details were not provided."}`

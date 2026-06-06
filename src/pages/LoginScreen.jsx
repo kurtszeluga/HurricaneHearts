@@ -442,6 +442,7 @@ export default function LoginScreen({ message }) {
         ),
 
         serviceCategories: [],
+        dishVolunteerCategories: [],
 
         role: "resident",
 

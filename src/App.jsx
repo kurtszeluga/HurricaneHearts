@@ -16,11 +16,15 @@ export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
   const appAccessEnabled = Boolean(user && !user.termsReviewRequired);
   const activeEvent = useActiveEvent(appAccessEnabled);
-  const requests = useRequests(appAccessEnabled, activeEvent?.eventId || null);
+  const requests = useRequests(
+    appAccessEnabled,
+    activeEvent?.eventId || null,
+    user?.teamMember === true
+  );
   const documents = useDocuments(appAccessEnabled);
   const eventHistory = useEventHistory(appAccessEnabled);
   const { users, loading: usersLoading } = useUsers(appAccessEnabled);
-  const requestHistory = useRequestHistory(appAccessEnabled);
+  const requestHistory = useRequestHistory(appAccessEnabled, user?.teamMember === true);
   const notifications = useNotifications(appAccessEnabled ? user : null);
 
   if (loading) {

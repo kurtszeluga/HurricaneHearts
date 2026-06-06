@@ -10,14 +10,22 @@ import { db } from "../firebase/config";
 import { formatAddress } from "../utils/addressFields";
 import { formatDateOnly } from "../utils/formatDate";
 import {
+  assistanceRequestCategoryGroups,
   categoryDescriptions,
-  requestCategoryGroups
+  getRequestCategoryLabel,
+  REQUEST_MEAL_CATEGORY
 } from "../utils/requestCategories";
 
 const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-const DONATE_A_DISH_CATEGORY = "Donate a Dish";
 
-async function addRequestHistory({ requestId, action, user, details = "", eventId = "" }) {
+async function addRequestHistory({
+  requestId,
+  action,
+  user,
+  details = "",
+  eventId = "",
+  restrictedToTeam = false
+}) {
   await addDoc(collection(db, "requestHistory"), {
     requestId,
     eventId,
@@ -26,6 +34,7 @@ async function addRequestHistory({ requestId, action, user, details = "", eventI
     byUid: user.uid,
     byName: user.name || user.email || "User",
     byEmail: user.email || "",
+    restrictedToTeam,
     createdAt: serverTimestamp()
   });
 }
@@ -98,7 +107,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       const nextCategories = selected
         ? current.categories.filter((item) => item !== category)
         : [...current.categories, category];
-      const includesDonateDish = nextCategories.includes(DONATE_A_DISH_CATEGORY);
+      const includesDonateDish = nextCategories.includes(REQUEST_MEAL_CATEGORY);
 
       return {
         ...current,
@@ -112,7 +121,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
   const normalizedPeopleNeeded = form.peopleNeeded === "Unknown"
     ? "Unknown"
     : Number(form.peopleNeeded);
-  const includesDonateDish = form.categories.includes(DONATE_A_DISH_CATEGORY);
+  const includesDonateDish = form.categories.includes(REQUEST_MEAL_CATEGORY);
+  const restrictedToTeam = includesDonateDish;
   const cleanFoodAllergies = includesDonateDish && form.hasFoodAllergies
     ? form.foodAllergies.trim()
     : "";
@@ -158,6 +168,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
       await updateDoc(doc(db, "requests", editingRequest.id), {
         categories: form.categories,
+        restrictedToTeam,
         hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
         foodAllergies: cleanFoodAllergies,
         need: form.need,
@@ -178,6 +189,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         eventId: editingRequest.eventId || "",
         action: "edited",
         user,
+        restrictedToTeam,
         details: `Request details were updated. People needed: ${normalizedPeopleNeeded}.`
       });
 
@@ -197,6 +209,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         eventName: activeEvent.eventName,
         eventDate: activeEvent.eventDate,
         categories: form.categories,
+        restrictedToTeam,
         hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
         foodAllergies: cleanFoodAllergies,
         need: form.need,
@@ -227,6 +240,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         eventId: activeEvent.eventId,
         action: "created",
         user,
+        restrictedToTeam,
         details: isAdmin && (selectedRequestor.uid || selectedRequestor.id) !== user.uid
           ? `Request was created by ${user.name || user.email || "Admin"} on behalf of ${selectedRequestor.name || selectedRequestor.email || "resident"} for ${activeEvent.eventName}. People needed: ${normalizedPeopleNeeded}.`
           : `Request was created for ${activeEvent.eventName}. People needed: ${normalizedPeopleNeeded}.`
@@ -287,7 +301,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           </p>
 
           <div className="space-y-4">
-            {requestCategoryGroups.map((group) => (
+            {assistanceRequestCategoryGroups.map((group) => (
               <div key={group.label}>
                 <div className="text-sm font-bold uppercase text-[#667085] mb-2">
                   {group.label}
@@ -312,7 +326,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                           onChange={() => toggleCategory(category)}
                         />
                         <span className="grid gap-1">
-                          <span>{category}</span>
+                          <span>{getRequestCategoryLabel(category)}</span>
                           <span className="text-xs font-normal leading-snug text-[#667085]">
                             {categoryDescriptions[category] || ""}
                           </span>
@@ -327,6 +341,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
           {includesDonateDish && (
             <div className="mt-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-4">
+              <p className="mb-3 rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-3 py-2 text-xs font-semibold leading-snug text-[#1d4ed8]">
+                For privacy, this meal request will only be visible to Hurricane Hearts Team Members.
+              </p>
+
               <div className="font-semibold text-[#172033] mb-3">
                 Food Allergies
               </div>

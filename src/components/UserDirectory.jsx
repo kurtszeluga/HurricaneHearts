@@ -4,6 +4,8 @@ import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import {
   categoryAbbreviations,
   categoryDescriptions,
+  dishVolunteerOptions,
+  DONATE_A_DISH_CATEGORY,
   requestCategoryGroups,
   requestCategories
 } from "../utils/requestCategories";
@@ -101,6 +103,17 @@ function PrintableUserDetails({ user, onClose }) {
                   >
                     <span className="mr-2">{selected ? "✓" : "—"}</span>
                     {category}
+                    {category === DONATE_A_DISH_CATEGORY &&
+                      selected &&
+                      (user.dishVolunteerCategories || []).length > 0 && (
+                        <div className="mt-2 pl-6 text-xs font-normal text-gray-600">
+                          {(user.dishVolunteerCategories || [])
+                            .filter((item) =>
+                              dishVolunteerOptions.some((option) => option.value === item)
+                            )
+                            .join(", ")}
+                        </div>
+                      )}
                   </div>
                 );
               })}

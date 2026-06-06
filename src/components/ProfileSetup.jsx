@@ -5,7 +5,11 @@ import { auth, db } from "../firebase/config";
 import TermsAndConditions from "./TermsAndConditions";
 import { formatPhoneNumber, normalizePhoneNumber } from "../utils/formatPhoneNumber";
 import { formatAddress, getAddressParts, isAddressComplete } from "../utils/addressFields";
-import { requestCategoryGroups } from "../utils/requestCategories";
+import {
+  dishVolunteerOptions,
+  DONATE_A_DISH_CATEGORY,
+  requestCategoryGroups
+} from "../utils/requestCategories";
 import { CURRENT_TERMS_VERSION } from "../utils/terms";
 
 const BLOCK_MESSAGE_KEY = "hurricaneHeartsAuthMessage";
@@ -21,7 +25,8 @@ export default function ProfileSetup({ user, onProfileSaved }) {
     email: user.email || "",
     ...getAddressParts(user),
     phone: normalizePhoneNumber(user.phone),
-    serviceCategories: user.serviceCategories || []
+    serviceCategories: user.serviceCategories || [],
+    dishVolunteerCategories: user.dishVolunteerCategories || []
   });
 
   const askAddressMismatch = () => {
@@ -52,7 +57,24 @@ export default function ProfileSetup({ user, onProfileSaved }) {
         ...current,
         serviceCategories: selected
           ? current.serviceCategories.filter((item) => item !== category)
-          : [...current.serviceCategories, category]
+          : [...current.serviceCategories, category],
+        dishVolunteerCategories:
+          selected && category === DONATE_A_DISH_CATEGORY
+            ? []
+            : current.dishVolunteerCategories
+      };
+    });
+  };
+
+  const toggleDishVolunteerCategory = (category) => {
+    setForm((current) => {
+      const selected = current.dishVolunteerCategories.includes(category);
+
+      return {
+        ...current,
+        dishVolunteerCategories: selected
+          ? current.dishVolunteerCategories.filter((item) => item !== category)
+          : [...current.dishVolunteerCategories, category]
       };
     });
   };
@@ -272,6 +294,30 @@ export default function ProfileSetup({ user, onProfileSaved }) {
                     );
                   })}
                 </div>
+
+                {group.categories.includes(DONATE_A_DISH_CATEGORY) &&
+                  form.serviceCategories.includes(DONATE_A_DISH_CATEGORY) && (
+                    <div className="mt-3 grid gap-2 pl-3">
+                      {dishVolunteerOptions.map((option) => (
+                        <label
+                          key={option.value}
+                          className="rounded-lg border border-[#c7d0dc] bg-white p-3 text-sm"
+                        >
+                          <span className="flex items-center gap-2 font-bold">
+                            <input
+                              type="checkbox"
+                              checked={form.dishVolunteerCategories.includes(option.value)}
+                              onChange={() => toggleDishVolunteerCategory(option.value)}
+                            />
+                            {option.value}
+                          </span>
+                          <span className="mt-1 block text-xs font-normal leading-snug text-[#667085]">
+                            {option.description}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
               </div>
             ))}
           </div>

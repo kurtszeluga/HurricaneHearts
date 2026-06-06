@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
+import { getRequestCategoryLabel } from "../utils/requestCategories";
 
 function getTimeValue(value) {
   if (!value) return 0;
@@ -105,7 +106,7 @@ export default function HomePage({
     <div className="flex flex-wrap justify-center gap-1 max-w-[220px] mx-auto">
       {(request.categories || []).slice(0, 2).map((category) => (
         <span key={category} className="bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-md text-xs font-semibold">
-          {category}
+          {getRequestCategoryLabel(category)}
         </span>
       ))}
       {(request.categories || []).length > 2 && (

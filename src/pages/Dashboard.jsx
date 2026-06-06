@@ -117,6 +117,9 @@ export default function Dashboard({
       const managedCategories = Array.isArray(updatedUser.managedCategories)
         ? updatedUser.managedCategories
         : [];
+      const dishVolunteerCategories = Array.isArray(updatedUser.dishVolunteerCategories)
+        ? updatedUser.dishVolunteerCategories
+        : [];
 
       const updatedProfile = {
         name: updatedUser.name,
@@ -131,6 +134,9 @@ export default function Dashboard({
         address: formatAddress(updatedUser),
         phone: normalizePhoneNumber(updatedUser.phone),
         serviceCategories,
+        dishVolunteerCategories: serviceCategories.includes("Donate a Dish")
+          ? dishVolunteerCategories
+          : [],
         managedCategories: user.teamMember ? managedCategories : user.managedCategories || [],
         profileComplete: true,
         firstLoginProfileRequired: false,

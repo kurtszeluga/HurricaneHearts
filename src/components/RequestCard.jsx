@@ -8,7 +8,11 @@ import {
   queueRequestCancelledEmails,
   queueRequestClaimedEmails
 } from "../utils/emailNotifications";
-import { categoryDescriptions } from "../utils/requestCategories";
+import {
+  categoryDescriptions,
+  getRequestCategoryLabel,
+  REQUEST_MEAL_CATEGORY
+} from "../utils/requestCategories";
 
 const urgencyColors = {
   Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
@@ -17,7 +21,6 @@ const urgencyColors = {
   Critical: "bg-[#fff1f0] text-[#b42318] border border-[#fecdca]"
 };
 
-const DONATE_A_DISH_CATEGORY = "Donate a Dish";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -34,7 +37,14 @@ function getClaimedBy(request) {
   return claimNames.length > 0 ? claimNames.join(", ") : "—";
 }
 
-async function addRequestHistory({ requestId, eventId = "", action, user, details = "" }) {
+async function addRequestHistory({
+  requestId,
+  eventId = "",
+  action,
+  user,
+  details = "",
+  restrictedToTeam = false
+}) {
   await addDoc(collection(db, "requestHistory"), {
     requestId,
     eventId,
@@ -43,6 +53,7 @@ async function addRequestHistory({ requestId, eventId = "", action, user, detail
     byUid: user.uid,
     byName: user.name || user.email || "User",
     byEmail: user.email || "",
+    restrictedToTeam,
     createdAt: serverTimestamp()
   });
 }
@@ -256,7 +267,9 @@ function RequestDetailsModal({
             <div className="grid gap-2">
               {(request.categories || []).map((category) => (
                 <div key={category} className="rounded-lg bg-red-50 px-2 py-1.5 text-xs">
-                  <div className="font-bold text-red-700">{category}</div>
+                  <div className="font-bold text-red-700">
+                    {getRequestCategoryLabel(category)}
+                  </div>
                   <div className="mt-1 leading-snug text-[#667085]">
                     {categoryDescriptions[category] || ""}
                   </div>
@@ -271,7 +284,7 @@ function RequestDetailsModal({
             <div className="whitespace-pre-wrap">{request.need || "No details provided"}</div>
           </div>
 
-          {(request.categories || []).includes(DONATE_A_DISH_CATEGORY) && (
+          {(request.categories || []).includes(REQUEST_MEAL_CATEGORY) && (
             <div className="border rounded-lg p-2 mb-3 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Food Allergies</div>
               <div className="whitespace-pre-wrap">
@@ -361,7 +374,11 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const isAdmin = user.role === "admin";
   const canEditRequest = isOwner || isAdmin;
   const eligibleHelpers = users
-    .filter((u) => u.active !== false && u.approved !== false)
+    .filter((u) =>
+      u.active !== false &&
+      u.approved !== false &&
+      (request.restrictedToTeam !== true || u.teamMember === true)
+    )
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const selectedHelper = isAdmin
     ? eligibleHelpers.find((helper) => helper.uid === claimHelperUid || helper.id === claimHelperUid) || user
@@ -371,8 +388,12 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const peopleCommitted = getPeopleCommitted(request);
   const peopleRemaining = getPeopleRemaining(request);
   const claimedBy = getClaimedBy(request);
-  const canClaim = !isOwner && request.status === "Open" && !isClaimedByCurrentUser;
-  const isDonateDishRequest = (request.categories || []).includes(DONATE_A_DISH_CATEGORY);
+  const canClaim =
+    !isOwner &&
+    request.status === "Open" &&
+    !isClaimedByCurrentUser &&
+    (request.restrictedToTeam !== true || user.teamMember === true);
+  const isDonateDishRequest = (request.categories || []).includes(REQUEST_MEAL_CATEGORY);
   const allergyText = request.hasFoodAllergies
     ? request.foodAllergies || "Food allergies were indicated, but details were not provided."
     : "";
@@ -381,6 +402,16 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const statusDateTime = formatDateTime(statusDateMeta.value);
 
   const claimRequest = async () => {
+    if (request.restrictedToTeam === true && user.teamMember !== true) {
+      alert("Only Hurricane Hearts Team Members can claim meal requests.");
+      return;
+    }
+
+    if (request.restrictedToTeam === true && selectedHelper.teamMember !== true) {
+      alert("Meal requests can only be claimed by Hurricane Hearts Team Members.");
+      return;
+    }
+
     if (!isAdmin && request.residentUid === user.uid) {
       alert("You cannot claim your own request.");
       return;
@@ -468,6 +499,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
       eventId: request.eventId || "",
       action: "claimed",
       user,
+      restrictedToTeam: request.restrictedToTeam === true,
       details: isAdmin && (selectedHelper.uid || selectedHelper.id) !== user.uid
         ? `${user.name || user.email || "Admin"} claimed ${peopleProvided} people on behalf of ${selectedHelper.name || selectedHelper.email || "helper"}. Comment: ${claimComment.trim()}`
         : `${user.name || user.email || "User"} claimed ${peopleProvided} people. Comment: ${claimComment.trim()}`
@@ -525,6 +557,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
       eventId: request.eventId || "",
       action: "completed",
       user,
+      restrictedToTeam: request.restrictedToTeam === true,
       details: completionComment.trim()
     });
 
@@ -559,6 +592,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
       eventId: request.eventId || "",
       action: "cancelled",
       user,
+      restrictedToTeam: request.restrictedToTeam === true,
       details: reason.trim()
     });
 
@@ -602,7 +636,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
                 key={category}
                 className="bg-[#fff1f0] text-[#b42318] border border-[#fecdca] px-2 py-1 rounded-md text-xs font-semibold"
               >
-                {category}
+                {getRequestCategoryLabel(category)}
               </span>
             ))}
             {(request.categories || []).length > 2 && (

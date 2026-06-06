@@ -463,6 +463,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       address: formatAddress(updatedUser),
       phone: normalizePhoneNumber(updatedUser.phone),
       serviceCategories: updatedUser.serviceCategories || [],
+      dishVolunteerCategories: (updatedUser.serviceCategories || []).includes("Donate a Dish")
+        ? updatedUser.dishVolunteerCategories || []
+        : [],
       teamMember: isPrimaryOwnerAdmin
         ? updatedUser.teamMember || false
         : editingUser?.teamMember || false,
@@ -641,6 +644,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           arLotNumber: newUser.arLotNumber?.trim() || "",
           phone: normalizePhoneNumber(newUser.phone),
           serviceCategories: newUser.serviceCategories || [],
+          dishVolunteerCategories: (newUser.serviceCategories || []).includes("Donate a Dish")
+            ? newUser.dishVolunteerCategories || []
+            : [],
           teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
           managedCategories:
             isPrimaryOwnerAdmin && newUser.teamMember
@@ -914,6 +920,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
             arLotNumber: "",
             phone: "",
             serviceCategories: [],
+            dishVolunteerCategories: [],
             teamMember: false,
             managedCategories: [],
             role: "resident",
