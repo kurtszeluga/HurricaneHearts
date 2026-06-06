@@ -219,6 +219,8 @@ export default async function handler(request, response) {
         Array.isArray(body.dishVolunteerCategories)
         ? body.dishVolunteerCategories
         : [],
+      mealPreparationLocation:
+        requesterIsSuperAdmin && body.mealPreparationLocation === true,
       teamMember: requesterIsSuperAdmin ? body.teamMember === true : false,
       managedCategories:
         requesterIsSuperAdmin && body.teamMember === true && Array.isArray(body.managedCategories)

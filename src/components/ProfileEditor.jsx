@@ -23,6 +23,7 @@ export default function ProfileEditor({
   const isPrimaryOwner = isSuperAdminEmail(user.email);
   const canEditRole = canManageAdminRole || isPrimaryOwner;
   const canManageTeamMember = adminMode && canManageAdminRole;
+  const canManageMealPreparationLocation = adminMode && canManageAdminRole;
   const canDeleteUser = Boolean(adminMode && onDelete && user.id && !isPrimaryOwner);
   const canEditLoginId = adminMode && canManageAdminRole && Boolean(user.id);
   const canShowPasswordField = adminMode && (!user.id || canManageAdminRole);
@@ -44,6 +45,7 @@ export default function ProfileEditor({
     active: isPrimaryOwner ? true : user.active ?? true,
     serviceCategories: user.serviceCategories || [],
     dishVolunteerCategories: user.dishVolunteerCategories || [],
+    mealPreparationLocation: user.mealPreparationLocation === true,
     teamMember: user.teamMember || false,
     managedCategories: user.managedCategories || []
   });
@@ -153,6 +155,9 @@ export default function ProfileEditor({
       dishVolunteerCategories: form.serviceCategories.includes(DONATE_A_DISH_CATEGORY)
         ? form.dishVolunteerCategories || []
         : [],
+      mealPreparationLocation: canManageMealPreparationLocation
+        ? form.mealPreparationLocation === true
+        : user.mealPreparationLocation === true,
       teamMember: canManageTeamMember ? form.teamMember : user.teamMember || false,
       managedCategories:
         canManageTeamMember || user.teamMember
@@ -525,6 +530,36 @@ export default function ProfileEditor({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {adminMode && (
+        <div className="mt-5 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-4">
+          <label className="flex items-start gap-3 text-sm font-semibold text-[#172033]">
+            <input
+              type="checkbox"
+              checked={form.mealPreparationLocation}
+              disabled={!canManageMealPreparationLocation}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  mealPreparationLocation: e.target.checked
+                })
+              }
+              className="mt-1"
+            />
+            <span>
+              Meal Preparation Location
+              <span className="mt-1 block text-xs font-normal leading-snug text-[#667085]">
+                Allow this profile's address to be selected as a preparation location when an HH Team Member claims a meal request.
+              </span>
+              {!canManageMealPreparationLocation && (
+                <span className="mt-1 block text-xs font-normal text-[#667085]">
+                  This designation is restricted to the Super Admin.
+                </span>
+              )}
+            </span>
+          </label>
         </div>
       )}
 

@@ -78,7 +78,8 @@ service cloud.firestore {
             isPrimaryOwnerAdmin()
             || !request.resource.data.diff(resource.data).changedKeys().hasAny([
               "role",
-              "teamMember"
+              "teamMember",
+              "mealPreparationLocation"
             ])
           )
         )
@@ -95,6 +96,7 @@ service cloud.firestore {
             "approved",
             "active",
             "teamMember",
+            "mealPreparationLocation",
             "manuallyCreated"
           ])
         )

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { formatAddress } from "../utils/addressFields";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import {
@@ -305,6 +306,15 @@ function RequestDetailsModal({
                     <div>{claim.peopleProvided} people</div>
                     {claim.phone && <div>Phone: {formatPhoneNumber(claim.phone)}</div>}
                     {claim.email && <div>Email: {claim.email}</div>}
+                    {claim.mealPreparationLocationName && (
+                      <div className="mt-1">
+                        <span className="font-semibold">Meal preparation location:</span>{" "}
+                        {claim.mealPreparationLocationName}
+                        {claim.mealPreparationLocationAddress
+                          ? `, ${claim.mealPreparationLocationAddress}`
+                          : ""}
+                      </div>
+                    )}
                     {claim.comment && <div>Comment: {claim.comment}</div>}
                     {claim.claimedAt && <div className="text-xs mt-1">Claimed: {formatDateTime(claim.claimedAt) || "Not recorded"}</div>}
                   </div>
@@ -368,6 +378,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const [claimPeople, setClaimPeople] = useState("1");
   const [claimComment, setClaimComment] = useState("");
   const [claimHelperUid, setClaimHelperUid] = useState(user.uid);
+  const [mealPreparationLocationUid, setMealPreparationLocationUid] = useState("");
 
   const isOwner = request.residentUid === user.uid;
   const isClaimedByCurrentUser = (request.claimCommitments || []).some((claim) => claim.uid === user.uid);
@@ -383,6 +394,17 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const selectedHelper = isAdmin
     ? eligibleHelpers.find((helper) => helper.uid === claimHelperUid || helper.id === claimHelperUid) || user
     : user;
+  const mealPreparationLocations = users
+    .filter(
+      (location) =>
+        location.active !== false &&
+        location.approved !== false &&
+        location.mealPreparationLocation === true
+    )
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const selectedMealPreparationLocation = mealPreparationLocations.find(
+    (location) => (location.uid || location.id) === mealPreparationLocationUid
+  );
 
   const peopleNeeded = request.peopleNeeded ?? "Unknown";
   const peopleCommitted = getPeopleCommitted(request);
@@ -409,6 +431,11 @@ export default function RequestCard({ request, user, users = [], requestHistory 
 
     if (request.restrictedToTeam === true && selectedHelper.teamMember !== true) {
       alert("Meal requests can only be claimed by Hurricane Hearts Team Members.");
+      return;
+    }
+
+    if (isDonateDishRequest && !selectedMealPreparationLocation) {
+      alert("Please select a meal preparation location.");
       return;
     }
 
@@ -470,6 +497,15 @@ export default function RequestCard({ request, user, users = [], requestHistory 
       claimedByUid: user.uid,
       claimedByName: user.name || user.email || "User",
       claimedOnBehalf: isAdmin && (selectedHelper.uid || selectedHelper.id) !== user.uid,
+      mealPreparationLocationUid: isDonateDishRequest
+        ? selectedMealPreparationLocation.uid || selectedMealPreparationLocation.id
+        : "",
+      mealPreparationLocationName: isDonateDishRequest
+        ? selectedMealPreparationLocation.name || "Meal Preparation Location"
+        : "",
+      mealPreparationLocationAddress: isDonateDishRequest
+        ? formatAddress(selectedMealPreparationLocation)
+        : "",
       peopleProvided,
       comment: claimComment.trim(),
       claimedAt: new Date().toISOString()
@@ -501,8 +537,8 @@ export default function RequestCard({ request, user, users = [], requestHistory 
       user,
       restrictedToTeam: request.restrictedToTeam === true,
       details: isAdmin && (selectedHelper.uid || selectedHelper.id) !== user.uid
-        ? `${user.name || user.email || "Admin"} claimed ${peopleProvided} people on behalf of ${selectedHelper.name || selectedHelper.email || "helper"}. Comment: ${claimComment.trim()}`
-        : `${user.name || user.email || "User"} claimed ${peopleProvided} people. Comment: ${claimComment.trim()}`
+        ? `${user.name || user.email || "Admin"} claimed ${peopleProvided} people on behalf of ${selectedHelper.name || selectedHelper.email || "helper"}.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
+        : `${user.name || user.email || "User"} claimed ${peopleProvided} people.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
     });
 
     await addNotification({
@@ -532,6 +568,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
     setClaimPeople("1");
     setClaimComment("");
     setClaimHelperUid(user.uid);
+    setMealPreparationLocationUid("");
   };
 
   const completeRequest = async () => {
@@ -749,20 +786,46 @@ export default function RequestCard({ request, user, users = [], requestHistory 
               </p>
 
               {isDonateDishRequest && (
-                <div
-                  className={
-                    request.hasFoodAllergies
-                      ? "mb-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3 text-sm text-[#9a3412]"
-                      : "mb-4 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-3 text-sm text-[#475467]"
-                  }
-                >
-                  <div className="font-bold">Food Allergies</div>
-                  <div className="mt-1 whitespace-pre-wrap">
-                    {request.hasFoodAllergies
-                      ? allergyText
-                      : "No food allergies indicated."}
+                <>
+                  <div
+                    className={
+                      request.hasFoodAllergies
+                        ? "mb-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3 text-sm text-[#9a3412]"
+                        : "mb-4 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-3 text-sm text-[#475467]"
+                    }
+                  >
+                    <div className="font-bold">Food Allergies</div>
+                    <div className="mt-1 whitespace-pre-wrap">
+                      {request.hasFoodAllergies
+                        ? allergyText
+                        : "No food allergies indicated."}
+                    </div>
                   </div>
-                </div>
+
+                  <label className="block text-sm font-semibold mb-2">
+                    Meal Preparation Location
+                  </label>
+                  <select
+                    value={mealPreparationLocationUid}
+                    onChange={(e) => setMealPreparationLocationUid(e.target.value)}
+                    className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
+                  >
+                    <option value="">Select a preparation location</option>
+                    {mealPreparationLocations.map((location) => (
+                      <option
+                        key={location.uid || location.id}
+                        value={location.uid || location.id}
+                      >
+                        {location.name || "Unnamed Location"} - {formatAddress(location)}
+                      </option>
+                    ))}
+                  </select>
+                  {mealPreparationLocations.length === 0 && (
+                    <p className="mb-4 text-xs font-semibold text-[#b42318]">
+                      No meal preparation locations are currently designated. A Super Admin must designate one before this request can be claimed.
+                    </p>
+                  )}
+                </>
               )}
 
               {isAdmin && (
@@ -823,6 +886,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
                     setClaimPeople("1");
                     setClaimComment("");
                     setClaimHelperUid(user.uid);
+                    setMealPreparationLocationUid("");
                   }}
                   className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-4 py-2 rounded-lg font-semibold"
                 >

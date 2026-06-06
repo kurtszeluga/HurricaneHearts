@@ -82,6 +82,7 @@ export default function useAuthUser() {
           phone: existing.phone || "",
           serviceCategories: existing.serviceCategories || [],
           dishVolunteerCategories: existing.dishVolunteerCategories || [],
+          mealPreparationLocation: existing.mealPreparationLocation === true,
           teamMember: existing.teamMember === true,
           managedCategories: existing.managedCategories || [],
           role: existing.role || "resident",

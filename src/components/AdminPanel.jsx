@@ -466,6 +466,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
       dishVolunteerCategories: (updatedUser.serviceCategories || []).includes("Donate a Dish")
         ? updatedUser.dishVolunteerCategories || []
         : [],
+      mealPreparationLocation: isPrimaryOwnerAdmin
+        ? updatedUser.mealPreparationLocation === true
+        : editingUser?.mealPreparationLocation === true,
       teamMember: isPrimaryOwnerAdmin
         ? updatedUser.teamMember || false
         : editingUser?.teamMember || false,
@@ -647,6 +650,9 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
           dishVolunteerCategories: (newUser.serviceCategories || []).includes("Donate a Dish")
             ? newUser.dishVolunteerCategories || []
             : [],
+          mealPreparationLocation: isPrimaryOwnerAdmin
+            ? newUser.mealPreparationLocation === true
+            : false,
           teamMember: isPrimaryOwnerAdmin ? newUser.teamMember || false : false,
           managedCategories:
             isPrimaryOwnerAdmin && newUser.teamMember
@@ -921,6 +927,7 @@ export default function AdminPanel({ user, users, usersLoading = false }) {
             phone: "",
             serviceCategories: [],
             dishVolunteerCategories: [],
+            mealPreparationLocation: false,
             teamMember: false,
             managedCategories: [],
             role: "resident",
