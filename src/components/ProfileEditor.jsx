@@ -235,6 +235,16 @@ export default function ProfileEditor({
         </div>
       )}
 
+      {user.address && !isAddressComplete(user) && (
+        <div className="mb-5 rounded-lg border border-[#bfdbfe] bg-[#eff6ff] p-4 text-sm text-[#1e3a5f]">
+          <div className="font-bold">Previously Saved Address</div>
+          <div className="mt-1">{user.address}</div>
+          <p className="mt-2 text-xs text-[#475467]">
+            This older profile does not contain all separate address fields. Complete the missing city, zip, and AR lot number before saving changes.
+          </p>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-4">
         <label className="text-sm font-semibold text-[#172033]">
           Full name
