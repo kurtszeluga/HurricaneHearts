@@ -16,16 +16,31 @@ export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
   const appAccessEnabled = Boolean(user && !user.termsReviewRequired);
   const activeEvent = useActiveEvent(appAccessEnabled);
+  const { users, loading: usersLoading } = useUsers(appAccessEnabled);
+  const currentDirectoryUser = users.find(
+    (directoryUser) =>
+      directoryUser.id === user?.uid || directoryUser.uid === user?.uid
+  );
+  const effectiveUser = user
+    ? {
+        ...user,
+        teamMember: currentDirectoryUser?.teamMember ?? user.teamMember ?? false,
+        managedCategories:
+          currentDirectoryUser?.managedCategories ?? user.managedCategories ?? []
+      }
+    : null;
   const requests = useRequests(
     appAccessEnabled,
     activeEvent?.eventId || null,
-    user?.teamMember === true
+    effectiveUser?.teamMember === true
   );
   const documents = useDocuments(appAccessEnabled);
   const eventHistory = useEventHistory(appAccessEnabled);
-  const { users, loading: usersLoading } = useUsers(appAccessEnabled);
-  const requestHistory = useRequestHistory(appAccessEnabled, user?.teamMember === true);
-  const notifications = useNotifications(appAccessEnabled ? user : null);
+  const requestHistory = useRequestHistory(
+    appAccessEnabled,
+    effectiveUser?.teamMember === true
+  );
+  const notifications = useNotifications(appAccessEnabled ? effectiveUser : null);
 
   if (loading) {
     return (
@@ -51,7 +66,7 @@ export default function App() {
     <>
       <PullToRefresh />
       <Dashboard
-        user={user}
+        user={effectiveUser}
         setUser={setUser}
         activeEvent={activeEvent}
         requests={requests}
