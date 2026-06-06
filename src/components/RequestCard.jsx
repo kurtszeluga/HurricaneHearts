@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
@@ -372,7 +372,16 @@ function RequestDetailsModal({
   );
 }
 
-export default function RequestCard({ request, user, users = [], requestHistory = [], onEdit }) {
+export default function RequestCard({
+  request,
+  user,
+  users = [],
+  requestHistory = [],
+  onEdit,
+  openAction = null,
+  actionToken = null,
+  onActionHandled
+}) {
   const [showDetails, setShowDetails] = useState(false);
   const [showClaimForm, setShowClaimForm] = useState(false);
   const [claimPeople, setClaimPeople] = useState("1");
@@ -422,6 +431,20 @@ export default function RequestCard({ request, user, users = [], requestHistory 
   const thisRequestHistory = requestHistory.filter((item) => item.requestId === request.id);
   const statusDateMeta = getStatusDateMeta(request);
   const statusDateTime = formatDateTime(statusDateMeta.value);
+
+  useEffect(() => {
+    if (!openAction || !actionToken) return;
+
+    if (openAction === "details") {
+      setShowDetails(true);
+    }
+
+    if (openAction === "claim" && canClaim) {
+      setShowClaimForm(true);
+    }
+
+    onActionHandled?.();
+  }, [actionToken, canClaim, onActionHandled, openAction]);
 
   const claimRequest = async () => {
     if (request.restrictedToTeam === true && user.teamMember !== true) {
@@ -521,6 +544,7 @@ export default function RequestCard({ request, user, users = [], requestHistory 
 
     await updateDoc(requestRef, {
       claimCommitments: nextClaims,
+      claimantUids: nextClaims.map((claim) => claim.uid).filter(Boolean),
       peopleCommitted: nextCommitted,
       peopleRemaining: nextRemaining,
       status: nextStatus,

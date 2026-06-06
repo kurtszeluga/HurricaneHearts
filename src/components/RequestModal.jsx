@@ -218,6 +218,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         peopleCommitted: 0,
         peopleRemaining: normalizedPeopleNeeded === "Unknown" ? "Unknown" : normalizedPeopleNeeded,
         claimCommitments: [],
+        claimantUids: [],
         residentName:
           selectedRequestor.name ||
           selectedRequestor.displayName ||

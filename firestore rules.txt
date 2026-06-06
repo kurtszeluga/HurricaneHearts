@@ -166,13 +166,12 @@ service cloud.firestore {
             && request.resource.data.residentUid == resource.data.residentUid
           )
           || (
-            resource.data.assignedHelperUid == request.auth.uid
-            && request.resource.data.assignedHelperUid == resource.data.assignedHelperUid
+            resource.data.claimantUids.hasAny([request.auth.uid])
+            && request.resource.data.claimantUids == resource.data.claimantUids
           )
           || (
             resource.data.status == "Open"
-            && request.resource.data.status == "Assigned"
-            && request.resource.data.assignedHelperUid == request.auth.uid
+            && request.resource.data.claimantUids.hasAny([request.auth.uid])
           )
         );
 

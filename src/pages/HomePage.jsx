@@ -1,4 +1,12 @@
 import { useState } from "react";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  updateDoc
+} from "firebase/firestore";
+import { db } from "../firebase/config";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { getRequestCategoryLabel } from "../utils/requestCategories";
 
@@ -24,7 +32,8 @@ export default function HomePage({
   activeEvent,
   requests,
   onNewRequest,
-  onGoToRequests
+  onGoToRequests,
+  onOpenRequestAction
 }) {
   const [openDateSortDirection, setOpenDateSortDirection] = useState("desc");
   const [claimsDateSortDirection, setClaimsDateSortDirection] = useState("desc");
@@ -100,6 +109,54 @@ export default function HomePage({
       .filter(Boolean);
 
     return claimNames.length > 0 ? claimNames.join(", ") : "—";
+  };
+
+  const completeClaimedRequest = async (request) => {
+    const completionComment = window.prompt(
+      "Please enter a completion comment before marking this request completed:"
+    );
+
+    if (!completionComment || !completionComment.trim()) {
+      return;
+    }
+
+    try {
+      const cleanComment = completionComment.trim();
+
+      await updateDoc(doc(db, "requests", request.id), {
+        status: "Completed",
+        completionComment: cleanComment,
+        completedAt: new Date().toISOString(),
+        completedByUid: user.uid,
+        completedByName: user.name || user.email || "User"
+      });
+
+      await addDoc(collection(db, "requestHistory"), {
+        requestId: request.id,
+        eventId: request.eventId || "",
+        action: "completed",
+        details: cleanComment,
+        byUid: user.uid,
+        byName: user.name || user.email || "User",
+        byEmail: user.email || "",
+        restrictedToTeam: request.restrictedToTeam === true,
+        createdAt: serverTimestamp()
+      });
+
+      await addDoc(collection(db, "notifications"), {
+        toUid: request.residentUid,
+        type: "request_completed",
+        title: "Your request was completed",
+        message: `${user.name || user.email || "A resident"} completed your request.`,
+        requestId: request.id,
+        eventId: request.eventId || "",
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Dashboard request completion error:", error);
+      alert("Unable to complete this request. Please open Manage My Claims and try again.");
+    }
   };
 
   const categoryBadges = (request) => (
@@ -275,13 +332,20 @@ export default function HomePage({
                       <div>R: {request.peopleRemaining ?? "Unknown"}</div>
                     </td>
                     <td className="px-2 py-2">
-                      <div className="flex justify-center">
+                      <div className="flex flex-wrap justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => onGoToRequests({ type: "status", value: "Open" })}
+                          onClick={() => onOpenRequestAction(request, "claim")}
                           className="bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-2 py-1 rounded-md text-xs font-semibold"
                         >
-                          Claim / Details
+                          Claim
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onOpenRequestAction(request, "details")}
+                          className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
+                        >
+                          Details
                         </button>
                       </div>
                     </td>
@@ -360,14 +424,14 @@ export default function HomePage({
                         <div className="flex flex-wrap justify-center gap-1">
                           <button
                             type="button"
-                            onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
+                            onClick={() => onOpenRequestAction(request, "details")}
                             className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             Details
                           </button>
                           <button
                             type="button"
-                            onClick={() => onGoToRequests({ type: "status", value: "Assigned" })}
+                            onClick={() => completeClaimedRequest(request)}
                             className="bg-[#ecfdf3] hover:bg-[#dcfae6] border border-[#abefc6] text-[#067647] px-2 py-1 rounded-md text-xs font-semibold"
                           >
                             Complete
@@ -447,7 +511,7 @@ export default function HomePage({
                       <div className="flex flex-wrap justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => onGoToRequests({ type: "mine", value: "My Requests" })}
+                          onClick={() => onOpenRequestAction(request, "details")}
                           className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-[#bfdbfe] text-[#1d4ed8] px-2 py-1 rounded-md text-xs font-semibold"
                         >
                           Details
