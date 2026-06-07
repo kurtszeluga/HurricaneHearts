@@ -75,8 +75,6 @@ export default function useAuthUser() {
           loginIdKey: existing.loginIdKey || "",
           houseNumber: existing.houseNumber || "",
           streetName: existing.streetName || "",
-          city: existing.city || "",
-          zip: existing.zip || "",
           arLotNumber: existing.arLotNumber || "",
           address: existing.address || "",
           phone: existing.phone || "",

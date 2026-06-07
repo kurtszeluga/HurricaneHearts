@@ -105,8 +105,8 @@ export default function ProfileEditor({
     if (!form.name.trim() || (hasProfileEmail && !form.email.trim()) || !isAddressComplete(form) || !form.phone.trim()) {
       alert(
         hasProfileEmail
-          ? "Please complete name, email, house number, street name, city, zip, AR lot number, and phone."
-          : "Please complete name, house number, street name, city, zip, AR lot number, and phone."
+          ? "Please complete name, email, house number, street name, AR lot number, and phone."
+          : "Please complete name, house number, street name, AR lot number, and phone."
       );
       return;
     }
@@ -144,8 +144,6 @@ export default function ProfileEditor({
       loginId: form.loginId.trim(),
       houseNumber: form.houseNumber.trim(),
       streetName: form.streetName.trim(),
-      city: form.city.trim(),
-      zip: form.zip.trim(),
       arLotNumber: form.arLotNumber.trim(),
       address: formatAddress(form),
       phone: normalizePhoneNumber(form.phone),
@@ -240,7 +238,7 @@ export default function ProfileEditor({
           <div className="font-bold">Previously Saved Address</div>
           <div className="mt-1">{user.address}</div>
           <p className="mt-2 text-xs text-[#475467]">
-            This older profile does not contain all separate address fields. Complete the missing city, zip, and AR lot number before saving changes.
+            This older profile does not contain all required address fields. Complete the missing house number, street name, or AR lot number before saving changes.
           </p>
         </div>
       )}
@@ -321,34 +319,6 @@ export default function ProfileEditor({
             value={form.streetName}
             onChange={(e) => setForm({ ...form, streetName: e.target.value })}
             placeholder="Street name"
-            className={
-              needsAddressReview
-                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
-                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
-            }
-          />
-        </label>
-
-        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
-          City
-          <input
-            value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-            placeholder="City"
-            className={
-              needsAddressReview
-                ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"
-                : "mt-1 w-full border border-[#c7d0dc] rounded-lg p-3.5 bg-white font-normal"
-            }
-          />
-        </label>
-
-        <label className={needsAddressReview ? "text-sm font-bold text-[#b54708]" : "text-sm font-semibold text-[#172033]"}>
-          Zip
-          <input
-            value={form.zip}
-            onChange={(e) => setForm({ ...form, zip: e.target.value })}
-            placeholder="Zip"
             className={
               needsAddressReview
                 ? "mt-1 w-full border-2 border-[#f79009] rounded-lg p-3.5 bg-[#fffbeb] font-normal text-[#7a2e0e]"

@@ -89,8 +89,6 @@ export default function ProfileSetup({ user, onProfileSaved }) {
         body: JSON.stringify({
           houseNumber: form.houseNumber,
           streetName: form.streetName,
-          city: form.city,
-          zip: form.zip,
           arLotNumber: form.arLotNumber
         })
       });
@@ -121,7 +119,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
 
   const saveProfile = async () => {
     if (!form.name.trim() || !form.email.trim() || !isAddressComplete(form) || !form.phone.trim()) {
-      alert("Please complete name, email, house number, street name, city, zip, AR lot number, and phone.");
+      alert("Please complete name, email, house number, street name, AR lot number, and phone.");
       return;
     }
 
@@ -157,8 +155,6 @@ export default function ProfileSetup({ user, onProfileSaved }) {
       ...form,
       houseNumber: form.houseNumber.trim(),
       streetName: form.streetName.trim(),
-      city: form.city.trim(),
-      zip: form.zip.trim(),
       arLotNumber: form.arLotNumber.trim(),
       address: formatAddress(form),
       addressVerified:
@@ -225,20 +221,6 @@ export default function ProfileSetup({ user, onProfileSaved }) {
               value={form.streetName}
               onChange={(e) => setForm({ ...form, streetName: e.target.value })}
               placeholder="Street name"
-              className="border border-[#c7d0dc] rounded-lg p-3.5"
-            />
-
-            <input
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-              placeholder="City"
-              className="border border-[#c7d0dc] rounded-lg p-3.5"
-            />
-
-            <input
-              value={form.zip}
-              onChange={(e) => setForm({ ...form, zip: e.target.value })}
-              placeholder="Zip"
               className="border border-[#c7d0dc] rounded-lg p-3.5"
             />
 
@@ -374,7 +356,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
               Address Not Found
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
-              The house number, street name, city, zip, and AR lot number did not match the community address directory.
+              The house number, street name, and AR lot number did not match the community address directory.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
               You can edit the form, cancel this request, or submit it anyway for admin review.

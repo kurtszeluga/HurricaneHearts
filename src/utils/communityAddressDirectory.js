@@ -13,8 +13,6 @@ export function normalizeCommunityAddress(source = {}) {
   return {
     houseNumber: normalizeValue(source.houseNumber),
     streetName: normalizeValue(source.streetName),
-    city: normalizeValue(source.city),
-    zip: normalizeValue(source.zip),
     arLotNumber: normalizeLotNumber(source.arLotNumber)
   };
 }
@@ -56,9 +54,6 @@ const headerAliases = {
   streetnumber: "houseNumber",
   streetname: "streetName",
   street: "streetName",
-  city: "city",
-  zip: "zip",
-  zipcode: "zip",
   arlotnumber: "arLotNumber",
   arlot: "arLotNumber",
   lotnumber: "arLotNumber",
@@ -83,12 +78,12 @@ export function parseCommunityAddressCsv(csvText = "") {
   const headers = rows[0].cells.map((header) => {
     return headerAliases[normalizeHeader(header)] || "";
   });
-  const requiredFields = ["houseNumber", "streetName", "city", "zip", "arLotNumber"];
+  const requiredFields = ["houseNumber", "streetName", "arLotNumber"];
   const missingFields = requiredFields.filter((field) => !headers.includes(field));
 
   if (missingFields.length > 0) {
     throw new Error(
-      "CSV is missing required columns: houseNumber, streetName, city, zip, arLotNumber."
+      "CSV is missing required columns: houseNumber, streetName, arLotNumber."
     );
   }
 
@@ -112,8 +107,6 @@ export function parseCommunityAddressCsv(csvText = "") {
 
     if (
       !normalized.streetName ||
-      !normalized.city ||
-      !normalized.zip ||
       !normalized.arLotNumber
     ) {
       throw new Error(`CSV row ${csvRow.rowNumber} is missing required address data.`);
@@ -122,8 +115,6 @@ export function parseCommunityAddressCsv(csvText = "") {
     addressRows.push({
       houseNumber: row.houseNumber.trim(),
       streetName: row.streetName.trim(),
-      city: row.city.trim(),
-      zip: row.zip.trim(),
       arLotNumber: row.arLotNumber.trim()
     });
   }
@@ -144,8 +135,6 @@ export function findCommunityAddressMatch(source = {}, directory = []) {
     return (
       current.houseNumber === target.houseNumber &&
       current.streetName === target.streetName &&
-      current.city === target.city &&
-      current.zip === target.zip &&
       current.arLotNumber === target.arLotNumber
     );
   }) || null;

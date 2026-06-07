@@ -39,8 +39,6 @@ function contactProfile(snap) {
     phone: profile.phone || "",
     houseNumber: profile.houseNumber || "",
     streetName: profile.streetName || "",
-    city: profile.city || "",
-    zip: profile.zip || "",
     arLotNumber: profile.arLotNumber || "",
     address: profile.address || ""
   };

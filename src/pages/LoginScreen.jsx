@@ -43,8 +43,6 @@ const emptyForm = {
   name: "",
   houseNumber: "",
   streetName: "",
-  city: "",
-  zip: "",
   arLotNumber: "",
   phone: ""
 };
@@ -240,8 +238,6 @@ export default function LoginScreen({ message }) {
         body: JSON.stringify({
           houseNumber: form.houseNumber,
           streetName: form.streetName,
-          city: form.city,
-          zip: form.zip,
           arLotNumber: form.arLotNumber
         })
       });
@@ -294,8 +290,8 @@ export default function LoginScreen({ message }) {
 
         alert(
           hasEmail
-            ? "Please complete name, house number, street name, city, zip, AR lot number, phone, email, and password."
-            : "Please complete name, house number, street name, city, zip, AR lot number, phone, User ID, and password."
+            ? "Please complete name, house number, street name, AR lot number, phone, email, and password."
+            : "Please complete name, house number, street name, AR lot number, phone, User ID, and password."
         );
 
         setSubmitting(false);
@@ -416,10 +412,6 @@ export default function LoginScreen({ message }) {
 
         streetName: form.streetName.trim(),
 
-        city: form.city.trim(),
-
-        zip: form.zip.trim(),
-
         arLotNumber: form.arLotNumber.trim(),
 
         address: formatAddress(form),
@@ -521,8 +513,6 @@ export default function LoginScreen({ message }) {
         name: "",
         houseNumber: "",
         streetName: "",
-        city: "",
-        zip: "",
         arLotNumber: "",
         phone: ""
       });
@@ -816,22 +806,6 @@ export default function LoginScreen({ message }) {
                     />
 
                     <input
-                      value={form.city}
-                      onChange={(e) => updateForm("city", e.target.value)}
-                      placeholder="City"
-                      disabled={submitting}
-                      className="border border-[#c7d0dc] rounded-md p-3"
-                    />
-
-                    <input
-                      value={form.zip}
-                      onChange={(e) => updateForm("zip", e.target.value)}
-                      placeholder="Zip"
-                      disabled={submitting}
-                      className="border border-[#c7d0dc] rounded-md p-3"
-                    />
-
-                    <input
                       value={form.arLotNumber}
                       onChange={(e) => updateForm("arLotNumber", e.target.value)}
                       placeholder="AR Lot number"
@@ -1022,7 +996,7 @@ export default function LoginScreen({ message }) {
               Address Not Found
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
-              The house number, street name, city, zip, and AR lot number did not match the community address directory.
+              The house number, street name, and AR lot number did not match the community address directory.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
               You can edit the form, cancel this request, or submit it anyway for admin review.

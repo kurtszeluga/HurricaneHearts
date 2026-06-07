@@ -184,7 +184,7 @@ export default function SignupSettingsPanel({ user }) {
               </span>
             </div>
             <div className="text-xs text-[#667085] mt-1">
-              Required columns: houseNumber, streetName, city, zip, arLotNumber
+              Required columns: houseNumber, streetName, arLotNumber
             </div>
           </div>
 

@@ -128,8 +128,6 @@ export default function Dashboard({
         authEmail: updatedUser.authEmail || user.authEmail || "",
         houseNumber: updatedUser.houseNumber?.trim() || "",
         streetName: updatedUser.streetName?.trim() || "",
-        city: updatedUser.city?.trim() || "",
-        zip: updatedUser.zip?.trim() || "",
         arLotNumber: updatedUser.arLotNumber?.trim() || "",
         address: formatAddress(updatedUser),
         phone: normalizePhoneNumber(updatedUser.phone),

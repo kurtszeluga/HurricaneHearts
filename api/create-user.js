@@ -106,8 +106,6 @@ function isAdminProfile(profile, decodedToken) {
 function formatAddress(user) {
   return [
     [user.houseNumber, user.streetName].filter(Boolean).join(" "),
-    user.city,
-    user.zip,
     user.arLotNumber ? `AR Lot ${user.arLotNumber}` : ""
   ]
     .filter(Boolean)
@@ -206,8 +204,6 @@ export default async function handler(request, response) {
       hasEmail: true,
       houseNumber: String(body.houseNumber || "").trim(),
       streetName: String(body.streetName || "").trim(),
-      city: String(body.city || "").trim(),
-      zip: String(body.zip || "").trim(),
       arLotNumber: String(body.arLotNumber || "").trim(),
       phone: String(body.phone || "").trim(),
       serviceCategories: Array.isArray(body.serviceCategories)

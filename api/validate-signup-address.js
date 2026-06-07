@@ -80,8 +80,6 @@ function normalizeAddress(source = {}) {
   return {
     houseNumber: normalizeValue(source.houseNumber),
     streetName: normalizeValue(source.streetName),
-    city: normalizeValue(source.city),
-    zip: normalizeValue(source.zip),
     arLotNumber: normalizeLotNumber(source.arLotNumber)
   };
 }
@@ -95,8 +93,6 @@ function findAddressMatch(source = {}, directory = []) {
     return (
       current.houseNumber === target.houseNumber &&
       current.streetName === target.streetName &&
-      current.city === target.city &&
-      current.zip === target.zip &&
       current.arLotNumber === target.arLotNumber
     );
   }) || null;
