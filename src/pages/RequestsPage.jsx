@@ -86,9 +86,12 @@ export default function RequestsPage({
 
         return (
           (request.residentName || "").toLowerCase().includes(term) ||
-          (request.residentEmail || "").toLowerCase().includes(term) ||
-          (request.residentPhone || "").toLowerCase().includes(term) ||
-          (request.residentAddress || "").toLowerCase().includes(term) ||
+          (user.teamMember === true &&
+            (
+              (request.residentEmail || "").toLowerCase().includes(term) ||
+              (request.residentPhone || "").toLowerCase().includes(term) ||
+              (request.residentAddress || "").toLowerCase().includes(term)
+            )) ||
           (request.need || "").toLowerCase().includes(term) ||
           (request.urgency || "").toLowerCase().includes(term) ||
           (request.status || "").toLowerCase().includes(term) ||

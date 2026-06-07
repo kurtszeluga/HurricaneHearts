@@ -13,7 +13,8 @@
     "emulators": "JAVA_HOME=.jdk/jdk-21.0.11+10/Contents/Home PATH=.jdk/jdk-21.0.11+10/Contents/Home/bin:$PATH XDG_CONFIG_HOME=.firebase-config firebase emulators:start --only auth,firestore,functions",
     "functions:lint": "npm --prefix functions run lint",
     "functions:dry-run": "npm --prefix functions run test:dry-run",
-    "functions:send-real-test": "npm --prefix functions run send-real-test"
+    "functions:send-real-test": "npm --prefix functions run send-real-test",
+    "migrate:contact-privacy": "node scripts/migrate-contact-privacy.mjs"
   },
   "dependencies": {
     "firebase": "^12.13.0",

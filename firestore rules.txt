@@ -62,7 +62,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isActiveApprovedUser() || isAdmin();
+      allow read: if isOwner(userId) || isHHTeamMember() || isAdmin();
 
       allow create: if signedIn()
         && isOwner(userId)
@@ -145,6 +145,13 @@ service cloud.firestore {
 
       allow create: if isActiveApprovedUser()
         && request.resource.data.status == "Open"
+        && !request.resource.data.keys().hasAny([
+          "residentEmail",
+          "residentPhone",
+          "residentAddress",
+          "assignedHelperEmail",
+          "assignedHelperPhone"
+        ])
         && request.resource.data.restrictedToTeam
           == request.resource.data.categories.hasAny(["Request a Meal"])
         && (
@@ -153,6 +160,13 @@ service cloud.firestore {
         );
 
       allow update: if isActiveApprovedUser()
+        && !request.resource.data.keys().hasAny([
+          "residentEmail",
+          "residentPhone",
+          "residentAddress",
+          "assignedHelperEmail",
+          "assignedHelperPhone"
+        ])
         && (
           resource.data.restrictedToTeam == false
           || isHHTeamMember()
@@ -187,6 +201,7 @@ service cloud.firestore {
 
       allow create: if isActiveApprovedUser()
         && request.resource.data.byUid == request.auth.uid
+        && !request.resource.data.keys().hasAny(["byEmail"])
         && request.resource.data.restrictedToTeam
           == get(/databases/$(database)/documents/requests/$(request.resource.data.requestId)).data.restrictedToTeam;
 

@@ -397,15 +397,19 @@ async function authorizeEmail({ db, decodedToken, email }) {
     }
 
     if (email.type === "request-claimed-requestor") {
+      const requestorProfile = await getUserProfile(db, request.residentUid);
+
       return {
         ...email,
-        to: [request.residentEmail]
+        to: [requestorProfile?.email].filter(Boolean)
       };
     }
 
+    const claimantProfile = await getUserProfile(db, claim.uid);
+
     return {
       ...email,
-      to: [claim.email]
+      to: [claimantProfile?.email].filter(Boolean)
     };
   }
 
@@ -431,9 +435,11 @@ async function authorizeEmail({ db, decodedToken, email }) {
     }
 
     if (email.type === "request-cancelled-requestor") {
+      const requestorProfile = await getUserProfile(db, request.residentUid);
+
       return {
         ...email,
-        to: [request.residentEmail]
+        to: [requestorProfile?.email].filter(Boolean)
       };
     }
 

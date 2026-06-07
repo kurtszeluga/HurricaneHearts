@@ -14,7 +14,7 @@ const afterStormCategories = new Set(
   requestCategoryGroups.find((group) => group.label === "After the Storm")?.categories || []
 );
 
-function PrintableUserDetails({ user, onClose }) {
+function PrintableUserDetails({ user, onClose, canViewContactInfo }) {
   const printProfile = () => {
     window.print();
   };
@@ -54,30 +54,40 @@ function PrintableUserDetails({ user, onClose }) {
               <div>{user.name || "Not provided"}</div>
             </div>
 
-            <div className="border rounded-2xl p-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Phone</div>
-              <div>{formatPhoneNumber(user.phone) || "Not provided"}</div>
-            </div>
+            {canViewContactInfo && (
+              <>
+                <div className="border rounded-2xl p-4">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">Phone</div>
+                  <div>{formatPhoneNumber(user.phone) || "Not provided"}</div>
+                </div>
 
-            <div className="border rounded-2xl p-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Email</div>
-              <div className="break-all">{user.email || "Not provided"}</div>
-            </div>
+                <div className="border rounded-2xl p-4">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">Email</div>
+                  <div className="break-all">{user.email || "Not provided"}</div>
+                </div>
+              </>
+            )}
 
-            <div className="border rounded-2xl p-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">User ID</div>
-              <div>{user.loginId || "Not assigned"}</div>
-            </div>
+            {canViewContactInfo && (
+              <div className="border rounded-2xl p-4">
+                <div className="text-xs font-bold text-gray-500 uppercase mb-1">User ID</div>
+                <div>{user.loginId || "Not assigned"}</div>
+              </div>
+            )}
 
-            <div className="border rounded-2xl p-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
-              <div>{formatAddress(user) || "Not provided"}</div>
-            </div>
+            {canViewContactInfo && (
+              <div className="border rounded-2xl p-4">
+                <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
+                <div>{formatAddress(user) || "Not provided"}</div>
+              </div>
+            )}
 
-            <div className="border rounded-2xl p-4">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Role</div>
-              <div className="capitalize">{user.role || "resident"}</div>
-            </div>
+            {canViewContactInfo && (
+              <div className="border rounded-2xl p-4">
+                <div className="text-xs font-bold text-gray-500 uppercase mb-1">Role</div>
+                <div className="capitalize">{user.role || "resident"}</div>
+              </div>
+            )}
 
             <div className="border rounded-2xl p-4">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Status</div>
@@ -136,10 +146,11 @@ function HeaderTooltip({ label, tooltip, children }) {
   );
 }
 
-export default function UserDirectory({ users = [] }) {
+export default function UserDirectory({ user, users = [] }) {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: "name", direction: "asc" });
+  const canViewContactInfo = user?.teamMember === true;
 
   const changeSort = (key) => {
     setSortConfig((current) => {
@@ -175,14 +186,15 @@ export default function UserDirectory({ users = [] }) {
       .filter((u) => u.active !== false && u.approved !== false)
       .filter((u) => {
         if (!term) return true;
-        const displayAddress = formatAddress(u).toLowerCase();
-
         return (
           (u.name || "").toLowerCase().includes(term) ||
-          (u.email || "").toLowerCase().includes(term) ||
-          (u.phone || "").toLowerCase().includes(term) ||
-          formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
-          displayAddress.includes(term) ||
+          (canViewContactInfo &&
+            (
+              (u.email || "").toLowerCase().includes(term) ||
+              (u.phone || "").toLowerCase().includes(term) ||
+              formatPhoneNumber(u.phone || "").toLowerCase().includes(term) ||
+              formatAddress(u).toLowerCase().includes(term)
+            )) ||
           (u.serviceCategories || []).some((category) =>
             category.toLowerCase().includes(term)
           )
@@ -210,7 +222,7 @@ export default function UserDirectory({ users = [] }) {
         const comparison = sortValue(a).localeCompare(sortValue(b));
         return sortConfig.direction === "asc" ? comparison : -comparison;
       });
-  }, [users, search, sortConfig]);
+  }, [canViewContactInfo, users, search, sortConfig]);
 
   return (
     <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm p-6 mb-8">
@@ -228,7 +240,11 @@ export default function UserDirectory({ users = [] }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, address, phone, email, or category"
+            placeholder={
+              canViewContactInfo
+                ? "Search name, address, phone, email, or category"
+                : "Search name or category"
+            }
             className="border border-[#c7d0dc] rounded-lg px-3 py-2 text-sm w-full md:w-80"
           />
 
@@ -250,8 +266,6 @@ export default function UserDirectory({ users = [] }) {
       <div className="space-y-4 md:hidden">
         {filteredUsers.map((u) => {
           const selectedCategories = (u.serviceCategories || []).filter(Boolean);
-          const displayAddress = formatAddress(u);
-
           return (
             <div key={u.id} className="bg-[#f1f5f9] border border-[#c7d0dc] rounded-lg p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
@@ -259,12 +273,16 @@ export default function UserDirectory({ users = [] }) {
                   <div className="font-semibold text-[#172033] truncate">
                     {u.name || "Unnamed User"}
                   </div>
-                  <div className="text-xs text-[#667085] truncate">
-                    {u.email || "No email"}
-                  </div>
-                  <div className="text-xs text-[#667085] mt-1 truncate">
-                    {formatPhoneNumber(u.phone) || "No phone"}
-                  </div>
+                  {canViewContactInfo && (
+                    <>
+                      <div className="text-xs text-[#667085] truncate">
+                        {u.email || "No email"}
+                      </div>
+                      <div className="text-xs text-[#667085] mt-1 truncate">
+                        {formatPhoneNumber(u.phone) || "No phone"}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -276,9 +294,11 @@ export default function UserDirectory({ users = [] }) {
                 </button>
               </div>
 
-              <div className="text-xs text-[#475467] mt-3 break-words">
-                {displayAddress || "No address"}
-              </div>
+              {canViewContactInfo && (
+                <div className="text-xs text-[#475467] mt-3 break-words">
+                  {formatAddress(u) || "No address"}
+                </div>
+              )}
 
               <div className="mt-3 flex flex-wrap gap-2">
                 {selectedCategories.slice(0, 6).map((category) => (
@@ -313,15 +333,17 @@ export default function UserDirectory({ users = [] }) {
                   Name{sortLabel("name")}
                 </button>
               </th>
-              <th className="px-2 py-2 min-w-[105px]">
-                <button
-                  type="button"
-                  onClick={() => changeSort("phone")}
-                  className={sortButtonClass("phone")}
-                >
-                  Phone{sortLabel("phone")}
-                </button>
-              </th>
+              {canViewContactInfo && (
+                <th className="px-2 py-2 min-w-[105px]">
+                  <button
+                    type="button"
+                    onClick={() => changeSort("phone")}
+                    className={sortButtonClass("phone")}
+                  >
+                    Phone{sortLabel("phone")}
+                  </button>
+                </th>
+              )}
               <th className="px-1 py-2 text-center min-w-[72px]">
                 <button
                   type="button"
@@ -377,7 +399,9 @@ export default function UserDirectory({ users = [] }) {
                   {u.name || "Unnamed User"}
                 </td>
 
-                <td className="px-2 py-2 min-w-[105px] whitespace-nowrap">{formatPhoneNumber(u.phone) || "Not provided"}</td>
+                {canViewContactInfo && (
+                  <td className="px-2 py-2 min-w-[105px] whitespace-nowrap">{formatPhoneNumber(u.phone) || "Not provided"}</td>
+                )}
 
                 <td className="px-1 py-2 text-center">
                   <span
@@ -440,6 +464,7 @@ export default function UserDirectory({ users = [] }) {
       {selectedUser && (
         <PrintableUserDetails
           user={selectedUser}
+          canViewContactInfo={canViewContactInfo}
           onClose={() => setSelectedUser(null)}
         />
       )}

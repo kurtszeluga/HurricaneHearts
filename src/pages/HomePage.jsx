@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   addDoc,
   collection,
+  deleteField,
   doc,
   serverTimestamp,
   updateDoc
@@ -137,10 +138,21 @@ export default function HomePage({
 
       await updateDoc(doc(db, "requests", request.id), {
         status: "Completed",
+        claimCommitments: (request.claimCommitments || []).map((claim) => {
+          const safeClaim = { ...claim };
+          delete safeClaim.email;
+          delete safeClaim.phone;
+          return safeClaim;
+        }),
         completionComment: cleanComment,
         completedAt: new Date().toISOString(),
         completedByUid: user.uid,
-        completedByName: user.name || user.email || "User"
+        completedByName: user.name || user.email || "User",
+        residentEmail: deleteField(),
+        residentPhone: deleteField(),
+        residentAddress: deleteField(),
+        assignedHelperPhone: deleteField(),
+        assignedHelperEmail: deleteField()
       });
 
       await addDoc(collection(db, "requestHistory"), {
@@ -150,7 +162,6 @@ export default function HomePage({
         details: cleanComment,
         byUid: user.uid,
         byName: user.name || user.email || "User",
-        byEmail: user.email || "",
         restrictedToTeam: request.restrictedToTeam === true,
         createdAt: serverTimestamp()
       });

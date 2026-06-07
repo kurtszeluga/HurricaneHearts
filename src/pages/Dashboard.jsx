@@ -246,7 +246,7 @@ export default function Dashboard({
     }
 
     if (activePage === "Directory") {
-      return <DirectoryPage users={users} />;
+      return <DirectoryPage user={user} users={users} />;
     }
 
     if (activePage === "Documents") {

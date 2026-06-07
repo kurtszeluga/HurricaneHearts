@@ -16,7 +16,7 @@ export default function App() {
   const { user, setUser, loading, authMessage } = useAuthUser();
   const appAccessEnabled = Boolean(user && !user.termsReviewRequired);
   const activeEvent = useActiveEvent(appAccessEnabled);
-  const { users, loading: usersLoading } = useUsers(appAccessEnabled);
+  const { users, loading: usersLoading } = useUsers(appAccessEnabled, user);
   const currentDirectoryUser = users.find(
     (directoryUser) =>
       directoryUser.id === user?.uid || directoryUser.uid === user?.uid

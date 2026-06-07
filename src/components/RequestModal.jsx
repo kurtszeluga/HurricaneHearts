@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import {
   addDoc,
   collection,
+  deleteField,
   doc,
   serverTimestamp,
   updateDoc
 } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { formatAddress } from "../utils/addressFields";
 import { formatDateOnly } from "../utils/formatDate";
 import {
   assistanceRequestCategoryGroups,
@@ -33,7 +33,6 @@ async function addRequestHistory({
     details,
     byUid: user.uid,
     byName: user.name || user.email || "User",
-    byEmail: user.email || "",
     restrictedToTeam,
     createdAt: serverTimestamp()
   });
@@ -179,9 +178,20 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
             ? "Unknown"
             : Math.max(normalizedPeopleNeeded - existingPeopleCommitted, 0),
         status: nextStatus,
+        claimCommitments: (editingRequest.claimCommitments || []).map((claim) => {
+          const safeClaim = { ...claim };
+          delete safeClaim.email;
+          delete safeClaim.phone;
+          return safeClaim;
+        }),
         updatedAt: serverTimestamp(),
         updatedByUid: user.uid,
-        updatedByName: user.name || user.email || "User"
+        updatedByName: user.name || user.email || "User",
+        residentEmail: deleteField(),
+        residentPhone: deleteField(),
+        residentAddress: deleteField(),
+        assignedHelperPhone: deleteField(),
+        assignedHelperEmail: deleteField()
       });
 
       await addRequestHistory({
@@ -224,15 +234,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           selectedRequestor.displayName ||
           selectedRequestor.email?.split("@")[0] ||
           "Resident",
-        residentEmail: selectedRequestor.email || "",
-        residentPhone: selectedRequestor.phone || "",
-        residentAddress: formatAddress(selectedRequestor),
         residentUid: selectedRequestor.uid || selectedRequestor.id,
         status: "Open",
         assignedHelper: null,
         assignedHelperUid: null,
-        assignedHelperPhone: null,
-        assignedHelperEmail: null,
         createdAt: serverTimestamp()
       });
 

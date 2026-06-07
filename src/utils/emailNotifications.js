@@ -187,7 +187,7 @@ You can sign in to Hurricane Hearts to monitor or update the request.`;
 
   await sendEmailBatch([
     createEmail({
-      to: request.residentEmail,
+      to: PRIMARY_ADMIN_EMAIL,
       subject: "Your Hurricane Hearts request was claimed",
       text: requestorText,
       type: "request-claimed-requestor",
@@ -195,7 +195,7 @@ You can sign in to Hurricane Hearts to monitor or update the request.`;
       claimUid: claim.uid
     }),
     createEmail({
-      to: claim.email,
+      to: PRIMARY_ADMIN_EMAIL,
       subject: "You claimed a Hurricane Hearts request",
       text: claimantText,
       type: "request-claimed-claimant",
@@ -228,7 +228,7 @@ Please sign in to Hurricane Hearts to review the request if needed.`;
 
   await sendEmailBatch([
     createEmail({
-      to: request.residentEmail,
+      to: PRIMARY_ADMIN_EMAIL,
       subject: "Your Hurricane Hearts request was cancelled",
       text: requestorText,
       type: "request-cancelled-requestor",

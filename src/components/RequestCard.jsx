@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
+import { addDoc, collection, deleteField, doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 import { formatAddress } from "../utils/addressFields";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
@@ -38,6 +38,15 @@ function getClaimedBy(request) {
   return claimNames.length > 0 ? claimNames.join(", ") : "—";
 }
 
+function sanitizeClaims(claims = []) {
+  return claims.map((claim) => {
+    const safeClaim = { ...claim };
+    delete safeClaim.email;
+    delete safeClaim.phone;
+    return safeClaim;
+  });
+}
+
 async function addRequestHistory({
   requestId,
   eventId = "",
@@ -53,7 +62,6 @@ async function addRequestHistory({
     details,
     byUid: user.uid,
     byName: user.name || user.email || "User",
-    byEmail: user.email || "",
     restrictedToTeam,
     createdAt: serverTimestamp()
   });
@@ -169,6 +177,8 @@ function CollapsibleSection({ title, count, children }) {
 function RequestDetailsModal({
   request,
   requestHistory = [],
+  contactData = null,
+  canViewContactInfo = false,
   peopleNeeded,
   peopleCommitted,
   peopleRemaining,
@@ -178,6 +188,10 @@ function RequestDetailsModal({
   const sortedHistory = [...requestHistory].sort((a, b) => {
     return getHistoryTimeValue(a.createdAt || a.timestamp) - getHistoryTimeValue(b.createdAt || b.timestamp);
   });
+  const contactsByUid = new Map(
+    (contactData?.contacts || []).map((contact) => [contact.uid, contact])
+  );
+  const requestorContact = contactsByUid.get(request.residentUid);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -235,20 +249,24 @@ function RequestDetailsModal({
               <div>{request.residentName || "Resident"}</div>
             </div>
 
-            <div className="border rounded-lg p-2">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Phone</div>
-              <div>{formatPhoneNumber(request.residentPhone) || "Not provided"}</div>
-            </div>
+            {canViewContactInfo && (
+              <>
+                <div className="border rounded-lg p-2">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">Phone</div>
+                  <div>{formatPhoneNumber(requestorContact?.phone || request.residentPhone) || "Not provided"}</div>
+                </div>
 
-            <div className="border rounded-lg p-2">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Email</div>
-              <div className="break-all">{request.residentEmail || "Not provided"}</div>
-            </div>
+                <div className="border rounded-lg p-2">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">Email</div>
+                  <div className="break-all">{requestorContact?.email || request.residentEmail || "Not provided"}</div>
+                </div>
 
-            <div className="border rounded-lg p-2">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
-              <div>{request.residentAddress || "Not provided"}</div>
-            </div>
+                <div className="border rounded-lg p-2">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-1">Address</div>
+                  <div>{formatAddress(requestorContact || {}) || request.residentAddress || "Not provided"}</div>
+                </div>
+              </>
+            )}
 
             <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Urgency</div>
@@ -300,12 +318,19 @@ function RequestDetailsModal({
             <details className="border rounded-lg mb-3 text-sm">
               <summary className="cursor-pointer p-2 text-xs font-bold text-gray-500 uppercase">Claims ({(request.claimCommitments || []).length})</summary>
               <div className="border-t p-2 space-y-2">
-                {(request.claimCommitments || []).map((claim) => (
+                {(request.claimCommitments || []).map((claim) => {
+                  const claimantContact = contactsByUid.get(claim.uid);
+
+                  return (
                   <div key={`${claim.uid}-${claim.claimedAt}`} className="bg-blue-50 text-blue-800 p-2 rounded-lg">
                     <div className="font-bold">{claim.name}</div>
                     <div>{claim.peopleProvided} people</div>
-                    {claim.phone && <div>Phone: {formatPhoneNumber(claim.phone)}</div>}
-                    {claim.email && <div>Email: {claim.email}</div>}
+                    {canViewContactInfo && (claimantContact?.phone || claim.phone) && (
+                      <div>Phone: {formatPhoneNumber(claimantContact?.phone || claim.phone)}</div>
+                    )}
+                    {canViewContactInfo && (claimantContact?.email || claim.email) && (
+                      <div>Email: {claimantContact?.email || claim.email}</div>
+                    )}
                     {claim.mealPreparationLocationName && (
                       <div className="mt-1">
                         <span className="font-semibold">Meal preparation location:</span>{" "}
@@ -318,7 +343,8 @@ function RequestDetailsModal({
                     {claim.comment && <div>Comment: {claim.comment}</div>}
                     {claim.claimedAt && <div className="text-xs mt-1">Claimed: {formatDateTime(claim.claimedAt) || "Not recorded"}</div>}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </details>
           )}
@@ -389,10 +415,13 @@ export default function RequestCard({
   const [claimComment, setClaimComment] = useState("");
   const [claimHelperUid, setClaimHelperUid] = useState(user.uid);
   const [mealPreparationLocationUid, setMealPreparationLocationUid] = useState("");
+  const [requestContacts, setRequestContacts] = useState(null);
 
   const isOwner = request.residentUid === user.uid;
   const isClaimedByCurrentUser = (request.claimCommitments || []).some((claim) => claim.uid === user.uid);
   const isAdmin = user.role === "admin";
+  const canViewRequestContacts =
+    user.teamMember === true || isOwner || isClaimedByCurrentUser;
   const canEditRequest = isOwner || isAdmin;
   const eligibleHelpers = users
     .filter((u) =>
@@ -447,6 +476,31 @@ export default function RequestCard({
     onActionHandled?.();
   }, [actionToken, canClaim, onActionHandled, openAction]);
 
+  useEffect(() => {
+    if (!showDetails || !canViewRequestContacts || requestContacts) return;
+
+    let cancelled = false;
+
+    auth.currentUser?.getIdToken()
+      .then((token) =>
+        fetch(`/api/request-contacts?requestId=${encodeURIComponent(request.id)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      )
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.error || "Unable to load contact information.");
+        if (!cancelled) setRequestContacts(body);
+      })
+      .catch((error) => {
+        console.error("Request contacts error:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canViewRequestContacts, request.id, requestContacts, showDetails]);
+
   const claimRequest = async () => {
     if (request.restrictedToTeam === true && user.teamMember !== true) {
       alert("Only Hurricane Hearts Team Members can claim meal requests.");
@@ -499,7 +553,7 @@ export default function RequestCard({
     }
 
     const fresh = { id: freshSnap.id, ...freshSnap.data() };
-    const freshClaims = fresh.claimCommitments || [];
+    const freshClaims = sanitizeClaims(fresh.claimCommitments);
 
     if (freshClaims.some((claim) => claim.uid === (selectedHelper.uid || selectedHelper.id))) {
       alert("This helper has already claimed this request.");
@@ -516,8 +570,6 @@ export default function RequestCard({
     const newClaim = {
       uid: selectedHelper.uid || selectedHelper.id,
       name: selectedHelper.name || selectedHelper.email || "User",
-      email: selectedHelper.email || "",
-      phone: formatPhoneNumber(selectedHelper.phone || ""),
       claimedByUid: user.uid,
       claimedByName: user.name || user.email || "User",
       claimedOnBehalf: isAdmin && (selectedHelper.uid || selectedHelper.id) !== user.uid,
@@ -551,8 +603,11 @@ export default function RequestCard({
       status: nextStatus,
       assignedHelper: nextClaims.map((claim) => claim.name).join(", "),
       assignedHelperUid: nextClaims[0]?.uid || null,
-      assignedHelperPhone: nextClaims.map((claim) => formatPhoneNumber(claim.phone)).filter(Boolean).join(", "),
-      assignedHelperEmail: nextClaims.map((claim) => claim.email).filter(Boolean).join(", ")
+      assignedHelperPhone: deleteField(),
+      assignedHelperEmail: deleteField(),
+      residentEmail: deleteField(),
+      residentPhone: deleteField(),
+      residentAddress: deleteField()
     });
 
     await addRequestHistory({
@@ -608,10 +663,16 @@ export default function RequestCard({
 
     await updateDoc(doc(db, "requests", request.id), {
       status: "Completed",
+      claimCommitments: sanitizeClaims(request.claimCommitments),
       completionComment: completionComment.trim(),
       completedAt: new Date().toISOString(),
       completedByUid: user.uid,
-      completedByName: user.name || user.email || "User"
+      completedByName: user.name || user.email || "User",
+      residentEmail: deleteField(),
+      residentPhone: deleteField(),
+      residentAddress: deleteField(),
+      assignedHelperPhone: deleteField(),
+      assignedHelperEmail: deleteField()
     });
 
     await addRequestHistory({
@@ -643,10 +704,16 @@ export default function RequestCard({
 
     await updateDoc(doc(db, "requests", request.id), {
       status: "Cancelled",
+      claimCommitments: sanitizeClaims(request.claimCommitments),
       cancellationReason: reason.trim(),
       cancelledAt: new Date().toISOString(),
       cancelledByUid: user.uid,
-      cancelledByName: user.name || user.email || "User"
+      cancelledByName: user.name || user.email || "User",
+      residentEmail: deleteField(),
+      residentPhone: deleteField(),
+      residentAddress: deleteField(),
+      assignedHelperPhone: deleteField(),
+      assignedHelperEmail: deleteField()
     });
 
     await addRequestHistory({
@@ -795,6 +862,8 @@ export default function RequestCard({
           <RequestDetailsModal
             request={request}
             requestHistory={thisRequestHistory}
+            contactData={requestContacts}
+            canViewContactInfo={canViewRequestContacts}
             peopleNeeded={peopleNeeded}
             peopleCommitted={peopleCommitted}
             peopleRemaining={peopleRemaining}
