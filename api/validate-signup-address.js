@@ -92,7 +92,6 @@ function findAddressMatch(source = {}, directory = []) {
 
     return (
       current.houseNumber === target.houseNumber &&
-      current.streetName === target.streetName &&
       current.arLotNumber === target.arLotNumber
     );
   }) || null;

@@ -356,7 +356,7 @@ export default function ProfileSetup({ user, onProfileSaved }) {
               Address Not Found
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
-              The house number, street name, and AR lot number did not match the community address directory.
+              The house number and AR lot number did not match the community address directory. Street name is required for requests and claims, but is not used for this verification check.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
               You can edit the form, cancel this request, or submit it anyway for admin review.
