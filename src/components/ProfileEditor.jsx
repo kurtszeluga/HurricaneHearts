@@ -531,7 +531,7 @@ export default function ProfileEditor({
             <span>
               Meal Preparation Location
               <span className="mt-1 block text-xs font-normal leading-snug text-[#667085]">
-                Allow this profile's address to be selected as a preparation location when an HH Team Member claims a meal request.
+                Allow this profile's address to be selected as a preparation location when an HH Team Member volunteers for a meal request.
               </span>
               {!canManageMealPreparationLocation && (
                 <span className="mt-1 block text-xs font-normal text-[#667085]">

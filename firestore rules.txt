@@ -141,6 +141,7 @@ service cloud.firestore {
         && (
           resource.data.restrictedToTeam == false
           || isHHTeamMember()
+          || resource.data.residentUid == request.auth.uid
         );
 
       allow create: if isActiveApprovedUser()
@@ -170,6 +171,7 @@ service cloud.firestore {
         && (
           resource.data.restrictedToTeam == false
           || isHHTeamMember()
+          || resource.data.residentUid == request.auth.uid
         )
         && request.resource.data.restrictedToTeam
           == request.resource.data.categories.hasAny(["Request a Meal"])

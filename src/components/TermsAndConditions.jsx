@@ -97,10 +97,10 @@ export default function TermsAndConditions({
             appropriate.
           </p>
 
-          <h3 className="font-bold text-lg text-gray-900">5. Requests, Claims, and Completion</h3>
+          <h3 className="font-bold text-lg text-gray-900">5. Requests, Volunteer Commitments, and Completion</h3>
           <p>
             Requestors must describe their needs accurately and disclose known hazards or special
-            circumstances. Volunteers should claim only requests they reasonably expect to perform
+            circumstances. Volunteers should select only requests they reasonably expect to perform
             and should communicate promptly if plans change. A request marked completed indicates
             only that the participating users reported it complete; it is not an inspection,
             warranty, or certification by Hurricane Hearts.

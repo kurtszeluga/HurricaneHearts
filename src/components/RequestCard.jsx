@@ -138,6 +138,7 @@ function getHistoryTimeValue(value) {
 
 function formatHistoryAction(action) {
   if (!action) return "Updated";
+  if (action === "claimed") return "Volunteered";
   return action
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -240,7 +241,7 @@ function RequestDetailsModal({
             </div>
 
             <div className="border rounded-lg p-2">
-              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Claimed By</div>
+              <div className="text-xs font-bold text-gray-500 uppercase mb-1">Volunteers</div>
               <div>{getClaimedBy(request)}</div>
             </div>
 
@@ -275,9 +276,9 @@ function RequestDetailsModal({
 
             <div className="border rounded-lg p-2">
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">People</div>
-              <div>Needed: {peopleNeeded}</div>
-              <div>Committed: {peopleCommitted}</div>
-              <div>Remaining: {peopleRemaining}</div>
+              <div># People Needed: {peopleNeeded}</div>
+              <div>Committed Volunteers: {peopleCommitted}</div>
+              <div>Remaining Volunteers: {peopleRemaining}</div>
             </div>
           </div>
 
@@ -316,7 +317,7 @@ function RequestDetailsModal({
 
           {(request.claimCommitments || []).length > 0 && (
             <details className="border rounded-lg mb-3 text-sm">
-              <summary className="cursor-pointer p-2 text-xs font-bold text-gray-500 uppercase">Claims ({(request.claimCommitments || []).length})</summary>
+              <summary className="cursor-pointer p-2 text-xs font-bold text-gray-500 uppercase">Volunteer Commitments ({(request.claimCommitments || []).length})</summary>
               <div className="border-t p-2 space-y-2">
                 {(request.claimCommitments || []).map((claim) => {
                   const claimantContact = contactsByUid.get(claim.uid);
@@ -341,7 +342,7 @@ function RequestDetailsModal({
                       </div>
                     )}
                     {claim.comment && <div>Comment: {claim.comment}</div>}
-                    {claim.claimedAt && <div className="text-xs mt-1">Claimed: {formatDateTime(claim.claimedAt) || "Not recorded"}</div>}
+                    {claim.claimedAt && <div className="text-xs mt-1">Volunteered: {formatDateTime(claim.claimedAt) || "Not recorded"}</div>}
                   </div>
                   );
                 })}
@@ -503,12 +504,12 @@ export default function RequestCard({
 
   const claimRequest = async () => {
     if (request.restrictedToTeam === true && user.teamMember !== true) {
-      alert("Only Hurricane Hearts Team Members can claim meal requests.");
+      alert("Only Hurricane Hearts Team Members can volunteer for meal requests.");
       return;
     }
 
     if (request.restrictedToTeam === true && selectedHelper.teamMember !== true) {
-      alert("Meal requests can only be claimed by Hurricane Hearts Team Members.");
+      alert("Only Hurricane Hearts Team Members can volunteer for meal requests.");
       return;
     }
 
@@ -518,7 +519,7 @@ export default function RequestCard({
     }
 
     if (!isAdmin && request.residentUid === user.uid) {
-      alert("You cannot claim your own request.");
+      alert("You cannot volunteer for your own request.");
       return;
     }
 
@@ -540,7 +541,7 @@ export default function RequestCard({
     }
 
     if (!claimComment.trim()) {
-      alert("A short claim comment is required.");
+      alert("A short volunteer comment is required.");
       return;
     }
 
@@ -556,7 +557,7 @@ export default function RequestCard({
     const freshClaims = sanitizeClaims(fresh.claimCommitments);
 
     if (freshClaims.some((claim) => claim.uid === (selectedHelper.uid || selectedHelper.id))) {
-      alert("This helper has already claimed this request.");
+      alert("This helper has already volunteered for this request.");
       return;
     }
 
@@ -617,14 +618,14 @@ export default function RequestCard({
       user,
       restrictedToTeam: request.restrictedToTeam === true,
       details: isAdmin && (selectedHelper.uid || selectedHelper.id) !== user.uid
-        ? `${user.name || user.email || "Admin"} claimed ${peopleProvided} people on behalf of ${selectedHelper.name || selectedHelper.email || "helper"}.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
-        : `${user.name || user.email || "User"} claimed ${peopleProvided} people.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
+        ? `${user.name || user.email || "Admin"} recorded ${peopleProvided} committed volunteers on behalf of ${selectedHelper.name || selectedHelper.email || "helper"}.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
+        : `${user.name || user.email || "User"} volunteered with ${peopleProvided} people.${isDonateDishRequest ? ` Meal preparation location: ${newClaim.mealPreparationLocationName}, ${newClaim.mealPreparationLocationAddress}.` : ""} Comment: ${claimComment.trim()}`
     });
 
     await addNotification({
       toUid: request.residentUid,
       type: "request_claimed",
-      title: "Your request was claimed",
+      title: "Volunteers committed to your request",
       message: `${selectedHelper.name || selectedHelper.email || "A resident"} committed ${peopleProvided} people. ${nextRemaining === "Unknown" ? "People needed is still unknown." : `${nextRemaining} more needed.`}`,
       requestId: request.id,
       eventId: request.eventId || ""
@@ -641,7 +642,7 @@ export default function RequestCard({
       },
       claim: newClaim
     }).catch((error) => {
-      console.error("Request claimed email error:", error);
+      console.error("Request volunteer email error:", error);
     });
 
     setShowClaimForm(false);
@@ -748,7 +749,14 @@ export default function RequestCard({
   return (
     <>
       {renderRow && (
-        <tr className="hover:bg-[#f1f5f9] align-top">
+        <tr
+          className={classNames(
+            "align-top",
+            isDonateDishRequest
+              ? "bg-[#fffbeb] hover:bg-[#fef3c7]"
+              : "hover:bg-[#f1f5f9]"
+          )}
+        >
         <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
           {formatDateTime(request.createdAt) || "Not recorded"}
         </td>
@@ -840,7 +848,7 @@ export default function RequestCard({
                 onClick={() => setShowClaimForm(true)}
                 className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-2 py-1 rounded-md text-xs font-semibold"
               >
-                Claim
+                Volunteer
               </button>
             )}
 
@@ -874,10 +882,11 @@ export default function RequestCard({
 
       {showClaimForm &&
         createPortal(
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-2xl p-5 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-2">Claim Request</h2>
-              <p className="text-sm text-[#667085] mb-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-2xl w-full max-w-md max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+              <div className="p-3 sm:p-4">
+              <h2 className="text-lg font-bold mb-1">Volunteer for Request</h2>
+              <p className="text-xs text-[#667085] mb-3">
                 Select the number of people you can provide and add a short comment.
               </p>
 
@@ -886,25 +895,25 @@ export default function RequestCard({
                   <div
                     className={
                       request.hasFoodAllergies
-                        ? "mb-4 rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3 text-sm text-[#9a3412]"
-                        : "mb-4 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] p-3 text-sm text-[#475467]"
+                        ? "mb-3 rounded-lg border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-xs text-[#9a3412]"
+                        : "mb-3 rounded-lg border border-[#c7d0dc] bg-[#f8fafc] px-3 py-2 text-xs text-[#475467]"
                     }
                   >
                     <div className="font-bold">Food Allergies</div>
-                    <div className="mt-1 whitespace-pre-wrap">
+                    <div className="whitespace-pre-wrap">
                       {request.hasFoodAllergies
                         ? allergyText
                         : "No food allergies indicated."}
                     </div>
                   </div>
 
-                  <label className="block text-sm font-semibold mb-2">
+                  <label className="block text-xs font-semibold mb-1">
                     Meal Preparation Location
                   </label>
                   <select
                     value={mealPreparationLocationUid}
                     onChange={(e) => setMealPreparationLocationUid(e.target.value)}
-                    className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
+                    className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 mb-3 bg-white text-sm"
                   >
                     <option value="">Select a preparation location</option>
                     {mealPreparationLocations.map((location) => (
@@ -917,8 +926,8 @@ export default function RequestCard({
                     ))}
                   </select>
                   {mealPreparationLocations.length === 0 && (
-                    <p className="mb-4 text-xs font-semibold text-[#b42318]">
-                      No meal preparation locations are currently designated. A Super Admin must designate one before this request can be claimed.
+                    <p className="mb-3 text-xs font-semibold text-[#b42318]">
+                      No meal preparation locations are currently designated. A Super Admin must designate one before someone can volunteer for this request.
                     </p>
                   )}
                 </>
@@ -926,13 +935,13 @@ export default function RequestCard({
 
               {isAdmin && (
                 <>
-                  <label className="block text-sm font-semibold mb-2">
-                    Claim On Behalf Of
+                  <label className="block text-xs font-semibold mb-1">
+                    Volunteer On Behalf Of
                   </label>
                   <select
                     value={claimHelperUid}
                     onChange={(e) => setClaimHelperUid(e.target.value)}
-                    className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
+                    className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 mb-3 bg-white text-sm"
                   >
                     <option value={user.uid}>Myself</option>
                     {eligibleHelpers
@@ -949,13 +958,13 @@ export default function RequestCard({
                 </>
               )}
 
-              <label className="block text-sm font-semibold mb-2">
+              <label className="block text-xs font-semibold mb-1">
                 Number of People
               </label>
               <select
                 value={claimPeople}
                 onChange={(e) => setClaimPeople(e.target.value)}
-                className="w-full border border-[#c7d0dc] rounded-lg p-3 mb-4 bg-white"
+                className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 mb-3 bg-white text-sm"
               >
                 {Array.from(
                   { length: peopleRemaining === "Unknown" ? 10 : Math.max(Number(peopleRemaining), 1) },
@@ -965,17 +974,18 @@ export default function RequestCard({
                 ))}
               </select>
 
-              <label className="block text-sm font-semibold mb-2">
+              <label className="block text-xs font-semibold mb-1">
                 Comment
               </label>
               <textarea
                 value={claimComment}
                 onChange={(e) => setClaimComment(e.target.value)}
                 placeholder="Example: I can bring two people and hand tools."
-                className="w-full border border-[#c7d0dc] rounded-lg p-3 min-h-[90px] mb-4"
+                className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 min-h-[58px] mb-3 text-sm"
               />
+              </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="sticky bottom-0 flex justify-end gap-2 border-t border-[#e4e7ec] bg-white px-3 py-2 sm:px-4">
                 <button
                   onClick={() => {
                     setShowClaimForm(false);
@@ -984,16 +994,16 @@ export default function RequestCard({
                     setClaimHelperUid(user.uid);
                     setMealPreparationLocationUid("");
                   }}
-                  className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-4 py-2 rounded-lg font-semibold"
+                  className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-3 py-2 rounded-lg text-sm font-semibold"
                 >
                   Cancel
                 </button>
 
                 <button
                   onClick={claimRequest}
-                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-4 py-2 rounded-lg font-semibold"
+                  className="bg-[#1f3a5f] hover:bg-[#172b46] text-white px-3 py-2 rounded-lg text-sm font-semibold"
                 >
-                  Submit Claim
+                  Submit Volunteer Commitment
                 </button>
               </div>
             </div>

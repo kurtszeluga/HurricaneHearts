@@ -161,12 +161,12 @@ export async function queueRequestClaimedEmails(_db, { request, claim }) {
       ? `Meal preparation location: ${claim.mealPreparationLocationName}${claim.mealPreparationLocationAddress ? `, ${claim.mealPreparationLocationAddress}` : ""}`
       : "";
   const commentLine = claim.comment
-    ? `Claim comment: ${claim.comment}`
-    : "No claim comment was provided.";
+    ? `Volunteer comment: ${claim.comment}`
+    : "No volunteer comment was provided.";
 
   const requestorText = `Hi ${requestorName},
 
-${claimantName} has claimed your Hurricane Hearts request.
+${claimantName} has volunteered to help with your Hurricane Hearts request.
 
 Request: ${requestLabel}
 People committed: ${peopleProvided}
@@ -176,7 +176,7 @@ You can sign in to Hurricane Hearts to monitor the request.`;
 
   const claimantText = `Hi ${claimantName},
 
-Thank you for claiming a Hurricane Hearts request.
+Thank you for volunteering to help with a Hurricane Hearts request.
 
 Requestor: ${request.residentName || "Resident"}
 Request: ${requestLabel}
@@ -188,7 +188,7 @@ You can sign in to Hurricane Hearts to monitor or update the request.`;
   await sendEmailBatch([
     createEmail({
       to: PRIMARY_ADMIN_EMAIL,
-      subject: "Your Hurricane Hearts request was claimed",
+      subject: "A volunteer committed to your Hurricane Hearts request",
       text: requestorText,
       type: "request-claimed-requestor",
       requestId: request.id,
@@ -196,7 +196,7 @@ You can sign in to Hurricane Hearts to monitor or update the request.`;
     }),
     createEmail({
       to: PRIMARY_ADMIN_EMAIL,
-      subject: "You claimed a Hurricane Hearts request",
+      subject: "You volunteered for a Hurricane Hearts request",
       text: claimantText,
       type: "request-claimed-claimant",
       requestId: request.id,

@@ -10,7 +10,7 @@ import {
 import { db } from "../firebase/config";
 import RequestCard from "../components/RequestCard";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
-import { getRequestCategoryLabel } from "../utils/requestCategories";
+import { getRequestCategoryLabel, REQUEST_MEAL_CATEGORY } from "../utils/requestCategories";
 
 function getTimeValue(value) {
   if (!value) return 0;
@@ -27,6 +27,12 @@ function sortByCreatedAt(rows, direction) {
     const comparison = getTimeValue(a.createdAt) - getTimeValue(b.createdAt);
     return direction === "asc" ? comparison : -comparison;
   });
+}
+
+function requestRowClass(request, defaultHover = "hover:bg-[#f1f5f9]") {
+  return (request.categories || []).includes(REQUEST_MEAL_CATEGORY)
+    ? "bg-[#fffbeb] hover:bg-[#fef3c7] align-top"
+    : `${defaultHover} align-top`;
 }
 
 export default function HomePage({
@@ -178,7 +184,7 @@ export default function HomePage({
       });
     } catch (error) {
       console.error("Dashboard request completion error:", error);
-      alert("Unable to complete this request. Please open Manage My Claims and try again.");
+      alert("Unable to complete this request. Please open My List and try again.");
     }
   };
 
@@ -226,7 +232,7 @@ export default function HomePage({
     {
       label: "Partial",
       value: partiallyClaimedRequests.length,
-      filter: { type: "special", value: "Partially Claimed" },
+      filter: { type: "special", value: "Partially Staffed" },
       className: "bg-[#fff7ed] hover:bg-[#ffedd5] border-[#fed7aa] text-[#9a3412]"
     },
     {
@@ -248,9 +254,9 @@ export default function HomePage({
       className: "bg-white hover:bg-[#f8fafc] border-[#d8e0ea] text-[#1f3a5f]"
     },
     {
-      label: "My Claims",
+      label: "My List",
       value: myClaims.length,
-      filter: { type: "mine", value: "My Claims" },
+      filter: { type: "mine", value: "My List" },
       className: "bg-white hover:bg-[#f8fafc] border-[#d8e0ea] text-[#1f3a5f]"
     }
   ];
@@ -338,7 +344,7 @@ export default function HomePage({
 
               <tbody className="divide-y divide-gray-100">
                 {newOpenRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-[#fff7ed] align-top">
+                  <tr key={request.id} className={requestRowClass(request, "hover:bg-[#fff7ed]")}>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
                       {formatDateTime(request.createdAt) || "Not recorded"}
                     </td>
@@ -361,7 +367,7 @@ export default function HomePage({
                           onClick={() => openDashboardRequestAction(request, "claim")}
                           className="bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-[#9a3412] px-2 py-1 rounded-md text-xs font-semibold"
                         >
-                          Claim
+                          Volunteer
                         </button>
                         <button
                           type="button"
@@ -383,24 +389,24 @@ export default function HomePage({
       <div className="bg-white border border-[#d8e0ea] rounded-lg shadow-sm overflow-hidden">
         <div className="px-4 py-3 bg-[#f8fafc] border-b border-[#d8e0ea] flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center gap-3">
           <div className="text-center sm:col-start-2">
-            <h2 className="text-lg font-bold text-[#172033]">My Claims</h2>
+            <h2 className="text-lg font-bold text-[#172033]">My List</h2>
             <p className="text-xs text-[#667085]">
-              Requests you have claimed or are helping with.
+              Requests where you have volunteered to help.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => onGoToRequests({ type: "mine", value: "My Claims" })}
+            onClick={() => onGoToRequests({ type: "mine", value: "My List" })}
             className="bg-white hover:bg-[#eef2f6] border border-[#d8e0ea] text-[#475467] px-3 py-2 rounded-md text-xs font-semibold sm:justify-self-end"
           >
-            Manage My Claims
+            Manage My List
           </button>
         </div>
 
         {myActiveClaims.length === 0 ? (
           <div className="p-4 text-sm text-[#667085] text-center">
-            You do not have any active claims.
+            You do not have any active volunteer commitments.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -412,8 +418,8 @@ export default function HomePage({
                   </th>
                   <th className="text-center px-2 py-2 font-bold min-w-[140px]">Name</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[150px]">Category</th>
-                  <th className="text-center px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
-                  <th className="text-center px-2 py-2 font-bold min-w-[100px]">My Claim</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[120px]">Volunteers</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[100px]">My Commitment</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[100px]">Status</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[140px]">Actions</th>
                 </tr>
@@ -424,7 +430,7 @@ export default function HomePage({
                   const myClaim = getMyClaim(request);
 
                   return (
-                    <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
+                    <tr key={request.id} className={requestRowClass(request)}>
                       <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
                         {formatDateTime(request.createdAt) || "Not recorded"}
                       </td>
@@ -503,7 +509,7 @@ export default function HomePage({
                   <th className="text-center px-2 py-2 font-bold min-w-[130px]">Category</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">Urgency</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">People</th>
-                  <th className="text-center px-2 py-2 font-bold min-w-[110px]">Claimed By</th>
+                  <th className="text-center px-2 py-2 font-bold min-w-[110px]">Volunteers</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[90px]">Status</th>
                   <th className="text-center px-2 py-2 font-bold min-w-[120px]">Actions</th>
                 </tr>
@@ -511,7 +517,7 @@ export default function HomePage({
 
               <tbody className="divide-y divide-gray-100">
                 {myActiveRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-[#f1f5f9] align-top">
+                  <tr key={request.id} className={requestRowClass(request)}>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
                       {formatDateTime(request.createdAt) || "Not recorded"}
                     </td>

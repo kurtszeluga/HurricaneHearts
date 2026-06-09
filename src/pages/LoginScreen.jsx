@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
   signOut
 } from "firebase/auth";
 import { doc, serverTimestamp, writeBatch } from "firebase/firestore";
@@ -212,10 +211,24 @@ export default function LoginScreen({ message }) {
         return;
       }
 
-      await sendPasswordResetEmail(auth, login.email);
+      const response = await fetch("/api/request-password-reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: login.email
+        })
+      });
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(body?.error || "Unable to request a password reset.");
+      }
 
       alert(
-        "Password reset email sent. Please check your inbox."
+        body?.message ||
+          "If an account with that email exists, a password reset email has been sent. Please check your inbox and junk folder."
       );
 
     } catch (error) {
@@ -937,7 +950,7 @@ export default function LoginScreen({ message }) {
               </h2>
             </div>
             <p className="text-[#475467] leading-relaxed">
-              Hurricane Hearts is built for the Arlington Ridge community. During an active event, residents can submit assistance requests, volunteers can claim requests they can support, and administrators can monitor activity, send updates, and keep the response organized.
+              Hurricane Hearts is built for the Arlington Ridge community. During an active event, residents can submit assistance requests, volunteers can select requests they can support, and administrators can monitor activity, send updates, and keep the response organized.
             </p>
           </div>
         </section>
@@ -946,7 +959,7 @@ export default function LoginScreen({ message }) {
           <div className="grid md:grid-cols-3 gap-4">
             {[
               ["Request Assistance", "Residents submit needs related to an active event, including category, urgency, and the number of people needed."],
-              ["Volunteer Support", "Approved neighbors review open requests and claim the ones they can help with."],
+              ["Volunteer Support", "Approved neighbors review open requests and volunteer for the ones they can help with."],
               ["Stay Coordinated", "Admins track requests, documents, history, notifications, and weather alerts in one place."]
             ].map(([title, copy]) => (
               <article key={title} className="bg-white border border-[#d8e0ea] rounded-lg p-5 shadow-sm">
@@ -996,7 +1009,7 @@ export default function LoginScreen({ message }) {
               Address Not Found
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
-              The house number and AR lot number did not match the community address directory. Street name is required for requests and claims, but is not used for this verification check.
+              The house number and AR lot number did not match the community address directory. Street name is required for requests and volunteer coordination, but is not used for this verification check.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[#475467]">
               You can edit the form, cancel this request, or submit it anyway for admin review.

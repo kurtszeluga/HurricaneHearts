@@ -25,7 +25,9 @@ export default function RequestHistory({ requestId, history }) {
           ) : (
             requestHistory.map((item) => (
               <div key={item.id} className="bg-white border rounded-lg p-4 text-sm">
-                <div className="font-bold capitalize">{item.action}</div>
+                <div className="font-bold capitalize">
+                  {item.action === "claimed" ? "Volunteered" : item.action}
+                </div>
                 <div className="text-[#475467]">By: {item.byName || "Unknown"}</div>
                 <div className="text-[#667085]">When: {formatDateTime(item.createdAt) || "Unknown time"}</div>
                 {item.details && (

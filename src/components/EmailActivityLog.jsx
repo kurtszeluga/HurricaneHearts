@@ -21,11 +21,12 @@ function formatEmailType(type) {
   if (type === "access-request-welcome") return "Welcome";
   if (type === "admin-access-request") return "Pending Approval";
   if (type === "account-approved") return "Approval";
-  if (type === "request-claimed-requestor") return "Claimed - Requestor";
-  if (type === "request-claimed-claimant") return "Claimed - Claimant";
+  if (type === "request-claimed-requestor") return "Volunteer - Requestor";
+  if (type === "request-claimed-claimant") return "Volunteer - Helper";
   if (type === "request-cancelled-requestor") return "Cancelled - Requestor";
   if (type === "request-cancelled-admin") return "Cancelled - Admin";
   if (type === "admin-blast-active-users") return "Blast Email";
+  if (type === "password-reset") return "Password Reset";
 
   return type || "Email";
 }

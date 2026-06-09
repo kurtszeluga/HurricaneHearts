@@ -442,7 +442,9 @@ export default function HistoryPage({
                   {selectedRequestHistory.map((entry) => (
                     <tr key={entry.id || `${entry.requestId}-${entry.createdAt?.seconds || entry.action || "history"}`} className="hover:bg-[#f1f5f9] align-top">
                       <td className="px-3 py-2 text-[#475467]">{formatDateTime(entry.createdAt || entry.timestamp)}</td>
-                      <td className="px-3 py-2 font-semibold text-[#172033]">{entry.action || "Activity"}</td>
+                      <td className="px-3 py-2 font-semibold text-[#172033]">
+                        {entry.action === "claimed" ? "Volunteered" : entry.action || "Activity"}
+                      </td>
                       <td className="px-3 py-2 text-[#475467]">{entry.byName || entry.byEmail || "Not recorded"}</td>
                       <td className="px-3 py-2 text-[#475467]">{entry.details || "Not recorded"}</td>
                     </tr>

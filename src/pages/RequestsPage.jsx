@@ -8,9 +8,9 @@ const requestFilters = [
   { label: "Assigned", type: "status", value: "Assigned" },
   { label: "Completed", type: "status", value: "Completed" },
   { label: "Cancelled", type: "status", value: "Cancelled" },
-  { label: "Partial", type: "special", value: "Partially Claimed" },
+  { label: "Partial", type: "special", value: "Partially Staffed" },
   { label: "My Requests", type: "mine", value: "My Requests" },
-  { label: "My Claims", type: "mine", value: "My Claims" }
+  { label: "My List", type: "mine", value: "My List" }
 ];
 
 function isSameFilter(a, b) {
@@ -67,7 +67,7 @@ export default function RequestsPage({
           return request.status === requestFilter.value;
         }
 
-        if (requestFilter.type === "special" && requestFilter.value === "Partially Claimed") {
+        if (requestFilter.type === "special" && requestFilter.value === "Partially Staffed") {
           return request.status === "Open" && Number(request.peopleCommitted || 0) > 0;
         }
 
@@ -75,7 +75,7 @@ export default function RequestsPage({
           return request.residentUid === user.uid || request.residentEmail === user.email;
         }
 
-        if (requestFilter.type === "mine" && requestFilter.value === "My Claims") {
+        if (requestFilter.type === "mine" && requestFilter.value === "My List") {
           return isMyClaim(request, user);
         }
 
@@ -190,8 +190,8 @@ export default function RequestsPage({
         <div className="bg-white border border-[#c7d0dc] rounded-lg shadow-sm overflow-hidden">
           <div className="px-3 py-2 bg-[#f1f5f9] border-b border-[#c7d0dc] text-xs text-[#667085] flex flex-wrap gap-4 justify-center">
             <span><strong>N:</strong> # People Needed</span>
-            <span><strong>C:</strong> Committed</span>
-            <span><strong>R:</strong> Remaining</span>
+            <span><strong>C:</strong> Committed Volunteers</span>
+            <span><strong>R:</strong> Remaining Volunteers</span>
           </div>
 
           <div className="overflow-x-auto">
@@ -216,7 +216,7 @@ export default function RequestsPage({
                   <th className="text-left px-2 py-2 font-bold min-w-[70px]">Urgency</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[100px]">People</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[90px]">Status</th>
-                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Claimed By</th>
+                  <th className="text-left px-2 py-2 font-bold min-w-[120px]">Volunteers</th>
                   <th className="text-left px-2 py-2 font-bold min-w-[150px]">Actions</th>
                 </tr>
               </thead>

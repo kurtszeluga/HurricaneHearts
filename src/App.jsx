@@ -32,7 +32,8 @@ export default function App() {
   const requests = useRequests(
     appAccessEnabled,
     activeEvent?.eventId || null,
-    effectiveUser?.teamMember === true
+    effectiveUser?.teamMember === true,
+    effectiveUser?.uid || null
   );
   const documents = useDocuments(appAccessEnabled);
   const eventHistory = useEventHistory(appAccessEnabled);

@@ -2,23 +2,33 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-export default function useRequests(enabled, activeEventId = null, canViewTeamRequests = false) {
+export default function useRequests(
+  enabled,
+  activeEventId = null,
+  canViewTeamRequests = false,
+  currentUserUid = null
+) {
   const [requests, setRequests] = useState([]);
+  const canSubscribe =
+    enabled && activeEventId && (canViewTeamRequests || currentUserUid);
 
   useEffect(() => {
-    if (!enabled || !activeEventId) {
-      setRequests([]);
-      return;
-    }
+    if (!canSubscribe) return;
 
-    const q = canViewTeamRequests
-      ? query(collection(db, "requests"))
-      : query(collection(db, "requests"), where("restrictedToTeam", "==", false));
+    const requestQueries = canViewTeamRequests
+      ? [query(collection(db, "requests"))]
+      : [
+          query(collection(db, "requests"), where("restrictedToTeam", "==", false)),
+          query(collection(db, "requests"), where("residentUid", "==", currentUserUid))
+        ];
+    const queryRows = requestQueries.map(() => []);
 
-    const unsub = onSnapshot(q, (snap) => {
-      const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const publishRows = () => {
+      const rowsById = new Map();
+      queryRows.flat().forEach((request) => rowsById.set(request.id, request));
+
       setRequests(
-        rows
+        [...rowsById.values()]
           .filter((request) => request.eventId === activeEventId)
           .sort((a, b) => {
             const aSeconds = a.createdAt?.seconds || 0;
@@ -26,13 +36,21 @@ export default function useRequests(enabled, activeEventId = null, canViewTeamRe
             return bSeconds - aSeconds;
           })
       );
-    }, (error) => {
-      console.error("Requests listener error:", error);
-      setRequests([]);
-    });
+    };
 
-    return () => unsub();
-  }, [enabled, activeEventId, canViewTeamRequests]);
+    const unsubs = requestQueries.map((requestQuery, index) =>
+      onSnapshot(requestQuery, (snap) => {
+        queryRows[index] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        publishRows();
+      }, (error) => {
+        console.error("Requests listener error:", error);
+        queryRows[index] = [];
+        publishRows();
+      })
+    );
 
-  return requests;
+    return () => unsubs.forEach((unsub) => unsub());
+  }, [activeEventId, canSubscribe, canViewTeamRequests, currentUserUid]);
+
+  return canSubscribe ? requests : [];
 }
