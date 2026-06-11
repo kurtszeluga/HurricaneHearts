@@ -180,7 +180,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       const nextStatus =
         existingPeopleCommitted >= normalizedPeopleNeeded
           ? "Assigned"
-          : ["Assigned", "Re-Opened"].includes(editingRequest.status)
+          : existingPeopleCommitted > 0 ||
+              ["Assigned", "Re-Opened"].includes(editingRequest.status)
             ? "Re-Opened"
             : "Open";
       const sharedUpdates = {

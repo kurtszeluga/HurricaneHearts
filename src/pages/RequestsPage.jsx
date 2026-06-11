@@ -6,7 +6,6 @@ import { isOpenRequestStatus } from "../utils/requestStatus";
 const requestFilters = [
   { label: "All", type: "status", value: "All" },
   { label: "Open", type: "status", value: "Open" },
-  { label: "Re-Opened", type: "status", value: "Re-Opened" },
   { label: "Assigned", type: "status", value: "Assigned" },
   { label: "Completed", type: "status", value: "Completed" },
   { label: "Cancelled", type: "status", value: "Cancelled" },
