@@ -538,11 +538,6 @@ export default function RequestCard({
       return;
     }
 
-    if (peopleProvided > peopleRemaining) {
-      alert(`Only ${peopleRemaining} more people are needed for this request.`);
-      return;
-    }
-
     if (!claimComment.trim()) {
       alert("A short volunteer comment is required.");
       return;
@@ -561,13 +556,6 @@ export default function RequestCard({
 
     if (freshClaims.some((claim) => claim.uid === (selectedHelper.uid || selectedHelper.id))) {
       alert("This helper has already volunteered for this request.");
-      return;
-    }
-
-    const freshRemaining = getPeopleRemaining(fresh);
-
-    if (peopleProvided > freshRemaining) {
-      alert(`Only ${freshRemaining} more people are needed for this request.`);
       return;
     }
 
@@ -971,10 +959,7 @@ export default function RequestCard({
                 onChange={(e) => setClaimPeople(e.target.value)}
                 className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 mb-3 bg-white text-sm"
               >
-                {Array.from(
-                  { length: Math.max(Number(peopleRemaining), 1) },
-                  (_, index) => index + 1
-                ).map((number) => (
+                {Array.from({ length: 10 }, (_, index) => index + 1).map((number) => (
                   <option key={number} value={number}>{number}</option>
                 ))}
               </select>
