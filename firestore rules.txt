@@ -219,7 +219,7 @@ service cloud.firestore {
             )
           )
           || (
-            resource.data.status == "Open"
+            resource.data.status in ["Open", "Re-Opened"]
             && request.resource.data.claimantUids.hasAny([request.auth.uid])
           )
         );

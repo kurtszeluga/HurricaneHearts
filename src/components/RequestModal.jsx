@@ -178,7 +178,11 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
       const existingPeopleCommitted = getPeopleCommitted(editingRequest);
       const nextStatus =
-        existingPeopleCommitted >= normalizedPeopleNeeded ? "Assigned" : "Open";
+        existingPeopleCommitted >= normalizedPeopleNeeded
+          ? "Assigned"
+          : ["Assigned", "Re-Opened"].includes(editingRequest.status)
+            ? "Re-Opened"
+            : "Open";
       const sharedUpdates = {
         peopleNeeded: normalizedPeopleNeeded,
         peopleNeededComment,

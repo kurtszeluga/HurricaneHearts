@@ -16,6 +16,10 @@ import {
   getPeopleRemaining,
   normalizePeopleNeeded
 } from "../utils/requestPeople";
+import {
+  getRequestStatusClass,
+  isOpenRequestStatus
+} from "../utils/requestStatus";
 
 function getTimeValue(value) {
   if (!value) return 0;
@@ -79,10 +83,10 @@ export default function HomePage({
     );
   });
 
-  const openRequests = requests.filter((r) => r.status === "Open");
+  const openRequests = requests.filter((r) => isOpenRequestStatus(r.status));
   const assignedRequests = requests.filter((r) => r.status === "Assigned");
   const partiallyClaimedRequests = requests.filter(
-    (r) => r.status === "Open" && Number(r.peopleCommitted || 0) > 0
+    (r) => isOpenRequestStatus(r.status) && Number(r.peopleCommitted || 0) > 0
   );
   const completedRequests = requests.filter((r) => r.status === "Completed");
   const cancelledRequests = requests.filter((r) => r.status === "Cancelled");
@@ -103,7 +107,7 @@ export default function HomePage({
   const newOpenRequests = sortByCreatedAt(
     requests.filter((request) => {
       return (
-        request.status === "Open" &&
+        isOpenRequestStatus(request.status) &&
         request.residentUid !== user.uid &&
         request.residentEmail !== user.email
       );
@@ -450,7 +454,7 @@ export default function HomePage({
                         {myClaim ? `${myClaim.peopleProvided || 1} people` : "Assigned"}
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(request.status)}`}>
                           {request.status || "Open"}
                         </span>
                       </td>
@@ -544,7 +548,7 @@ export default function HomePage({
                       {getClaimedBy(request)}
                     </td>
                     <td className="px-2 py-2 text-center">
-                      <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(request.status)}`}>
                         {request.status || "Open"}
                       </span>
                     </td>

@@ -19,6 +19,10 @@ import {
   getPeopleRemaining,
   normalizePeopleNeeded
 } from "../utils/requestPeople";
+import {
+  getRequestStatusClass,
+  isOpenRequestStatus
+} from "../utils/requestStatus";
 
 const urgencyColors = {
   Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
@@ -109,6 +113,10 @@ function getStatusDateMeta(request) {
 
   if (request.status === "Assigned") {
     return { label: "Assigned", value: getLatestClaimedAt(request) };
+  }
+
+  if (request.status === "Re-Opened") {
+    return { label: "Re-Opened", value: request.updatedAt };
   }
 
   return { label: "Created", value: request.createdAt };
@@ -223,7 +231,7 @@ function RequestDetailsModal({
               <div className="text-gray-500">{formatDateOnly(request.eventDate) || "No event date"}</div>
             </div>
 
-            <div className="border rounded-lg p-2">
+            <div className={`rounded-lg border p-2 ${request.status === "Re-Opened" ? "border-[#fde68a] bg-[#fef3c7] text-[#92400e]" : ""}`}>
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Status</div>
               <div>{request.status || "Open"}</div>
             </div>
@@ -455,7 +463,7 @@ export default function RequestCard({
   const claimedBy = getClaimedBy(request);
   const canClaim =
     !isOwner &&
-    request.status === "Open" &&
+    isOpenRequestStatus(request.status) &&
     !isClaimedByCurrentUser &&
     (request.restrictedToTeam !== true || user.teamMember === true);
   const isDonateDishRequest = (request.categories || []).includes(REQUEST_MEAL_CATEGORY);
@@ -585,7 +593,12 @@ export default function RequestCard({
       normalizePeopleNeeded(fresh.peopleNeeded) - nextCommitted,
       0
     );
-    const nextStatus = nextRemaining === 0 ? "Assigned" : "Open";
+    const nextStatus =
+      nextRemaining === 0
+        ? "Assigned"
+        : fresh.status === "Re-Opened"
+          ? "Re-Opened"
+          : "Open";
 
     await updateDoc(requestRef, {
       claimCommitments: nextClaims,
@@ -794,7 +807,12 @@ export default function RequestCard({
         </td>
 
         <td className="px-2 py-2">
-          <span className="inline-flex px-2 py-1 rounded-full bg-[#f2f4f7] text-[#344054] text-xs font-bold">
+          <span
+            className={classNames(
+              "inline-flex px-2 py-1 rounded-full text-xs font-bold",
+              getRequestStatusClass(request.status)
+            )}
+          >
             {request.status || "Open"}
           </span>
           <div className="mt-1 text-[11px] leading-tight text-[#667085]">

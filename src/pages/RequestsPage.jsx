@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import RequestCard from "../components/RequestCard";
 import { formatDateOnly } from "../utils/formatDate";
+import { isOpenRequestStatus } from "../utils/requestStatus";
 
 const requestFilters = [
   { label: "All", type: "status", value: "All" },
   { label: "Open", type: "status", value: "Open" },
+  { label: "Re-Opened", type: "status", value: "Re-Opened" },
   { label: "Assigned", type: "status", value: "Assigned" },
   { label: "Completed", type: "status", value: "Completed" },
   { label: "Cancelled", type: "status", value: "Cancelled" },
@@ -64,11 +66,14 @@ export default function RequestsPage({
       .filter((request) => {
         if (requestFilter.type === "status") {
           if (requestFilter.value === "All") return true;
+          if (requestFilter.value === "Open") {
+            return isOpenRequestStatus(request.status);
+          }
           return request.status === requestFilter.value;
         }
 
         if (requestFilter.type === "special" && requestFilter.value === "Partially Staffed") {
-          return request.status === "Open" && Number(request.peopleCommitted || 0) > 0;
+          return isOpenRequestStatus(request.status) && Number(request.peopleCommitted || 0) > 0;
         }
 
         if (requestFilter.type === "mine" && requestFilter.value === "My Requests") {
