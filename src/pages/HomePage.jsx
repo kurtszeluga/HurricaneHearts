@@ -11,6 +11,11 @@ import { db } from "../firebase/config";
 import RequestCard from "../components/RequestCard";
 import { formatDateOnly, formatDateTime } from "../utils/formatDate";
 import { getRequestCategoryLabel, REQUEST_MEAL_CATEGORY } from "../utils/requestCategories";
+import {
+  getPeopleCommitted,
+  getPeopleRemaining,
+  normalizePeopleNeeded
+} from "../utils/requestPeople";
 
 function getTimeValue(value) {
   if (!value) return 0;
@@ -356,9 +361,9 @@ export default function HomePage({
                       {request.urgency || "Medium"}
                     </td>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
-                      <div>N: {request.peopleNeeded ?? "Unknown"}</div>
-                      <div>C: {request.peopleCommitted || 0}</div>
-                      <div>R: {request.peopleRemaining ?? "Unknown"}</div>
+                      <div>N: {normalizePeopleNeeded(request.peopleNeeded)}</div>
+                      <div>C: {getPeopleCommitted(request)}</div>
+                      <div>R: {getPeopleRemaining(request)}</div>
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex flex-wrap justify-center gap-1">
@@ -460,6 +465,13 @@ export default function HomePage({
                           </button>
                           <button
                             type="button"
+                            onClick={() => onEditRequest(request)}
+                            className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold"
+                          >
+                            Update Needed
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => completeClaimedRequest(request)}
                             className="bg-[#ecfdf3] hover:bg-[#dcfae6] border border-[#abefc6] text-[#067647] px-2 py-1 rounded-md text-xs font-semibold"
                           >
@@ -524,9 +536,9 @@ export default function HomePage({
                     <td className="px-2 py-2">{categoryBadges(request)}</td>
                     <td className="px-2 py-2 text-center text-sm text-[#475467]">{request.urgency || "Medium"}</td>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
-                      <div>N: {request.peopleNeeded ?? "Unknown"}</div>
-                      <div>C: {request.peopleCommitted || 0}</div>
-                      <div>R: {request.peopleRemaining ?? "Unknown"}</div>
+                      <div>N: {normalizePeopleNeeded(request.peopleNeeded)}</div>
+                      <div>C: {getPeopleCommitted(request)}</div>
+                      <div>R: {getPeopleRemaining(request)}</div>
                     </td>
                     <td className="px-2 py-2 text-center text-xs text-[#475467]">
                       {getClaimedBy(request)}

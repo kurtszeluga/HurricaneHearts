@@ -15,8 +15,9 @@ import {
   getRequestCategoryLabel,
   REQUEST_MEAL_CATEGORY
 } from "../utils/requestCategories";
+import { getPeopleCommitted, normalizePeopleNeeded } from "../utils/requestPeople";
 
-const peopleNeededOptions = ["Unknown", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const peopleNeededOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
 async function addRequestHistory({
   requestId,
@@ -64,11 +65,18 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     foodAllergies: "",
     need: "",
     urgency: "Medium",
-    peopleNeeded: "Unknown",
+    peopleNeeded: "1",
+    peopleNeededComment: "",
     requestorUid: user.uid
   });
 
   const isEditing = Boolean(editingRequest);
+  const isRequestOwner = editingRequest?.residentUid === user.uid;
+  const isExistingVolunteer = (editingRequest?.claimCommitments || []).some(
+    (claim) => claim.uid === user.uid
+  );
+  const isVolunteerOnlyEditor =
+    isEditing && !isAdmin && !isRequestOwner && isExistingVolunteer;
 
   useEffect(() => {
     if (!open) return;
@@ -82,7 +90,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         foodAllergies: editingRequest.foodAllergies || "",
         need: editingRequest.need || "",
         urgency: editingRequest.urgency || "Medium",
-        peopleNeeded: editingRequest.peopleNeeded?.toString() || "Unknown",
+        peopleNeeded: normalizePeopleNeeded(editingRequest.peopleNeeded).toString(),
+        peopleNeededComment: editingRequest.peopleNeededComment || "",
         requestorUid: editingRequest.residentUid || user.uid
       });
     } else {
@@ -92,7 +101,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         foodAllergies: "",
         need: "",
         urgency: "Medium",
-        peopleNeeded: "Unknown",
+        peopleNeeded: "1",
+        peopleNeededComment: "",
         requestorUid: user.uid
       });
     }
@@ -117,9 +127,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     });
   };
 
-  const normalizedPeopleNeeded = form.peopleNeeded === "Unknown"
-    ? "Unknown"
-    : Number(form.peopleNeeded);
+  const normalizedPeopleNeeded = normalizePeopleNeeded(form.peopleNeeded);
+  const peopleNeededComment = form.peopleNeededComment.trim();
   const includesDonateDish = form.categories.includes(REQUEST_MEAL_CATEGORY);
   const restrictedToTeam = includesDonateDish;
   const cleanFoodAllergies = includesDonateDish && form.hasFoodAllergies
@@ -141,42 +150,39 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       return;
     }
 
-    if (form.categories.length === 0) {
+    if (!isVolunteerOnlyEditor && form.categories.length === 0) {
       alert("Please select at least one request category.");
       return;
     }
 
-    if (!form.need.trim()) {
+    if (!isVolunteerOnlyEditor && !form.need.trim()) {
       alert("Please describe what help is needed.");
       return;
     }
 
-    if (includesDonateDish && form.hasFoodAllergies && !cleanFoodAllergies) {
+    if (
+      !isVolunteerOnlyEditor &&
+      includesDonateDish &&
+      form.hasFoodAllergies &&
+      !cleanFoodAllergies
+    ) {
       alert("Please enter the food allergy information.");
       return;
     }
 
     if (isEditing) {
-      const existingPeopleCommitted = editingRequest.peopleCommitted || 0;
-      const nextStatus =
-        normalizedPeopleNeeded !== "Unknown" && existingPeopleCommitted >= normalizedPeopleNeeded
-          ? "Assigned"
-          : editingRequest.status === "Assigned" && normalizedPeopleNeeded !== "Unknown" && existingPeopleCommitted < normalizedPeopleNeeded
-            ? "Open"
-            : editingRequest.status;
+      if (!isAdmin && !isRequestOwner && !isExistingVolunteer) {
+        alert("You do not have permission to edit this request.");
+        return;
+      }
 
-      await updateDoc(doc(db, "requests", editingRequest.id), {
-        categories: form.categories,
-        restrictedToTeam,
-        hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
-        foodAllergies: cleanFoodAllergies,
-        need: form.need,
-        urgency: form.urgency,
+      const existingPeopleCommitted = getPeopleCommitted(editingRequest);
+      const nextStatus =
+        existingPeopleCommitted >= normalizedPeopleNeeded ? "Assigned" : "Open";
+      const sharedUpdates = {
         peopleNeeded: normalizedPeopleNeeded,
-        peopleRemaining:
-          normalizedPeopleNeeded === "Unknown"
-            ? "Unknown"
-            : Math.max(normalizedPeopleNeeded - existingPeopleCommitted, 0),
+        peopleNeededComment,
+        peopleRemaining: Math.max(normalizedPeopleNeeded - existingPeopleCommitted, 0),
         status: nextStatus,
         claimCommitments: (editingRequest.claimCommitments || []).map((claim) => {
           const safeClaim = { ...claim };
@@ -192,7 +198,22 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         residentAddress: deleteField(),
         assignedHelperPhone: deleteField(),
         assignedHelperEmail: deleteField()
-      });
+      };
+
+      await updateDoc(
+        doc(db, "requests", editingRequest.id),
+        isVolunteerOnlyEditor
+          ? sharedUpdates
+          : {
+              ...sharedUpdates,
+              categories: form.categories,
+              restrictedToTeam,
+              hasFoodAllergies: includesDonateDish ? form.hasFoodAllergies : false,
+              foodAllergies: cleanFoodAllergies,
+              need: form.need,
+              urgency: form.urgency
+            }
+      );
 
       await addRequestHistory({
         requestId: editingRequest.id,
@@ -200,7 +221,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         action: "edited",
         user,
         restrictedToTeam,
-        details: `Request details were updated. People needed: ${normalizedPeopleNeeded}.`
+        details: `Request details were updated. People needed: ${normalizedPeopleNeeded}.${peopleNeededComment ? ` Additional people comment: ${peopleNeededComment}` : ""}`
       });
 
       if (editingRequest.residentUid !== user.uid) {
@@ -208,7 +229,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           toUid: editingRequest.residentUid,
           type: "request_edited",
           title: "Your request was edited",
-          message: `${user.name || user.email || "An admin"} updated your request.`,
+          message: `${user.name || user.email || "A user"} updated your request.${peopleNeededComment ? ` Comment: ${peopleNeededComment}` : ""}`,
           requestId: editingRequest.id,
           eventId: editingRequest.eventId || ""
         });
@@ -226,7 +247,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         urgency: form.urgency,
         peopleNeeded: normalizedPeopleNeeded,
         peopleCommitted: 0,
-        peopleRemaining: normalizedPeopleNeeded === "Unknown" ? "Unknown" : normalizedPeopleNeeded,
+        peopleRemaining: normalizedPeopleNeeded,
         claimCommitments: [],
         claimantUids: [],
         residentName:
@@ -259,7 +280,8 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       foodAllergies: "",
       need: "",
       urgency: "Medium",
-      peopleNeeded: "Unknown"
+      peopleNeeded: "1",
+      peopleNeededComment: ""
     });
     onClose();
   };
@@ -268,8 +290,18 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white border border-[#c7d0dc] rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-[#172033] mb-2">
-          {isEditing ? "Edit Request" : "Request Assistance"}
+          {isVolunteerOnlyEditor
+            ? "Update People Needed"
+            : isEditing
+              ? "Edit Request"
+              : "Request Assistance"}
         </h2>
+
+        {isVolunteerOnlyEditor && (
+          <div className="mb-5 rounded-lg border border-[#bfdbfe] bg-[#eff6ff] p-4 text-sm text-[#1e3a8a]">
+            Changing the number needed will reopen the request when additional volunteers are required.
+          </div>
+        )}
 
         {!isEditing && activeEvent && (
           <div className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e3a8a] rounded-lg p-4 mb-5 text-sm font-semibold">
@@ -300,7 +332,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
           </div>
         )}
 
-        <div className="mb-5">
+        {!isVolunteerOnlyEditor && <div className="mb-5">
           <div className="font-semibold mb-2">Request Categories</div>
           <p className="text-sm text-[#667085] mb-3">
             Select all categories that apply.
@@ -402,17 +434,17 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
               )}
             </div>
           )}
-        </div>
+        </div>}
 
-        <textarea
+        {!isVolunteerOnlyEditor && <textarea
           value={form.need}
           onChange={(e) => setForm({ ...form, need: e.target.value })}
           placeholder="Describe what help is needed"
           className="w-full border border-[#c7d0dc] rounded-lg p-3.5 min-h-[120px] mb-4"
-        />
+        />}
 
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <select
+        <div className={isVolunteerOnlyEditor ? "mb-6" : "grid md:grid-cols-2 gap-4 mb-6"}>
+          {!isVolunteerOnlyEditor && <select
             value={form.urgency}
             onChange={(e) => setForm({ ...form, urgency: e.target.value })}
             className="w-full border border-[#c7d0dc] rounded-lg p-3.5"
@@ -421,7 +453,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
             <option>Medium</option>
             <option>High</option>
             <option>Critical</option>
-          </select>
+          </select>}
 
           <select
             value={form.peopleNeeded}
@@ -435,6 +467,22 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
             ))}
           </select>
         </div>
+
+        {isEditing && (
+          <div className="mb-6">
+            <label className="mb-1 block text-sm font-semibold text-[#172033]">
+              Additional People Comment
+            </label>
+            <textarea
+              value={form.peopleNeededComment}
+              onChange={(e) =>
+                setForm({ ...form, peopleNeededComment: e.target.value })
+              }
+              placeholder="Explain why or what the additional volunteers are needed for."
+              className="min-h-[88px] w-full rounded-lg border border-[#c7d0dc] p-3.5"
+            />
+          </div>
+        )}
 
         <div className="flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2.5 rounded-lg bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] font-semibold">

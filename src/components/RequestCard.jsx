@@ -14,6 +14,11 @@ import {
   getRequestCategoryLabel,
   REQUEST_MEAL_CATEGORY
 } from "../utils/requestCategories";
+import {
+  getPeopleCommitted,
+  getPeopleRemaining,
+  normalizePeopleNeeded
+} from "../utils/requestPeople";
 
 const urgencyColors = {
   Low: "bg-[#ecfdf3] text-[#067647] border border-[#abefc6]",
@@ -80,23 +85,6 @@ async function addNotification({ toUid, type, title, message, requestId, eventId
     read: false,
     createdAt: serverTimestamp()
   });
-}
-
-function getPeopleCommitted(request) {
-  if (typeof request.peopleCommitted === "number") return request.peopleCommitted;
-
-  return (request.claimCommitments || []).reduce((sum, claim) => {
-    return sum + Number(claim.peopleProvided || 0);
-  }, 0);
-}
-
-function getPeopleRemaining(request) {
-  if (request.peopleNeeded === "Unknown" || request.peopleNeeded === undefined) return "Unknown";
-
-  const needed = Number(request.peopleNeeded || 0);
-  const committed = getPeopleCommitted(request);
-
-  return Math.max(needed - committed, 0);
 }
 
 function getLatestClaimedAt(request) {
@@ -304,6 +292,20 @@ function RequestDetailsModal({
             <div className="whitespace-pre-wrap">{request.need || "No details provided"}</div>
           </div>
 
+          {request.peopleNeededComment && (
+            <div className="border rounded-lg p-2 mb-3 text-sm">
+              <div className="text-xs font-bold text-gray-500 uppercase mb-2">
+                Additional People Comment
+              </div>
+              <div className="whitespace-pre-wrap">{request.peopleNeededComment}</div>
+              {request.updatedByName && (
+                <div className="mt-1 text-xs text-[#667085]">
+                  Updated by {request.updatedByName}
+                </div>
+              )}
+            </div>
+          )}
+
           {(request.categories || []).includes(REQUEST_MEAL_CATEGORY) && (
             <div className="border rounded-lg p-2 mb-3 text-sm">
               <div className="text-xs font-bold text-gray-500 uppercase mb-2">Food Allergies</div>
@@ -423,7 +425,8 @@ export default function RequestCard({
   const isAdmin = user.role === "admin";
   const canViewRequestContacts =
     user.teamMember === true || isOwner || isClaimedByCurrentUser;
-  const canEditRequest = isOwner || isAdmin;
+  const canEditRequest = isOwner || isAdmin || isClaimedByCurrentUser;
+  const canCancelRequest = isOwner || isAdmin;
   const eligibleHelpers = users
     .filter((u) =>
       u.active !== false &&
@@ -446,7 +449,7 @@ export default function RequestCard({
     (location) => (location.uid || location.id) === mealPreparationLocationUid
   );
 
-  const peopleNeeded = request.peopleNeeded ?? "Unknown";
+  const peopleNeeded = normalizePeopleNeeded(request.peopleNeeded);
   const peopleCommitted = getPeopleCommitted(request);
   const peopleRemaining = getPeopleRemaining(request);
   const claimedBy = getClaimedBy(request);
@@ -535,7 +538,7 @@ export default function RequestCard({
       return;
     }
 
-    if (peopleRemaining !== "Unknown" && peopleProvided > peopleRemaining) {
+    if (peopleProvided > peopleRemaining) {
       alert(`Only ${peopleRemaining} more people are needed for this request.`);
       return;
     }
@@ -563,7 +566,7 @@ export default function RequestCard({
 
     const freshRemaining = getPeopleRemaining(fresh);
 
-    if (freshRemaining !== "Unknown" && peopleProvided > freshRemaining) {
+    if (peopleProvided > freshRemaining) {
       alert(`Only ${freshRemaining} more people are needed for this request.`);
       return;
     }
@@ -590,10 +593,10 @@ export default function RequestCard({
 
     const nextClaims = [...freshClaims, newClaim];
     const nextCommitted = nextClaims.reduce((sum, claim) => sum + Number(claim.peopleProvided || 0), 0);
-    const nextRemaining =
-      fresh.peopleNeeded === "Unknown"
-        ? "Unknown"
-        : Math.max(Number(fresh.peopleNeeded || 0) - nextCommitted, 0);
+    const nextRemaining = Math.max(
+      normalizePeopleNeeded(fresh.peopleNeeded) - nextCommitted,
+      0
+    );
     const nextStatus = nextRemaining === 0 ? "Assigned" : "Open";
 
     await updateDoc(requestRef, {
@@ -626,7 +629,7 @@ export default function RequestCard({
       toUid: request.residentUid,
       type: "request_claimed",
       title: "Volunteers committed to your request",
-      message: `${selectedHelper.name || selectedHelper.email || "A resident"} committed ${peopleProvided} people. ${nextRemaining === "Unknown" ? "People needed is still unknown." : `${nextRemaining} more needed.`}`,
+      message: `${selectedHelper.name || selectedHelper.email || "A resident"} committed ${peopleProvided} people. ${nextRemaining} more needed.`,
       requestId: request.id,
       eventId: request.eventId || ""
     });
@@ -830,11 +833,13 @@ export default function RequestCard({
                 onClick={() => onEdit(request)}
                 className="bg-white hover:bg-[#e2e8f0] border border-[#c7d0dc] text-[#475467] px-2 py-1 rounded-md text-xs font-semibold"
               >
-                Edit
+                {isClaimedByCurrentUser && !isOwner && !isAdmin
+                  ? "Update Needed"
+                  : "Edit"}
               </button>
             )}
 
-            {canEditRequest && request.status !== "Cancelled" && request.status !== "Completed" && (
+            {canCancelRequest && request.status !== "Cancelled" && request.status !== "Completed" && (
               <button
                 onClick={cancelRequest}
                 className="bg-[#fff1f0] hover:bg-[#fee4e2] border border-[#fecdca] text-[#b42318] px-2 py-1 rounded-md text-xs font-semibold"
@@ -967,7 +972,7 @@ export default function RequestCard({
                 className="w-full border border-[#c7d0dc] rounded-lg px-3 py-2 mb-3 bg-white text-sm"
               >
                 {Array.from(
-                  { length: peopleRemaining === "Unknown" ? 10 : Math.max(Number(peopleRemaining), 1) },
+                  { length: Math.max(Number(peopleRemaining), 1) },
                   (_, index) => index + 1
                 ).map((number) => (
                   <option key={number} value={number}>{number}</option>

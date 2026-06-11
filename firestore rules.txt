@@ -184,6 +184,39 @@ service cloud.firestore {
           || (
             resource.data.claimantUids.hasAny([request.auth.uid])
             && request.resource.data.claimantUids == resource.data.claimantUids
+            && (
+              request.resource.data.diff(resource.data).changedKeys().hasOnly([
+                "peopleNeeded",
+                "peopleNeededComment",
+                "peopleRemaining",
+                "status",
+                "claimCommitments",
+                "updatedAt",
+                "updatedByUid",
+                "updatedByName",
+                "residentEmail",
+                "residentPhone",
+                "residentAddress",
+                "assignedHelperPhone",
+                "assignedHelperEmail"
+              ])
+              || (
+                request.resource.data.status == "Completed"
+                && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+                  "status",
+                  "claimCommitments",
+                  "completionComment",
+                  "completedAt",
+                  "completedByUid",
+                  "completedByName",
+                  "residentEmail",
+                  "residentPhone",
+                  "residentAddress",
+                  "assignedHelperPhone",
+                  "assignedHelperEmail"
+                ])
+              )
+            )
           )
           || (
             resource.data.status == "Open"
