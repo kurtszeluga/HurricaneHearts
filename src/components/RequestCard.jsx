@@ -20,6 +20,7 @@ import {
   normalizePeopleNeeded
 } from "../utils/requestPeople";
 import {
+  getRequestDisplayStatus,
   getRequestStatusClass,
   isOpenRequestStatus
 } from "../utils/requestStatus";
@@ -103,6 +104,8 @@ function getLatestClaimedAt(request) {
 }
 
 function getStatusDateMeta(request) {
+  const displayStatus = getRequestDisplayStatus(request);
+
   if (request.status === "Completed") {
     return { label: "Completed", value: request.completedAt };
   }
@@ -115,8 +118,8 @@ function getStatusDateMeta(request) {
     return { label: "Assigned", value: getLatestClaimedAt(request) };
   }
 
-  if (request.status === "Re-Opened") {
-    return { label: "Re-Opened", value: request.updatedAt };
+  if (displayStatus === "Re-Opened") {
+    return { label: "Re-Opened", value: request.reopenedAt || request.updatedAt };
   }
 
   return { label: "Created", value: request.createdAt };
@@ -231,9 +234,9 @@ function RequestDetailsModal({
               <div className="text-gray-500">{formatDateOnly(request.eventDate) || "No event date"}</div>
             </div>
 
-            <div className={`rounded-lg border p-2 ${request.status === "Re-Opened" ? "border-[#fde68a] bg-[#fef3c7] text-[#92400e]" : ""}`}>
+            <div className={`rounded-lg border p-2 ${getRequestDisplayStatus(request) === "Re-Opened" ? "border-[#fde68a] bg-[#fef3c7] text-[#92400e]" : ""}`}>
               <div className="text-xs font-bold text-gray-500 uppercase mb-1">Status</div>
-              <div>{request.status || "Open"}</div>
+              <div>{getRequestDisplayStatus(request)}</div>
             </div>
 
             <div className="border rounded-lg p-2">
@@ -473,6 +476,7 @@ export default function RequestCard({
   const thisRequestHistory = requestHistory.filter((item) => item.requestId === request.id);
   const statusDateMeta = getStatusDateMeta(request);
   const statusDateTime = formatDateTime(statusDateMeta.value);
+  const displayStatus = getRequestDisplayStatus(request);
 
   useEffect(() => {
     if (!openAction || !actionToken) return;
@@ -762,7 +766,12 @@ export default function RequestCard({
           )}
         >
         <td className="px-2 py-2 text-xs text-[#475467] whitespace-nowrap">
-          {formatDateTime(request.createdAt) || "Not recorded"}
+          <div>{formatDateTime(request.createdAt) || "Not recorded"}</div>
+          {displayStatus === "Re-Opened" && (
+            <div className="mt-1 font-semibold text-[#92400e]">
+              Re-open: {formatDateTime(request.reopenedAt || request.updatedAt) || "Not recorded"}
+            </div>
+          )}
         </td>
 
         <td className="px-2 py-2">
@@ -810,10 +819,10 @@ export default function RequestCard({
           <span
             className={classNames(
               "inline-flex px-2 py-1 rounded-full text-xs font-bold",
-              getRequestStatusClass(request.status)
+              getRequestStatusClass(displayStatus)
             )}
           >
-            {request.status || "Open"}
+            {displayStatus}
           </span>
           <div className="mt-1 text-[11px] leading-tight text-[#667085]">
             <div>{statusDateMeta.label}</div>

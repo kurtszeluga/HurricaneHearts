@@ -17,6 +17,7 @@ import {
   normalizePeopleNeeded
 } from "../utils/requestPeople";
 import {
+  getRequestDisplayStatus,
   getRequestStatusClass,
   isOpenRequestStatus
 } from "../utils/requestStatus";
@@ -355,7 +356,12 @@ export default function HomePage({
                 {newOpenRequests.map((request) => (
                   <tr key={request.id} className={requestRowClass(request, "hover:bg-[#fff7ed]")}>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
-                      {formatDateTime(request.createdAt) || "Not recorded"}
+                      <div>{formatDateTime(request.createdAt) || "Not recorded"}</div>
+                      {getRequestDisplayStatus(request) === "Re-Opened" && (
+                        <div className="mt-1 font-semibold text-[#92400e]">
+                          Re-open: {formatDateTime(request.reopenedAt || request.updatedAt) || "Not recorded"}
+                        </div>
+                      )}
                     </td>
                     <td className="px-2 py-2 font-semibold text-center text-[#172033]">
                       {request.residentName || "Resident"}
@@ -441,7 +447,12 @@ export default function HomePage({
                   return (
                     <tr key={request.id} className={requestRowClass(request)}>
                       <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
-                        {formatDateTime(request.createdAt) || "Not recorded"}
+                        <div>{formatDateTime(request.createdAt) || "Not recorded"}</div>
+                        {getRequestDisplayStatus(request) === "Re-Opened" && (
+                          <div className="mt-1 font-semibold text-[#92400e]">
+                            Re-open: {formatDateTime(request.reopenedAt || request.updatedAt) || "Not recorded"}
+                          </div>
+                        )}
                       </td>
                       <td className="px-2 py-2 font-semibold text-center text-[#172033]">
                         {request.residentName || "Resident"}
@@ -454,8 +465,8 @@ export default function HomePage({
                         {myClaim ? `${myClaim.peopleProvided || 1} people` : "Assigned"}
                       </td>
                       <td className="px-2 py-2 text-center">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(request.status)}`}>
-                          {request.status || "Open"}
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(getRequestDisplayStatus(request))}`}>
+                          {getRequestDisplayStatus(request)}
                         </span>
                       </td>
                       <td className="px-2 py-2">
@@ -535,7 +546,12 @@ export default function HomePage({
                 {myActiveRequests.map((request) => (
                   <tr key={request.id} className={requestRowClass(request)}>
                     <td className="px-2 py-2 text-center text-xs text-[#475467] whitespace-nowrap">
-                      {formatDateTime(request.createdAt) || "Not recorded"}
+                      <div>{formatDateTime(request.createdAt) || "Not recorded"}</div>
+                      {getRequestDisplayStatus(request) === "Re-Opened" && (
+                        <div className="mt-1 font-semibold text-[#92400e]">
+                          Re-open: {formatDateTime(request.reopenedAt || request.updatedAt) || "Not recorded"}
+                        </div>
+                      )}
                     </td>
                     <td className="px-2 py-2">{categoryBadges(request)}</td>
                     <td className="px-2 py-2 text-center text-sm text-[#475467]">{request.urgency || "Medium"}</td>
@@ -548,8 +564,8 @@ export default function HomePage({
                       {getClaimedBy(request)}
                     </td>
                     <td className="px-2 py-2 text-center">
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(request.status)}`}>
-                        {request.status || "Open"}
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getRequestStatusClass(getRequestDisplayStatus(request))}`}>
+                        {getRequestDisplayStatus(request)}
                       </span>
                     </td>
                     <td className="px-2 py-2">

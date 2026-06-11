@@ -189,6 +189,9 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         peopleNeededComment,
         peopleRemaining: Math.max(normalizedPeopleNeeded - existingPeopleCommitted, 0),
         status: nextStatus,
+        ...(nextStatus === "Re-Opened"
+          ? { reopenedAt: serverTimestamp() }
+          : {}),
         claimCommitments: (editingRequest.claimCommitments || []).map((claim) => {
           const safeClaim = { ...claim };
           delete safeClaim.email;

@@ -190,6 +190,7 @@ service cloud.firestore {
                 "peopleNeededComment",
                 "peopleRemaining",
                 "status",
+                "reopenedAt",
                 "claimCommitments",
                 "updatedAt",
                 "updatedByUid",
