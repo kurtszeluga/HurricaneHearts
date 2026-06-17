@@ -85,7 +85,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
       // Reset the modal form whenever it opens for a new request context.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
-        categories: editingRequest.categories || [],
+        categories: (editingRequest.categories || []).slice(0, 1),
         hasFoodAllergies: editingRequest.hasFoodAllergies || false,
         foodAllergies: editingRequest.foodAllergies || "",
         need: editingRequest.need || "",
@@ -110,13 +110,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
 
   if (!open) return null;
 
-  const toggleCategory = (category) => {
+  const selectCategory = (category) => {
     setForm((current) => {
-      const selected = current.categories.includes(category);
-      const nextCategories = selected
-        ? current.categories.filter((item) => item !== category)
-        : [...current.categories, category];
-      const includesDonateDish = nextCategories.includes(REQUEST_MEAL_CATEGORY);
+      const nextCategories = [category];
+      const includesDonateDish = category === REQUEST_MEAL_CATEGORY;
 
       return {
         ...current,
@@ -343,7 +340,7 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
         {!isVolunteerOnlyEditor && <div className="mb-5">
           <div className="font-semibold mb-2">Request Categories</div>
           <p className="text-sm text-[#667085] mb-3">
-            Select all categories that apply.
+            Select one category for this request.
           </p>
 
           <div className="space-y-4">
@@ -367,9 +364,10 @@ export default function RequestModal({ open, onClose, user, editingRequest = nul
                         }
                       >
                         <input
-                          type="checkbox"
+                          type="radio"
+                          name="request-category"
                           checked={selected}
-                          onChange={() => toggleCategory(category)}
+                          onChange={() => selectCategory(category)}
                         />
                         <span className="grid gap-1">
                           <span>{getRequestCategoryLabel(category)}</span>
